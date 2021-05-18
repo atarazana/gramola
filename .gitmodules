@@ -1,0 +1,3 @@
+[submodule "events"]
+	path = events
+	url = git@github.com:atarazana/gramola-events.git
