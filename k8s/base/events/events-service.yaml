@@ -1,0 +1,25 @@
+kind: Service
+apiVersion: v1
+metadata:
+  annotations:
+    app.openshift.io/connects-to: events-database
+    app.openshift.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
+    app.quarkus.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
+  name: events
+  labels:
+    app.kubernetes.io/name: events
+    app.kubernetes.io/part-of: gramola-app
+    app.kubernetes.io/version: 0.0.1-SNAPSHOT
+    app.openshift.io/runtime: quarkus
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: events
+    app.kubernetes.io/part-of: gramola-app
+    app.kubernetes.io/version: 0.0.1-SNAPSHOT
+  type: ClusterIP
+  sessionAffinity: None
