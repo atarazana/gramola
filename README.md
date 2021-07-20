@@ -83,6 +83,37 @@ EOF
 
 ```
 
+If an additional cluster has been set up
+
+```
+cat <<EOF | kubectl apply -n openshift-gitops -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gramola-root-app-cloud
+  namespace: openshift-gitops
+  labels:
+    argocd-root-app: "true"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openshift-gitops
+    name: in-cluster
+  project: default
+  syncPolicy:
+    automated: {}
+  source:
+    helm:
+      parameters:
+        - name: baseRepoUrl
+          value: ${BASE_REPO_URL}
+    path: argocd/root-apps-cloud
+    repoURL: ${BASE_REPO_URL}
+    targetRevision: HEAD
+EOF
+```
+
 # Sync Root Apps alone
 
 ```sh
