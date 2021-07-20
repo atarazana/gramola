@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gramola-root-app-test-roks
+  name: gramola-root-app-test-cloud
   namespace: openshift-gitops
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -19,6 +19,6 @@ spec:
           value: {{ .Values.baseRepoUrl }}
         - name: destinationName
           value: "ibm-cloud"
-    path: apps/test-roks
+    path: apps/test-cloud
     repoURL: {{ .Values.baseRepoUrl }}
     targetRevision: HEAD

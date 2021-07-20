@@ -3,7 +3,7 @@ kind: Application
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
-  name: shared-resources-test-roks
+  name: shared-resources-test-cloud
   namespace: openshift-gitops
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -15,7 +15,7 @@ spec:
     name: {{ .Values.destinationName }}
   project: gramola-project-test
   source:
-    path: apps/test-roks/shared
+    path: apps/test-cloud/shared
     repoURL: {{ .Values.baseRepoUrl }}
     targetRevision: HEAD
     
