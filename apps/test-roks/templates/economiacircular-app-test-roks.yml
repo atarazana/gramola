@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: events-app-test-cloud
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: gramola-test
+    name: {{ .Values.destinationName }}
+  project: gramola-project-test
+  source:
+    # This is not possible because plugin has been set to kustomized-helm and source.helm applies only to helm
+    # helm:
+    #   parameters:
+    #     - name: clusterName
+    #       value: {{ .Values.destinationName }}
+    path: events-deployment/overlays/test-cloud
+    repoURL: {{ .Values.baseRepoUrl }}
+    targetRevision: HEAD
+    plugin:
+      env:
+        - name: DEBUG
+          value: "{{ .Values.debug }}"
+        - name: DESTINATION_NAME
+          value: "{{ .Values.destinationName }}"
+      name: kustomized-helm

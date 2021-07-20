@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gramola-root-app-dev
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openshift-gitops
+    name: in-cluster
+  project: default
+  syncPolicy:
+    automated: {}
+  source:
+    helm:
+      parameters:
+        - name: baseRepoUrl
+          value: {{ .Values.baseRepoUrl }}
+        - name: debug
+          value: "true"
+    path: apps/dev
+    repoURL: {{ .Values.baseRepoUrl }}
+    targetRevision: HEAD

@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+- ../../helm_base
+
+namespace: gramola-test
+commonLabels:
+  productive-environment: "true"
+  app.kubernetes.io/part-of: gramola-app
+  app.kubernetes.io/managed-by: argocd
+
+secretGenerator:
+- name: events-database-secret
+  literals:
+  - DB_HOST=events-database
+  - DB_USER=luke
+  - DB_PASSWORD=secret
+  - DB_NAME=EVENTS
+
+# resources:
+#   - namespace.yml
+
+patchesStrategicMerge:
+- patch/events-cm_patch.yml
+
+# configMapGenerator:
+# - name: economiacircular-cm-kk
+#   literals:
+#   - HASH_SALT=bBQqU0LteWr83OekGoc4w1UFLPc2sVsaV0JSkaLJD5bC7viYD6fkaSk
+#   - LOCALE=es
+#   - MYSQL_HOST=aquiles21-desa.ijclm.es
+#   - MYSQL_NAME=economiacircularcloud
+#   - MYSQL_PORT=3306"
+#   - PROFILE=jccm
+#   - SITE_MAIL=portal2012@jccm.es
+#   - SITE_NAME=Portal economiacircular
+#   - SITE_STATE=1"
+#   - USER1_MAIL=portal2012@jccm.es
+#   - USER1_NAME=admin
+
+images:
+- name: gramola-events:0.0.0
+  newName: quay.io/atarazana/gramola-events@sha256
+  newTag: 6e3ad6f5355d37001aeef4c0e196624abdf0b858b69020fdf68def8af4ad49af
+
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: events
+  path: patch/deployment_patch.yml

@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: shared-resources-test
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  syncPolicy:
+    automated: {}
+  destination:
+    namespace: gramola-test
+    name: {{ .Values.destinationName }}
+  project: gramola-project-test
+  source:
+    path: apps/test/shared
+    repoURL: {{ .Values.baseRepoUrl }}
+    targetRevision: HEAD
+    

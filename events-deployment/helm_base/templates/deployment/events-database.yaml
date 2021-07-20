@@ -1,0 +1,63 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"events-database:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"events-database\")].image"}]
+    openshift.io/generated-by: OpenShiftNewApp
+  name: events-database
+  labels:
+    app: events-database
+    app.kubernetes.io/component: events-database
+    app.kubernetes.io/instance: events-database
+    app.kubernetes.io/part-of: gramola-app
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: events-database
+  template:
+    metadata:
+      labels:
+        deployment: events-database
+    spec:
+      containers:
+        - name: events-database
+          image: registry.redhat.io/rhel8/postgresql-10:latest
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: events-database-secret
+                  key: DB_NAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: events-database-secret
+                  key: DB_PASSWORD
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: events-database-secret
+                  key: DB_USER
+          resources:
+            limits:
+              cpu: 500m
+              memory: 250Mi
+            requests:
+              cpu: 200m
+              memory: 150Mi
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

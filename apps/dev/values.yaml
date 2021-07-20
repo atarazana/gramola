@@ -1,0 +1,4 @@
+baseRepoUrl: https://github.com/atarazana/gramola.git
+debug: false
+destinationName: in-cluster
+

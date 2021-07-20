@@ -1,0 +1,3 @@
+baseRepoUrl: https://github.com/atarazana/gramola.git
+debug: false
+destinationName: aws-managed1
