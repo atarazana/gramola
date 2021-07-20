@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/version: 0.0.1-SNAPSHOT
     app.openshift.io/runtime: quarkus
   annotations:
-    app.openshift.io/connects-to: events-database
+    app.openshift.io/connects-to: ["events-database",{"apiVersion":"apps/v1","kind":"Deployment","name":"events-database"}]
     app.openshift.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
     app.quarkus.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
   
