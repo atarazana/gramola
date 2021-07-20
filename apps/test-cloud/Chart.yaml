@@ -1,0 +1,6 @@
+
+apiVersion: v1
+appVersion: "1.0"
+description: Helm chart to deploy Gramola in cloud test environment
+name: gramola-cloud-test
+version: 0.1.0
