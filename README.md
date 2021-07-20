@@ -85,7 +85,7 @@ EOF
 
 If an additional cluster has been set up
 
-```
+```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
