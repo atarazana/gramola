@@ -4,9 +4,18 @@
 
 # Add plugin section to ArgoCD Custom Resource
 
+If OCP 4.6
+
 ```sh
 kubectl patch argocd argocd-cluster -n openshift-gitops --patch "$(cat ./argocd/plugins/argocd-kustomized-helm-plugin.yaml)" --type=merge
 ```
+
+If OCP 4.7+ 
+
+```sh
+kubectl patch argocd openshift-gitops -n openshift-gitops --patch "$(cat ./argocd/plugins/argocd-kustomized-helm-plugin.yaml)" --type=merge
+```
+
 
 # Adjust permissions of Service Account
 
@@ -17,13 +26,13 @@ kubectl apply -f util/argocd-service-account-permissions.yaml
 # Log in ArgoCD with CLI
 
 ```sh
-argocd-login.sh
+./util/argocd-login.sh
 ```
 
 # Register repos
 
 ```sh
-argocd-register-repos.sh
+./util/argocd-register-repos.sh
 
 argocd repo list
 ```
@@ -42,7 +51,7 @@ argocd proj list
 NOTE: https://argoproj.github.io/argo-cd/user-guide/helm/
 
 ```sh
-export BASE_REPO_URL=https://gitlab.cm.jccm.es/web-movilidad/portales-cloud.git
+export BASE_REPO_URL=https://github.com/atarazana/gramola.git
 #helm template ./argocd/root-apps/ --name-template portales-cloud-root-apps --set baseRepoUrl=${BASE_REPO_URL} | kubectl apply -f -
 
 cat <<EOF | kubectl apply -n openshift-gitops -f -

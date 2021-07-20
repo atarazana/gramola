@@ -8,7 +8,7 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   # Project description
-  description: Portales Cloud Project Dev
+  description: Gramola Project Dev
 
   # Allow manifests to deploy from any Git repos
   sourceRepos:
