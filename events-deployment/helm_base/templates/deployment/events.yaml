@@ -5,7 +5,7 @@ metadata:
     app.openshift.io/connects-to: >-
       ["events-database",{"apiVersion":"apps/v1","kind":"Deployment","name":"events-database"}]
     app.quarkus.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
-    app.openshift.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
+    app.openshift.io/vcs-uri: 'https://github.com/atarazana/gramola-events.git'
     app.openshift.io/vcs-ref: ''
   name: events
   labels:
@@ -32,8 +32,9 @@ spec:
       annotations:
         app.openshift.io/connects-to: >-
           ["events-database",{"apiVersion":"apps/v1","kind":"Deployment","name":"events-database"}]
-        app.openshift.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
         app.quarkus.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
+        app.openshift.io/vcs-uri: 'https://github.com/atarazana/gramola-events.git'
+        app.openshift.io/vcs-ref: ''
     spec:
       containers:
         - name: events
