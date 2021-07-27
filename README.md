@@ -37,6 +37,37 @@ kubectl apply -f util/argocd-service-account-permissions.yaml
 argocd repo list
 ```
 
+# Register additional clusters
+
+First make sure there is a context with proper credentials, for instance by logging in.
+
+
+```sh
+export API_SERVER=localhost:8443
+oc login ${API_SERVER} --username=myuser --password=mypass
+```
+
+You can run this and follow instructions. CLUSTER_NAME is a name you choose for your cluster, API_SERVER is the host and port **without `http(s)`**.
+
+```sh
+./util/argocd-register-cluster.sh
+```
+
+Or run this directly.
+
+```sh
+export CLUSTER_NAME=aws-managed1
+./util/argocd-register-cluster.sh ${CLUSTER_NAME} ${API_SERVER}
+```
+
+Check if your cluster has been added correctly.
+
+```sh
+argocd cluster list
+```
+
+Now you can log back in the cluster where ArgoCD is running if you want.
+
 # Add ArgoCD Project definitions
 
 ```sh
@@ -108,6 +139,8 @@ spec:
       parameters:
         - name: baseRepoUrl
           value: ${BASE_REPO_URL}
+        - name: destinationName
+          value: ${CLUSTER_NAME}
     path: argocd/root-apps-cloud
     repoURL: ${BASE_REPO_URL}
     targetRevision: HEAD
