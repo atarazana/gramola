@@ -3,6 +3,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: events-source-pvc
+  namespace: {{ .Values.cicdNamespace }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -14,6 +15,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: events-cache-pvc
+  namespace: {{ .Values.cicdNamespace }}
 spec:
   accessModes:
     - ReadWriteOnce

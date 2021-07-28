@@ -82,7 +82,7 @@ argocd proj list
 NOTE: https://argoproj.github.io/argo-cd/user-guide/helm/
 
 ```sh
-export BASE_REPO_URL=https://github.com/atarazana/gramola.git
+export BASE_REPO_URL=https://github.com/atarazana/gramola
 #helm template ./argocd/root-apps/ --name-template portales-cloud-root-apps --set baseRepoUrl=${BASE_REPO_URL} | kubectl apply -f -
 
 cat <<EOF | kubectl apply -n openshift-gitops -f -
@@ -143,6 +143,38 @@ spec:
           value: ${CLUSTER_NAME}
     path: argocd/root-apps-cloud
     repoURL: ${BASE_REPO_URL}
+    targetRevision: HEAD
+EOF
+```
+# Pipelines
+
+Deploy app to deploy pipelines.
+
+```sh
+cat <<EOF | kubectl apply -n openshift-gitops -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gramola-root-app-cicd
+  namespace: openshift-gitops
+  labels:
+    argocd-cicd-app: "true"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openshift-gitops
+    name: in-cluster
+  project: default
+  syncPolicy:
+    automated: {}
+  source:
+    helm:
+      parameters:
+        - name: baseRepoUrl
+          value: ${BASE_REPO_URL}
+    path: argocd/cicd
+    repoURL: ${BASE_REPO_URL}.git
     targetRevision: HEAD
 EOF
 ```

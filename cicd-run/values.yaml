@@ -1,5 +1,10 @@
 baseRepoUrl: https://github.com/atarazana/gramola
 
+destinationName: in-cluster
+
+sourceWorkspaceSize: 10Gi
+cacheWorkspaceSize: 10Gi
+
 cicdNamespace: gramola-cicd
 
 imageRegistry: image-registry.openshift-image-registry.svc:5000

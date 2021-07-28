@@ -2,13 +2,12 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: event-plr-
+  namespace: {{ .Values.cicdNamespace }}
   labels:
     app.kubernetes.io/instance: events
     pipeline.openshift.io/runtime: quarkus
     pipeline.openshift.io/type: knative
     tekton.dev/pipeline: events-pipeline
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
 spec:
   params:
     - name: APP_NAME

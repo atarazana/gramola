@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: events-pl
+  namespace: {{ .Values.cicdNamespace }}
   labels:
     app.kubernetes.io/instance: events
     pipeline.openshift.io/runtime: quarkus
