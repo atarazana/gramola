@@ -1,0 +1,139 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  annotations:
+    tekton.dev/displayName: buildah custom build
+    tekton.dev/pipelines.minVersion: '0.19'
+    tekton.dev/tags: 'buildah, workspace'
+  name: buildah-custom-build
+
+  labels:
+    app.kubernetes.io/version: '0.1'
+    operator.tekton.dev/provider-type: redhat
+spec:
+  description: >-
+    This task clones a Git repository and builds and pushes a container
+    image using a Dockerfile.
+  params:
+    - default: ./Dockerfile
+      description: The location of the dockerfile relative to PATH_CONTEXT
+      name: DOCKERFILE_PATH
+      type: string
+    - default: .
+      description: The location of the path to run s2i from
+      name: PATH_CONTEXT
+      type: string
+    - default: 'true'
+      description: >-
+        Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+        registry)
+      name: TLSVERIFY
+      type: string
+    - description: Location of the repo where image has to be pushed
+      name: IMAGE
+      type: string
+    - default: >-
+        {{ .Values.buildahBuilderImage }}
+      description: The location of the buildah builder image.
+      name: BUILDER_IMAGE
+      type: string
+  results:
+    - description: Digest of the image just built.
+      name: IMAGE_DIGEST
+  steps:
+    - args:
+        - |-
+          echo "PATH_CONTEXT=$(params.PATH_CONTEXT)" > env-file
+
+          [[ '$(params.DOCKERFILE_PATH)' != "" ]] &&
+            echo "DOCKERFILE_PATH=$(params.DOCKERFILE_PATH)" >> env-file
+
+          echo "Generated Env file"
+          echo "------------------------------"
+          cat env-file
+          echo "------------------------------"
+      command:
+        - /bin/sh
+        - '-c'
+      image: >-
+        registry.redhat.io/ocp-tools-4-tech-preview/source-to-image-rhel8@sha256:ba51e5e74ff5a29fd429b0bb77bc2130e5284826a60d042fc4e4374381a7a308
+      name: gen-env-file
+      resources: {}
+      volumeMounts:
+        - mountPath: /env-params
+          name: envparams
+      workingDir: /env-params
+    - args:
+        - |-
+          echo "------------------------------"
+          buildah pull '--storage-driver=vfs' '--tls-verify=$(params.TLSVERIFY)' $(params.IMAGE)
+          if [ $? -eq 0 ]; then
+            echo "Image $(params.IMAGE) found"
+          else
+            echo "Image $(params.IMAGE) not found"
+          fi
+          echo "------------------------------"
+      command:
+        - /bin/sh
+        - '-c'
+      # command:
+      #   - buildah
+      #   - pull
+      #   - '--storage-driver=vfs'
+      #   - '--tls-verify=$(params.TLSVERIFY)'
+      #   - '--layers'
+      #   - $(params.IMAGE)
+      image: $(params.BUILDER_IMAGE)
+      name: cache
+      resources: {}
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+      workingDir: $(workspaces.source.path)
+    - command:
+        - buildah
+        - bud
+        - '--storage-driver=vfs'
+        - '--tls-verify=$(params.TLSVERIFY)'
+        - '--layers'
+        - '-f'
+        - $(params.DOCKERFILE_PATH)
+        - '-t'
+        - $(params.IMAGE)
+        - .
+      image: $(params.BUILDER_IMAGE)
+      name: build
+      resources: {}
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+      workingDir: $(workspaces.source.path)
+    - command:
+        - buildah
+        - push
+        - '--storage-driver=vfs'
+        - '--tls-verify=$(params.TLSVERIFY)'
+        - '--digestfile=$(workspaces.source.path)/image-digest'
+        - $(params.IMAGE)
+        - 'docker://$(params.IMAGE)'
+      image: $(params.BUILDER_IMAGE)
+      name: push
+      resources: {}
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+      workingDir: $(workspaces.source.path)
+    - image: $(params.BUILDER_IMAGE)
+      name: digest-to-results
+      resources: {}
+      script: >-
+        cat $(workspaces.source.path)/image-digest | tee
+        /tekton/results/IMAGE_DIGEST
+  volumes:
+    - emptyDir: {}
+      name: varlibcontainers
+    - emptyDir: {}
+      name: envparams
+  workspaces:
+    - mountPath: /workspace/source
+      name: source

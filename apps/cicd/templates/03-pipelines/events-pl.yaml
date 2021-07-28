@@ -1,0 +1,103 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: events-pl
+  labels:
+    app.kubernetes.io/instance: events
+    pipeline.openshift.io/runtime: quarkus
+    pipeline.openshift.io/type: knative
+spec:
+  params:
+    - name: APP_NAME
+      type: string
+      default: events
+    - name: GIT_REPO
+      type: string
+    - name: GIT_REVISION
+      type: string
+      default: main
+    - name: IMAGE_NAME
+      type: string
+    - name: PATH_CONTEXT
+      type: string
+      default: .
+    - name: QUARKUS_PROFILE
+      type: string
+      default: prod
+    - name: DB_HOST
+      type: string
+      default: postgresql-db
+    - name: REVISION_NAME
+      type: string
+  tasks:
+    - name: fetch-repository
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REVISION)
+        - name: deleteExisting
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: workspace-source
+    - name: package
+      params:
+        - name: PATH_CONTEXT
+          value: $(params.PATH_CONTEXT)
+      runAfter:
+        - fetch-repository
+      taskRef:
+        kind: ClusterTask
+        name: quarkus-package
+      workspaces:
+        - name: source
+          workspace: workspace-source
+        - name: cache
+          workspace: workspace-cache
+    - name: build
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_NAME)
+        - name: TLSVERIFY
+          value: 'false'
+        - name: PATH_CONTEXT
+          value: $(params.PATH_CONTEXT)
+        - name: DOCKERFILE_PATH
+          value: './src/main/docker/Dockerfile.jvm'
+      runAfter:
+        - package
+      taskRef:
+        kind: ClusterTask
+        name: buildah-custom-build
+      workspaces:
+        - name: source
+          workspace: workspace-source
+    # - name: kn-service-create
+    #   params:
+    #     - name: ARGS
+    #       value:
+    #         - service
+    #         - create
+    #         - $(params.APP_NAME)
+    #         - '--image=$(params.IMAGE_NAME)'
+    #         - '--env'
+    #         - 'QUARKUS_PROFILE=$(params.QUARKUS_PROFILE)'
+    #         - '--env'
+    #         - 'DB_HOST=$(params.DB_HOST)'
+    #         - '--env-from'
+    #         - 'secret:$(params.DB_SECRET_NAME)'
+    #         - '--revision-name'
+    #         - '{{.Service}}-$(params.REVISION_NAME)'
+    #         - '--force'
+    #   runAfter:
+    #     - build
+    #   taskRef:
+    #     kind: ClusterTask
+    #     name: kn
+  workspaces:
+    - name: workspace-source
+    - name: workspace-cache

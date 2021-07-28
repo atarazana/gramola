@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  annotations:
+    tekton.dev/displayName: buildah custom build
+    tekton.dev/pipelines.minVersion: '0.19'
+    tekton.dev/tags: 'buildah, workspace'
+  name: quarkus-package
+
+  labels:
+    app.kubernetes.io/version: '0.1'
+    operator.tekton.dev/provider-type: redhat
+spec:
+  description: >-
+    This task package a quarkus application.
+  params:
+    - default: .
+      description: The location of the path to build from
+      name: PATH_CONTEXT
+      type: string
+    - default: quay.io/atarazana/quarkus-native-build-base:20.3.1.2-Final
+      description: The location of the quarkus builder image.
+      name: BUILDER_IMAGE
+      type: string
+    - default: "false"
+      description: Native build flag, false by default
+      name: NATIVE_BUILD
+      type: string
+  results:
+    - description: Digest of the image just built.
+      name: IMAGE_DIGEST
+  steps:
+    - args:
+        - |-
+          echo "------------------------------"
+          echo "PATH_CONTEXT: $(params.PATH_CONTEXT)"
+          cd $(params.PATH_CONTEXT)
+          echo "$(pwd)"
+          ls -ltrh $(workspaces.cache.path)
+          mkdir -p $(workspaces.cache.path)/.m2
+          cp ./oci/settings.xml $(workspaces.cache.path)/.m2/
+          ls -ltrh $(workspaces.cache.path)/.m2
+          alias mvn="mvn --global-settings $(workspaces.cache.path)/.m2/settings.xml -Dmaven.repo.local=$(workspaces.cache.path)"
+          mvn dependency:go-offline
+          if [ "$(params.NATIVE_BUILD)" = true ] ; then
+            mvn clean package -Pnative -DskipTests
+          else
+            mvn clean package -DskipTests 
+          fi
+          
+          echo "------------------------------"
+      command:
+        - /bin/sh
+        - '-c'
+      image: $(params.BUILDER_IMAGE)
+      name: package
+      resources: {}
+      # volumeMounts:
+      #   - mountPath: /var/lib/containers
+      #     name: varlibcontainers
+      workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+    
+  # volumes:
+  #   - emptyDir: {}
+  #     name: varlibcontainers
+  #   - emptyDir: {}
+  #     name: envparams
+  workspaces:
+    - mountPath: /workspace/source
+      name: source
+    - mountPath: /workspace/cache
+      name: cache

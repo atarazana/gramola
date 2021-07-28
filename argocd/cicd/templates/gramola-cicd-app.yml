@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gramola-cicd-app
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openshift-gitops
+    name: in-cluster
+  project: default
+  syncPolicy:
+    automated: {}
+  source:
+    helm:
+      parameters:
+        - name: baseRepoUrl
+          value: {{ .Values.baseRepoUrl }}
+    path: apps/cicd
+    repoURL: {{ .Values.baseRepoUrl }}
+    targetRevision: HEAD
