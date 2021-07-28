@@ -7,6 +7,8 @@ metadata:
     pipeline.openshift.io/runtime: quarkus
     pipeline.openshift.io/type: knative
     tekton.dev/pipeline: events-pipeline
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   params:
     - name: APP_NAME
