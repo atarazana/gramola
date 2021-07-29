@@ -6,9 +6,9 @@ export GIT_URL=$(yq r ./values.yaml gitUrl)
 export GIT_USERNAME=$(yq r ./values.yaml gitUsername)
 export GIT_PAT_SECRET_NAME=$(yq r ./values.yaml gitPatSecretName)
 
-echo "Token for ${GIT_BASE_URL}: " && read -s GIT_PAT
-if [ -z "${GIT_PAT}"]; then
-    echo "You should provide a PAT for ${GIT_BASE_URL}"
+echo "PAT for ${GIT_URL}: " && read -s GIT_PAT
+if [ -z "${GIT_PAT}" ]; then
+    echo "You should provide a PAT for ${GIT_URL}"
     exit 1
 fi
 
@@ -28,7 +28,7 @@ export CONTAINER_REGISTRY_USER=$(yq r ./values.yaml containerRegistryUser)
 export CONTAINER_REGISTRY_PASSWORD='Fomare!01'
 
 echo "Password for ${CONTAINER_REGISTRY_SERVER}: " && read -s CONTAINER_REGISTRY_PASSWORD
-if [ -z "${CONTAINER_REGISTRY_PASSWORD}"]; then
+if [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
     echo "You should provide a password for ${CONTAINER_REGISTRY_SERVER}"
     exit 1
 fi
