@@ -7,8 +7,19 @@ cacheWorkspaceSize: 10Gi
 
 cicdNamespace: gramola-cicd
 
-imageRegistry: image-registry.openshift-image-registry.svc:5000
+# OCI Registry Server or  image-registry.openshift-image-registry.svc:5000 if internal
+#containerRegistryServer: image-registry.openshift-image-registry.svc:5000
+containerRegistryServer: quay.io
+
+# OCI Registry organization or namespace if internal
+#containerRegistryOrg: gramola-cicd
+containerRegistryOrg: atarazana
+
+# Default image tag to be overridden
+imageTag: latest
+
+#imageRegistry: image-registry.openshift-image-registry.svc:5000
 
 buildahBuilderImage: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2dd5cc2d0b53136236fb5178eb5b71eebe5d07a3c33d13
 
-serviceAccountName: default
+serviceAccountName: pipelines

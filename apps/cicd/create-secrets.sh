@@ -23,14 +23,20 @@ kubectl annotate -n ${CICD_NAMESPACE} secret ${GIT_PAT_SECRET_NAME} \
 # Create container registry secret
 export CONTAINER_REGISTRY_SECRET_NAME=$(yq r ./values.yaml containerRegistrySecretName)
 export CONTAINER_REGISTRY_SERVER=$(yq r ./values.yaml containerRegistryServer)
-export CONTAINER_REGISTRY_USER=$(yq r ./values.yaml containerRegistryUser)
+export CONTAINER_REGISTRY_ORG=$(yq r ./values.yaml containerRegistryOrg)
 
-export CONTAINER_REGISTRY_PASSWORD='Fomare!01'
-
-echo "Password for ${CONTAINER_REGISTRY_SERVER}: " && read -s CONTAINER_REGISTRY_PASSWORD
+echo "User for ${CONTAINER_REGISTRY_SERVER}/${CONTAINER_REGISTRY_ORG}: " && read CONTAINER_REGISTRY_USERNAME
+if [ -z "${CONTAINER_REGISTRY_USERNAME}" ]; then
+    echo "You should provide a user for ${CONTAINER_REGISTRY_SERVER}/${CONTAINER_REGISTRY_ORG}"
+    exit 1
+fi
+echo "Password for ${CONTAINER_REGISTRY_SERVER}/${CONTAINER_REGISTRY_ORG}: " && read -s CONTAINER_REGISTRY_PASSWORD
 if [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
-    echo "You should provide a password for ${CONTAINER_REGISTRY_SERVER}"
+    echo "You should provide a password for ${CONTAINER_REGISTRY_SERVER}/${CONTAINER_REGISTRY_ORG}"
     exit 1
 fi
 
-kubectl create -n ${CICD_NAMESPACE} secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME}   --docker-server=$CONTAINER_REGISTRY_SERVER   --docker-username=$CONTAINER_REGISTRY_USER   --docker-password=$CONTAINER_REGISTRY_PASSWORD
+kubectl create -n ${CICD_NAMESPACE} secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
+  --docker-server=https://$CONTAINER_REGISTRY_SERVER \
+  --docker-username=$CONTAINER_REGISTRY_USERNAME \
+  --docker-password=$CONTAINER_REGISTRY_PASSWORD

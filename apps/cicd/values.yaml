@@ -2,8 +2,8 @@ gitUrl: https://github.com
 gitUsername: atarazana
 baseRepoName: gramola
 
-containerRegistryServer: 'https://quay.io'
-containerRegistryUser: atarazana
+containerRegistryServer: quay.io
+containerRegistryOrg: atarazana
 
 cicdNamespace: gramola-cicd
 
