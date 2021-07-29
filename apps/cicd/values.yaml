@@ -1,4 +1,9 @@
-baseRepoUrl: https://github.com/atarazana/gramola
+gitUrl: https://github.com
+gitUsername: atarazana
+baseRepoName: gramola
+
+containerRegistryServer: 'https://quay.io'
+containerRegistryUser: atarazana
 
 cicdNamespace: gramola-cicd
 
@@ -6,3 +11,8 @@ buildahBuilderImage: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2
 
 sourceWorkspaceSize: 10Gi
 cacheWorkspaceSize: 10Gi
+
+buildBotServiceAccountName: build-bot
+
+containerRegistrySecretName: container-registry-secret
+gitPatSecretName: git-pat-secret

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.buildBotServiceAccountName }}
+  namespace: {{ .Values.cicdNamespace }}
+secrets:
+- name: {{ .Values.gitPatSecretName }}
+- name: {{ .Values.containerRegistrySecretName }}
