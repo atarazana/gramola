@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: gramola-events-git-push
+  name: gramola-events-git-push-listener
 spec:
   serviceAccountName: {{ .Values.buildBotServiceAccountName }}
   triggers:
