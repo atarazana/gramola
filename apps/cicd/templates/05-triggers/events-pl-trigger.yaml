@@ -26,7 +26,7 @@ spec:
     value: $(body.repository.full_name)
   - name: gitRevision
     value: $(body.head_commit.id)
-  - name: contentRype
+  - name: contentType
     value: $(header.Content-Type)
   - name: gitId
     value: $(body.after)
@@ -40,8 +40,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   params:
-  - name: gitRepository
-  - name: gitRd
+  - name: gitRepositoryUrl
+  - name: gitRevision
+  - name: gitId
   resourcetemplates:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
