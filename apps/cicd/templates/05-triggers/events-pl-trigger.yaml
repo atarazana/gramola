@@ -2,6 +2,7 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
   name: gramola-events-git-push-listener
+  namespace: {{ .Values.cicdNamespace }}
 spec:
   serviceAccountName: {{ .Values.buildBotServiceAccountName }}
   triggers:
@@ -17,6 +18,7 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: gramola-events-git-push-trigger-binding
+  namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
@@ -37,6 +39,7 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   name: gramola-events-trigger-template
+  namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
