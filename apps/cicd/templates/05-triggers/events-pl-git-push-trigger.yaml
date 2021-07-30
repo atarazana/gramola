@@ -81,7 +81,7 @@ spec:
           value: v1
       pipelineRef:
         name: events-pl
-      serviceAccountName: {{ .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
       timeout: 1h0m0s
       workspaces:
         - name: workspace-source
