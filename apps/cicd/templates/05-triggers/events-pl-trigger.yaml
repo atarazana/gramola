@@ -1,21 +1,21 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: gramola-events-listener-interceptor
+  name: gramola-events-git-push
 spec:
   serviceAccountName: {{ .Values.buildBotServiceAccountName }}
   triggers:
     - name: GitHub-listener
       bindings:
-        - ref: gramola-events-git-push-pipeline-binding
+        - ref: gramola-events-git-push-trigger-binding
       template:
-        name: gramola-events-trigger-build-pipeline-template
+        name: gramola-events-trigger-template
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: gramola-events-git-push-pipeline-binding
+  name: gramola-events-git-push-trigger-binding
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
@@ -35,7 +35,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: gramola-events-trigger-build-pipeline-template
+  name: gramola-events-trigger-template
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
