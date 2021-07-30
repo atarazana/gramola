@@ -18,7 +18,9 @@ spec:
       value: main
     - name: IMAGE_NAME
       value: >-
-        {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.baseRepoUrl }}-events:{{ .Values.imageTag }}
+        {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-events:{{ .Values.imageTag }}
+    - name: IMAGE_TAG
+      value: {{ .Values.imageTag }}
     - name: PATH_CONTEXT
       value: .
     - name: QUARKUS_PROFILE

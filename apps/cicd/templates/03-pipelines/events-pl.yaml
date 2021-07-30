@@ -19,6 +19,8 @@ spec:
       default: main
     - name: IMAGE_NAME
       type: string
+    - name: IMAGE_TAG
+      type: string
     - name: PATH_CONTEXT
       type: string
       default: .
@@ -62,7 +64,7 @@ spec:
     - name: build
       params:
         - name: IMAGE
-          value: $(params.IMAGE_NAME)
+          value: "$(params.IMAGE_NAME):$(params.IMAGE_TAG)"
         - name: TLSVERIFY
           value: 'false'
         - name: PATH_CONTEXT

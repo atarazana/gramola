@@ -1,0 +1,83 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: gramola-events-listener-interceptor
+spec:
+  serviceAccountName: {{ .Values.buildBotServiceAccountName }}
+  triggers:
+    - name: GitHub-listener
+      bindings:
+        - ref: gramola-events-git-push-pipeline-binding
+      template:
+        name: gramola-events-trigger-build-pipeline-template
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: gramola-events-git-push-pipeline-binding
+spec:
+  params:
+  - name: gitRepositoryUrl
+    value: $(body.repository.url)
+  - name: gitRepository
+    value: $(body.repository.full_name)
+  - name: gitRevision
+    value: $(body.head_commit.id)
+  - name: contentRype
+    value: $(header.Content-Type)
+  - name: gitId
+    value: $(body.after)
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: gramola-events-trigger-build-pipeline-template
+spec:
+  params:
+  - name: gitRepository
+  - name: gitRd
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: event-plr-
+      namespace: {{ .Values.cicdNamespace }}
+      labels:
+        app.kubernetes.io/instance: events
+        pipeline.openshift.io/runtime: quarkus
+        pipeline.openshift.io/type: knative
+        tekton.dev/pipeline: events-pipeline
+    spec:
+      params:
+        - name: APP_NAME
+          value: gramola-events
+        - name: GIT_REPO
+          value: $(tt.params.gitRepositoryUrl)
+        - name: GIT_REVISION
+          value: $(tt.params.gitRevision)
+        - name: IMAGE_NAME
+          value: >-
+            {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-events:$(tt.params.gitId)
+        - name: IMAGE_TAG
+          value: $(tt.params.gitId)
+        - name: PATH_CONTEXT
+          value: .
+        - name: QUARKUS_PROFILE
+          value: prod
+        - name: DB_HOST
+          value: events-database
+        - name: REVISION_NAME
+          value: v1
+      pipelineRef:
+        name: events-pl
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      timeout: 1h0m0s
+      workspaces:
+        - name: workspace-source
+          persistentVolumeClaim:
+            claimName: events-source-pvc
+        - name: workspace-cache
+          persistentVolumeClaim:
+            claimName: events-cache-pvc
