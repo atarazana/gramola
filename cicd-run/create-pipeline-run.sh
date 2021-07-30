@@ -5,7 +5,7 @@ export CICD_NAMESPACE=$(yq r ../apps/cicd/values.yaml cicdNamespace)
 export GIT_URL=$(yq r ../apps/cicd/values.yaml gitUrl)
 export GIT_USERNAME=$(yq r ../apps/cicd/values.yaml gitUsername)
 export GIT_BASE_REPO_NAME=$(yq r ../apps/cicd/values.yaml baseRepoName)
-export BUILD_BOT_SERVICE_ACCOUNT_NAME=$(yq r ../apps/cicd/values.yaml buildBotServiceAccountName)
+export BUILD_BOT_SERVICE_ACCOUNT_NAME=$(yq r ../apps/cicd/values.yaml pipelinesServiceAccountName)
 
 export CONTAINER_REGISTRY_SERVER=$(yq r ../apps/cicd/values.yaml containerRegistryServer)
 export CONTAINER_REGISTRY_ORG=$(yq r ../apps/cicd/values.yaml containerRegistryOrg)

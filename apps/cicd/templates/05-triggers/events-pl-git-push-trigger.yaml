@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.gramolaEventsGitPushEventListenerName }}
   namespace: {{ .Values.cicdNamespace }}
 spec:
-  serviceAccountName: {{ .Values.buildBotServiceAccountName }}
+  serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
   triggers:
     - name: GitHub-listener
       bindings:

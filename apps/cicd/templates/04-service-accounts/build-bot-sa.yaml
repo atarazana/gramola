@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.buildBotServiceAccountName }}
+  name: {{ .Values.pipelinesServiceAccountName }}
   namespace: {{ .Values.cicdNamespace }}
 secrets:
 - name: {{ .Values.gitPatSecretName }}
@@ -11,11 +11,11 @@ secrets:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pipelines-scc-{{ .Values.buildBotServiceAccountName }}-rolebinding
+  name: pipelines-scc-{{ .Values.pipelinesServiceAccountName }}-rolebinding
   namespace: {{ .Values.cicdNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.buildBotServiceAccountName }}
+    name: {{ .Values.pipelinesServiceAccountName }}
     namespace: {{ .Values.cicdNamespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -25,11 +25,11 @@ roleRef:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: edit-{{ .Values.buildBotServiceAccountName }}-rolebinding
+  name: edit-{{ .Values.pipelinesServiceAccountName }}-rolebinding
   namespace: {{ .Values.cicdNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.buildBotServiceAccountName }}
+    name: {{ .Values.pipelinesServiceAccountName }}
     namespace: {{ .Values.cicdNamespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
