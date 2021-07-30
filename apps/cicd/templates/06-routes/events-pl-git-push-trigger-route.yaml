@@ -8,13 +8,13 @@ metadata:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
     eventlistener: {{ .Values.gramolaEventsGitPushEventListenerName }}
-  name: {{ .Values.gramolaEventsGitPushEventListenerName }}
+  name: el-{{ .Values.gramolaEventsGitPushEventListenerName }}
   namespace: {{ .Values.cicdNamespace }}
 spec:
   port:
     targetPort: http-listener
   to:
     kind: Service
-    name: {{ .Values.gramolaEventsGitPushEventListenerName }}
+    name: el-{{ .Values.gramolaEventsGitPushEventListenerName }}
     weight: 100
   wildcardPolicy: None
