@@ -7,9 +7,10 @@ spec:
   triggers:
     - name: GitHub-listener
       bindings:
-        - ref: gramola-events-git-push-trigger-binding
+        - kind: TriggerBinding
+          ref: gramola-events-git-push-trigger-binding
       template:
-        name: gramola-events-trigger-template
+        ref: gramola-events-trigger-template
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
