@@ -16,3 +16,5 @@ buildBotServiceAccountName: build-bot
 
 containerRegistrySecretName: container-registry-secret
 gitPatSecretName: git-pat-secret
+
+gramolaEventsGitPushEventListenerName: gramola-events-git-push-listener
