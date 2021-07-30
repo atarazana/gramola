@@ -68,9 +68,9 @@ spec:
           value: $(tt.params.gitRevision)
         - name: IMAGE_NAME
           value: >-
-            {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-events:$(tt.params.gitId)
+            {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-events
         - name: IMAGE_TAG
-          value: $(tt.params.gitId)
+          value: $(tt.params.gitRevision)
         - name: PATH_CONTEXT
           value: .
         - name: QUARKUS_PROFILE
