@@ -16,6 +16,8 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: gramola-events-git-push-pipeline-binding
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   params:
   - name: gitRepositoryUrl
@@ -34,6 +36,8 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   name: gramola-events-trigger-build-pipeline-template
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   params:
   - name: gitRepository
