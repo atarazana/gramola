@@ -38,7 +38,7 @@ spec:
       script: >
         #!/bin/sh
 
-        echo "SELECT_EXPRESSION=$(params.SELECT_EXPRESSION)"
+        echo "SELECT_EXPRESSION=\"$(params.SELECT_EXPRESSION)\""
         echo "NEW_VALUE=$(params.NEW_VALUE)"
         echo "FILE_TO_UPDATE=$(params.FILE_TO_UPDATE)"
 
