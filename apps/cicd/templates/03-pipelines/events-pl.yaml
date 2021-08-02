@@ -114,7 +114,7 @@ spec:
         - fetch-config-repository
       taskRef:
         kind: ClusterTask
-        name: git-clone
+        name: pr-create
       workspaces:
         - name: output
           workspace: workspace-source
