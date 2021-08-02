@@ -9,15 +9,15 @@ spec:
     - name: GitHub-listener
       bindings:
         - kind: TriggerBinding
-          ref: gramola-events-git-push-trigger-binding
+          ref: "{{ .Values.appName }}-events-git-push-trigger-binding"
       template:
-        ref: gramola-events-trigger-template
+        ref: "{{ .Values.appName }}-events-trigger-template"
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: gramola-events-git-push-trigger-binding
+  name: "{{ .Values.appName }}-events-git-push-trigger-binding"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -38,7 +38,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: gramola-events-trigger-template
+  name: "{{ .Values.appName }}-events-trigger-template"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -61,11 +61,15 @@ spec:
     spec:
       params:
         - name: APP_NAME
-          value: gramola-events
+          value: "{{ .Values.appName }}-events"
         - name: GIT_REPO
           value: $(tt.params.gitRepositoryUrl)
         - name: GIT_REVISION
           value: $(tt.params.gitRevision)
+        - name: GIT_REPO_CONFIG
+          value: "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}"
+        - name: GIT_REVISION_CONFIG
+          value: main
         - name: IMAGE_NAME
           value: >-
             {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-events

@@ -1,0 +1,63 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  annotations:
+    tekton.dev/displayName: GitHub create pull request cluster task
+    tekton.dev/pipelines.minVersion: '0.19'
+    tekton.dev/tags: 'pr, github'
+  name: pr-create
+
+  labels:
+    app.kubernetes.io/version: '0.1'
+    operator.tekton.dev/provider-type: redhat
+spec:
+  description: >-
+    These Tasks are GitHub tasks to work with repositories used by other tasks in
+    your Pipeline.
+
+    The pr-create Task will...
+  params:
+    - description: PR Title
+      name: PR_TITLE
+      type: string
+    - description: PR Body
+      name: PR_BODY
+      type: string
+    - description: Personal Access Token Secret Name
+      name: PAT_SECRET_NAME
+      type: string
+    - description: Personal Access Token Secret Key
+      name: PAT_SECRET_KEY
+      type: string
+      default: password
+    - default: quay.io/atarazana/gh:0.0.1
+      description: the image used where the gh binary is
+      name: TASK_IMAGE
+      type: string
+  results:
+    - description: The precise URL that was created for the PR
+      name: PR_URL
+  steps:
+    - image: $(params.TASK_IMAGE)
+      name: create
+      resources: {}
+      env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.PAT_SECRET_KEY)
+      script: >
+        #!/bin/sh
+
+        echo ${GITHUB_TOKEN} > ./github.token 
+
+        gh auth login --with-token < ./github.token 
+
+        PR_CREATE_OUT=`gh pr create --title "$(params.PR_TITLE)" --body "$(params.PR_BODY)"`
+        PR_URL=`echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull"
+
+        echo -n "${PR_URL}" > $(results.PR_URL.path)
+  workspaces:
+    - description: The git repo will be cloned onto the volume backing this workspace
+      name: output
