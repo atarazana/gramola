@@ -67,7 +67,7 @@ spec:
         - name: GIT_REVISION
           value: $(tt.params.gitRevision)
         - name: GIT_REPO_CONFIG
-          value: "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}"
+          value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
         - name: GIT_REVISION_CONFIG
           value: main
         - name: IMAGE_NAME
