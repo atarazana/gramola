@@ -23,7 +23,7 @@ spec:
     - description: New 'string' value.
       name: NEW_VALUE
       type: string
-    - default: quay.io/atarazana/gh:0.0.1
+    - default: quay.io/atarazana/yq:0.0.1
       description: the image used where the yq binary is
       name: TASK_IMAGE
       type: string
