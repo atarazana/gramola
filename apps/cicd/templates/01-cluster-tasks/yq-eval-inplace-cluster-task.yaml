@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  annotations:
+    tekton.dev/displayName: GitHub create pull request cluster task
+    tekton.dev/pipelines.minVersion: '0.19'
+    tekton.dev/tags: 'yq, github'
+  name: yq-eval-inplace
+
+  labels:
+    app.kubernetes.io/version: '0.1'
+    operator.tekton.dev/provider-type: redhat
+spec:
+  description: >-
+    These Task evaluates an expression and make changes in-place.
+  params:
+    - description: File to update in-place, it should be a YAML file
+      name: FILE_TO_UPDATE
+      type: string
+    - description: Expression to select the node to update
+      name: SELECT_EXPRESSION
+      type: string
+    - description: New 'string' value.
+      name: NEW_VALUE
+      type: string
+    - default: quay.io/atarazana/gh:0.0.1
+      description: the image used where the yq binary is
+      name: TASK_IMAGE
+      type: string
+  results:
+    - description: Success or failure
+      name: SUCCESS
+  steps:
+    - image: $(params.TASK_IMAGE)
+      name: create
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      script: >
+        #!/bin/sh
+
+        # Update target with new value
+        #yq -i eval '(.images.[] | select(.name == "gramola-events*")).newTag |= "111111"' ./events-deployment/overlays/dev/kustomization.yml
+        yq -i eval '$(params.PR_TITLE) |= "$(params.NEW_VALUE)"' $(params.FILE_TO_UPDATE)
+        
+        echo -n "true" > $(results.SUCCESS)
+  workspaces:
+    - mountPath: /workspace/source
+      name: source

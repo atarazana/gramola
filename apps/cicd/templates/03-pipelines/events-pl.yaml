@@ -100,6 +100,22 @@ spec:
       workspaces:
         - name: output
           workspace: workspace-source
+    - name: update-image
+      params:
+        - name: FILE_TO_UPDATE
+          value: ./events-deployment/overlays/dev/kustomization.yml
+        - name: SELECT_EXPRESSION
+          value: "(.images.[] | select(.name == \"gramola-events*\")).newTag"
+        - name: NEW_VALUE
+          value: "TODO"
+      runAfter:
+        - fetch-config-repository
+      taskRef:
+        kind: ClusterTask
+        name: pr-create
+      workspaces:
+        - name: output
+          workspace: workspace-source
     - name: create-pr
       params:
         - name: PR_TITLE
@@ -111,7 +127,7 @@ spec:
         - name: PAT_SECRET_KEY
           value: "password"
       runAfter:
-        - fetch-config-repository
+        - update-image
       taskRef:
         kind: ClusterTask
         name: pr-create

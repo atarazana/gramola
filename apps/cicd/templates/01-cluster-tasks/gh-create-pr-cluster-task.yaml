@@ -41,6 +41,7 @@ spec:
     - image: $(params.TASK_IMAGE)
       name: create
       resources: {}
+      workingDir: $(workspaces.source.path)
       env:
         - name: GITHUB_TOKEN
           valueFrom:
@@ -49,15 +50,31 @@ spec:
               key: $(params.PAT_SECRET_KEY)
       script: >
         #!/bin/sh
+        if [ ! -d .git ]; then
+          echo "Not a git repository found, aborting"
+          exit 1;
+        fi;
 
+        # Create a temporary branch to stash changes in
+        BRANCH_NAME=fb-$(tr -cd '[:alnum:]' < /dev/urandom | fold -w8 | head -n1)
+        echo "Creating branch ${BRANCH_NAME}..."    
+        git checkout -b ${BRANCH_NAME}
+
+        # Commit changes
+        git commit -a -m "$(params.PR_TITLE)"
+
+        # Push changes
+        git push origin ${BRANCH_NAME}
+
+        # Login `gh` using a Personal Access Token
         echo ${GITHUB_TOKEN} > ./github.token 
-
         gh auth login --with-token < ./github.token 
 
+        # Create a PR
         PR_CREATE_OUT=`gh pr create --title "$(params.PR_TITLE)" --body "$(params.PR_BODY)"`
         PR_URL=`echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull"
 
         echo -n "${PR_URL}" > $(results.PR_URL.path)
   workspaces:
-    - description: The git repo will be cloned onto the volume backing this workspace
-      name: output
+    - mountPath: /workspace/source
+      name: source
