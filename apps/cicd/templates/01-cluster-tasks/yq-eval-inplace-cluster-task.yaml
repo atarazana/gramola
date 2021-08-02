@@ -32,7 +32,7 @@ spec:
       name: SUCCESS
   steps:
     - image: $(params.TASK_IMAGE)
-      name: create
+      name: eval
       resources: {}
       workingDir: $(workspaces.source.path)
       script: >
