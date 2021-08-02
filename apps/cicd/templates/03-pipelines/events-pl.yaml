@@ -92,6 +92,26 @@ spec:
           value: $(params.GIT_REVISION_CONFIG)
         - name: deleteExisting
           value: 'true'
+      runAfter:
+        - build
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: workspace-source
+    - name: create-pr
+      params:
+        - name: PR_TITLE
+          value: "Updating image in DEV environment"
+        - name: PR_BODY
+          value: "Changing image..."
+        - name: PAT_SECRET_NAME
+          value: {{ .Values.gitPatSecretName }}
+        - name: PAT_SECRET_KEY
+          value: "password"
+      runAfter:
+        - fetch-config-repository
       taskRef:
         kind: ClusterTask
         name: git-clone
