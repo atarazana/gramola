@@ -27,9 +27,9 @@ spec:
       description: the image used where the yq binary is
       name: TASK_IMAGE
       type: string
-  results:
-    - description: Success or failure
-      name: SUCCESS
+  # results:
+  #   - description: Success or failure
+  #     name: SUCCESS
   steps:
     - image: $(params.TASK_IMAGE)
       name: eval
@@ -42,7 +42,7 @@ spec:
         #yq -i eval '(.images.[] | select(.name == "gramola-events*")).newTag |= "111111"' ./events-deployment/overlays/dev/kustomization.yml
         yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' $(params.FILE_TO_UPDATE)
         
-        echo -n "true" > $(results.SUCCESS)
+        #echo -n "true" > $(results.SUCCESS)
   workspaces:
     - mountPath: /workspace/source
       name: source
