@@ -51,7 +51,7 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: event-plr-
+      generateName: events-plr-
       namespace: {{ .Values.cicdNamespace }}
       labels:
         app.kubernetes.io/instance: events

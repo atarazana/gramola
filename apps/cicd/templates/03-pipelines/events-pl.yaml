@@ -114,7 +114,7 @@ spec:
         kind: ClusterTask
         name: yq-eval-inplace
       workspaces:
-        - name: output
+        - name: source
           workspace: workspace-source
     - name: pr-create
       params:
@@ -132,7 +132,7 @@ spec:
         kind: ClusterTask
         name: pr-create
       workspaces:
-        - name: output
+        - name: source
           workspace: workspace-source
     # - name: kn-service-create
     #   params:
