@@ -50,6 +50,16 @@ spec:
               key: $(params.PAT_SECRET_KEY)
       script: >
         #!/bin/sh
+        echo "PR_TITLE=$(params.PR_TITLE)"
+        echo "PR_BODY=$(params.PR_BODY)"
+        echo "PAT_SECRET_NAME=$(params.PAT_SECRET_NAME)"
+        echo "PAT_SECRET_KEY=$(params.PAT_SECRET_KEY)"
+
+        echo "WORKING_DIR=$(workspaces.source.path)"
+        echo "PWD=`pwd`"
+
+        ls -ltrha
+
         if [ ! -d .git ]; then
           echo "Not a git repository found, aborting"
           exit 1;
