@@ -48,7 +48,7 @@ spec:
             secretKeyRef:
               name: $(params.PAT_SECRET_NAME)
               key: $(params.PAT_SECRET_KEY)
-      script: >
+      script: |
         #!/bin/sh
         echo "PR_TITLE=$(params.PR_TITLE)"
         echo "PR_BODY=$(params.PR_BODY)"
