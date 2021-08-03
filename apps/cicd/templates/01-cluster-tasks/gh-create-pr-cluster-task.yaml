@@ -33,11 +33,11 @@ spec:
     - description: Git User Name
       name: USER_NAME_KEY
       type: string
-      default: user.name
+      default: user-name
     - description: Git User Email
       name: USER_EMAIL_KEY
       type: string
-      default: user.email
+      default: user-email
     - default: quay.io/atarazana/gh:0.0.1
       description: the image used where the gh binary is
       name: TASK_IMAGE
@@ -110,7 +110,7 @@ spec:
         # Push changes
         git push origin ${BRANCH_NAME}
     - image: $(params.TASK_IMAGE)
-      name: create-pr
+      name: create
       resources: {}
       workingDir: $(workspaces.source.path)
       env:
