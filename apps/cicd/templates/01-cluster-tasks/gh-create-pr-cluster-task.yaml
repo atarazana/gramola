@@ -52,7 +52,7 @@ spec:
         #!/bin/sh
 
         echo "====> /tekton/creds"
-        cat /tekton/creds/*
+        ls -ltrh /tekton/creds
 
         echo "====> ~/.gitconfig "
         cat ~/.gitconfig 
