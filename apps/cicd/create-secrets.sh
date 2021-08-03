@@ -40,3 +40,6 @@ kubectl create -n ${CICD_NAMESPACE} secret docker-registry ${CONTAINER_REGISTRY_
   --docker-server=https://$CONTAINER_REGISTRY_SERVER \
   --docker-username=$CONTAINER_REGISTRY_USERNAME \
   --docker-password=$CONTAINER_REGISTRY_PASSWORD
+
+kubectl annotate -n ${CICD_NAMESPACE} secret ${CONTAINER_REGISTRY_SECRET_NAME} \
+  "tekton.dev/docker-0=https://quay.io"

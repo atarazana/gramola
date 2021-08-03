@@ -52,13 +52,13 @@ spec:
         #!/bin/sh
 
         echo "====> /tekton/creds"
-        cat /tekton/creds
+        cat /tekton/creds/*
 
         echo "====> ~/.gitconfig "
         cat ~/.gitconfig 
 
-        echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
-        cat /var/run/secrets/kubernetes.io/serviceaccount/token
+        #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
+        #cat /var/run/secrets/kubernetes.io/serviceaccount/token
 
         echo "====> ~/.docker/config.json"
         cat ~/.docker/config.json
