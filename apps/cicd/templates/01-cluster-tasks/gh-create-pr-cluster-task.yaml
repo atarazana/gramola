@@ -54,8 +54,11 @@ spec:
         echo "====> /tekton/creds"
         ls -ltrh /tekton/creds
 
-        echo "====> ~/.gitconfig "
-        cat ~/.gitconfig 
+        echo "====> ~/.gitconfig"
+        cat ~/.gitconfig
+
+        echo "=== ~/.git-credentials ==="
+        cat ~/.git-credentials
 
         #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
         #cat /var/run/secrets/kubernetes.io/serviceaccount/token
