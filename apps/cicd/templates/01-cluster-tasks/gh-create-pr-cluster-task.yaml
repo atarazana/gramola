@@ -30,6 +30,14 @@ spec:
       name: PAT_SECRET_KEY
       type: string
       default: password
+    - description: Git User Name
+      name: USER_NAME_KEY
+      type: string
+      default: user.name
+    - description: Git User Email
+      name: USER_EMAIL_KEY
+      type: string
+      default: user.email
     - default: quay.io/atarazana/gh:0.0.1
       description: the image used where the gh binary is
       name: TASK_IMAGE
@@ -48,35 +56,27 @@ spec:
             secretKeyRef:
               name: $(params.PAT_SECRET_NAME)
               key: $(params.PAT_SECRET_KEY)
+        - name: GIT_USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.USER_NAME)
+        - name: GIT_USER_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.USER_EMAIL)
       script: |
         #!/bin/sh
 
-        echo "====> /tekton/creds"
-        ls -ltrh ~/creds
-
-        echo "====> /tekton/home"
-        ls -ltrh ${HOME}
-        for f in ${HOME}/* ; do
-          cat $f
-        done
-
         echo "====> ~/.gitconfig"
         cat ~/.gitconfig
 
-        echo "=== ~/.git-credentials ==="
-        cat ~/.git-credentials
-
-        git config user.email "atarazana@atarazana.com"
-        git config user.name "atarazana cicd"
+        git config user.email "${GIT_USER_EMAIL}"
+        git config user.name "${GIT_USER_NAME}"
 
         echo "====> ~/.gitconfig"
         cat ~/.gitconfig
-
-        #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
-        #cat /var/run/secrets/kubernetes.io/serviceaccount/token
-
-        echo "====> ~/.docker/config.json"
-        cat ~/.docker/config.json
     - image: $(params.TASK_IMAGE)
       name: git-work
       resources: {}
@@ -109,7 +109,6 @@ spec:
 
         # Push changes
         git push origin ${BRANCH_NAME}
-
     - image: $(params.TASK_IMAGE)
       name: create-pr
       resources: {}
