@@ -52,11 +52,11 @@ spec:
         #!/bin/sh
 
         echo "====> /tekton/creds"
-        ls -ltrh /tekton/creds
+        ls -ltrh ~/creds
 
         echo "====> /tekton/home"
-        ls -ltrh /tekton/home
-        for f in /tekton/home/* ; do
+        ls -ltrh ${HOME}
+        for f in ${HOME}/* ; do
           cat $f
         done
 
@@ -78,7 +78,7 @@ spec:
         echo "====> ~/.docker/config.json"
         cat ~/.docker/config.json
     - image: $(params.TASK_IMAGE)
-      name: create
+      name: git-work
       resources: {}
       workingDir: $(workspaces.source.path)
       env:
@@ -89,36 +89,6 @@ spec:
               key: $(params.PAT_SECRET_KEY)
       script: |
         #!/bin/sh
-
-        echo "====> /tekton/creds"
-        ls -ltrh /tekton/creds
-
-        echo "====> /tekton/home"
-        ls -ltrh /tekton/home
-        for f in /tekton/home/* ; do
-          cat $f
-        done
-
-        echo "====> ~/.gitconfig"
-        cat ~/.gitconfig
-
-        echo "=== ~/.git-credentials ==="
-        cat ~/.git-credentials
-
-        echo "====> ~/.gitconfig"
-        cat ~/.gitconfig
-
-        #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
-        #cat /var/run/secrets/kubernetes.io/serviceaccount/token
-
-        echo "====> ~/.docker/config.json"
-        cat ~/.docker/config.json
-
-        echo "PR_TITLE=$(params.PR_TITLE)"
-        echo "PR_BODY=$(params.PR_BODY)"
-        echo "PAT_SECRET_NAME=$(params.PAT_SECRET_NAME)"
-        echo "PAT_SECRET_KEY=$(params.PAT_SECRET_KEY)"
-
         echo "WORKING_DIR=$(workspaces.source.path)"
         echo "PWD=`pwd`"
 
@@ -139,6 +109,26 @@ spec:
 
         # Push changes
         git push origin ${BRANCH_NAME}
+
+    - image: $(params.TASK_IMAGE)
+      name: create-pr
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.PAT_SECRET_KEY)
+      script: |
+        #!/bin/sh
+        echo "PR_TITLE=$(params.PR_TITLE)"
+        echo "PR_BODY=$(params.PR_BODY)"
+        echo "PAT_SECRET_NAME=$(params.PAT_SECRET_NAME)"
+        echo "PAT_SECRET_KEY=$(params.PAT_SECRET_KEY)"
+
+        echo "WORKING_DIR=$(workspaces.source.path)"
+        echo "PWD=`pwd`"
 
         # Login `gh` using a Personal Access Token
         echo ${GITHUB_TOKEN} > ./github.token 
