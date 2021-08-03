@@ -39,7 +39,7 @@ spec:
       name: PR_URL
   steps:
     - image: $(params.TASK_IMAGE)
-      name: create
+      name: prepare
       resources: {}
       workingDir: $(workspaces.source.path)
       env:
@@ -68,6 +68,42 @@ spec:
 
         git config user.email "atarazana@atarazana.com"
         git config user.name "atarazana cicd"
+
+        echo "====> ~/.gitconfig"
+        cat ~/.gitconfig
+
+        #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
+        #cat /var/run/secrets/kubernetes.io/serviceaccount/token
+
+        echo "====> ~/.docker/config.json"
+        cat ~/.docker/config.json
+    - image: $(params.TASK_IMAGE)
+      name: create
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.PAT_SECRET_KEY)
+      script: |
+        #!/bin/sh
+
+        echo "====> /tekton/creds"
+        ls -ltrh /tekton/creds
+
+        echo "====> /tekton/home"
+        ls -ltrh /tekton/home
+        for f in /tekton/home/* ; do
+          cat $f
+        done
+
+        echo "====> ~/.gitconfig"
+        cat ~/.gitconfig
+
+        echo "=== ~/.git-credentials ==="
+        cat ~/.git-credentials
 
         echo "====> ~/.gitconfig"
         cat ~/.gitconfig
