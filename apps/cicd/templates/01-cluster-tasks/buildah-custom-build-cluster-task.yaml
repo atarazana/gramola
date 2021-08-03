@@ -40,6 +40,8 @@ spec:
   results:
     - description: Digest of the image just built.
       name: IMAGE_DIGEST
+    - description: Digest of the image just built without "sha256:"
+      name: IMAGE_DIGEST_CLEAN
   steps:
     - args:
         - |-
@@ -129,6 +131,11 @@ spec:
       script: >-
         cat $(workspaces.source.path)/image-digest | tee
         /tekton/results/IMAGE_DIGEST
+    - image: $(params.BUILDER_IMAGE)
+      name: digest-clean-to-results
+      resources: {}
+      script: >-
+        sed 's/sha256\://g' /tekton/results/IMAGE_DIGEST > /tekton/results/IMAGE_DIGEST_CLEAN
   volumes:
     - emptyDir: {}
       name: varlibcontainers

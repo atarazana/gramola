@@ -107,7 +107,7 @@ spec:
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"gramola-events*\")).newTag"
         - name: NEW_VALUE
-          value: "$(tasks.build.results.IMAGE_DIGEST)"
+          value: "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
       runAfter:
         - fetch-config-repository
       taskRef:
