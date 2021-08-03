@@ -66,6 +66,12 @@ spec:
         echo "=== ~/.git-credentials ==="
         cat ~/.git-credentials
 
+        git config user.email "atarazana@atarazana.com"
+        git config user.name "atarazana cicd"
+
+        echo "====> ~/.gitconfig"
+        cat ~/.gitconfig
+        
         #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
         #cat /var/run/secrets/kubernetes.io/serviceaccount/token
 
