@@ -71,7 +71,7 @@ spec:
 
         echo "====> ~/.gitconfig"
         cat ~/.gitconfig
-        
+
         #echo "====> /var/run/secrets/kubernetes.io/serviceaccount/token"
         #cat /var/run/secrets/kubernetes.io/serviceaccount/token
 
@@ -110,7 +110,7 @@ spec:
 
         # Create a PR
         PR_CREATE_OUT=`gh pr create --title "$(params.PR_TITLE)" --body "$(params.PR_BODY)"`
-        PR_URL=`echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull"
+        PR_URL=`echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull"`
 
         echo -n "${PR_URL}" > $(results.PR_URL.path)
   workspaces:
