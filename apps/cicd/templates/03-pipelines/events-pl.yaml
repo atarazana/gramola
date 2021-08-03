@@ -112,16 +112,16 @@ spec:
         - fetch-config-repository
       taskRef:
         kind: ClusterTask
-        name: yq-eval-inplace
+        name: yq-eval-in-place
       workspaces:
         - name: source
           workspace: workspace-source
     - name: pr-create
       params:
         - name: PR_TITLE
-          value: "Updating image in DEV environment"
+          value: "Updating image of Gramola **events** in DEV environment"
         - name: PR_BODY
-          value: "Changing image..."
+          value: "Automated PR to update **events** image to `$(tasks.build.results.IMAGE_DIGEST)`"
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY
@@ -134,28 +134,6 @@ spec:
       workspaces:
         - name: source
           workspace: workspace-source
-    # - name: kn-service-create
-    #   params:
-    #     - name: ARGS
-    #       value:
-    #         - service
-    #         - create
-    #         - $(params.APP_NAME)
-    #         - '--image=$(params.IMAGE_NAME)'
-    #         - '--env'
-    #         - 'QUARKUS_PROFILE=$(params.QUARKUS_PROFILE)'
-    #         - '--env'
-    #         - 'DB_HOST=$(params.DB_HOST)'
-    #         - '--env-from'
-    #         - 'secret:$(params.DB_SECRET_NAME)'
-    #         - '--revision-name'
-    #         - '{{.Service}}-$(params.REVISION_NAME)'
-    #         - '--force'
-    #   runAfter:
-    #     - build
-    #   taskRef:
-    #     kind: ClusterTask
-    #     name: kn
   workspaces:
     - name: workspace-source
     - name: workspace-cache
