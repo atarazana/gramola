@@ -54,6 +54,12 @@ spec:
         echo "====> /tekton/creds"
         ls -ltrh /tekton/creds
 
+        echo "====> /tekton/home"
+        ls -ltrh /tekton/home
+        for f in /tekton/home/* ; do
+          cat $f
+        done
+
         echo "====> ~/.gitconfig"
         cat ~/.gitconfig
 

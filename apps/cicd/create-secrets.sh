@@ -14,6 +14,8 @@ fi
 
 kubectl create secret -n ${CICD_NAMESPACE} generic ${GIT_PAT_SECRET_NAME} --dry-run=client -o yaml \
   | yq w - type kubernetes.io/basic-auth \
+  | yq w - stringData.[user.name] ${GIT_USERNAME} \
+  | yq w - stringData.[user.email] "${GIT_USERNAME}@example.com" \
   | yq w - stringData.username ${GIT_USERNAME} \
   | yq w - stringData.password ${GIT_PAT} | kubectl apply -f -
 
