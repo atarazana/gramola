@@ -33,11 +33,11 @@ spec:
     - description: Git User Name
       name: USER_NAME_KEY
       type: string
-      default: user-name
+      default: user.name
     - description: Git User Email
       name: USER_EMAIL_KEY
       type: string
-      default: user-email
+      default: user.email
     - default: quay.io/atarazana/gh:0.0.1
       description: the image used where the gh binary is
       name: TASK_IMAGE
@@ -60,12 +60,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: $(params.PAT_SECRET_NAME)
-              key: $(params.USER_NAME)
+              key: $(params.USER_NAME_KEY)
         - name: GIT_USER_EMAIL
           valueFrom:
             secretKeyRef:
               name: $(params.PAT_SECRET_NAME)
-              key: $(params.USER_EMAIL)
+              key: $(params.USER_EMAIL_KEY)
       script: |
         #!/bin/sh
 
