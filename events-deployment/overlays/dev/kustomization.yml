@@ -1,4 +1,3 @@
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 bases:
@@ -19,7 +18,7 @@ secretGenerator:
 images:
   - name: gramola-events:0.0.0
     newName: quay.io/atarazana/gramola-events@sha256
-    newTag: 6e3ad6f5355d37001aeef4c0e196624abdf0b858b69020fdf68def8af4ad49af
+    newTag: sha256:d90c99fd35de74596b8b03eed7a128ff82e136e42f9c55c7ea66529a8cee259c
 patchesJson6902:
   - target:
       group: apps
