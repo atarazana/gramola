@@ -18,9 +18,14 @@ pipelinesServiceAccountName: build-bot
 
 containerRegistrySecretName: container-registry-secret
 gitPatSecretName: git-pat-secret
+gitPatSecretKey: password
+
+overlays: "dev,test"
+
+gramolaEventsOverlayPath: ./events-deployment/overlays/
 
 gramolaEventsPushPipelineName: events-pl
 gramolaEventsPullRequestPipelineName: events-pr-pl
-gramolaEventsOverlayDevKustomizationPath: ./events-deployment/overlays/dev/kustomization.yml
+
 gramolaEventsGitPushEventListenerName: gramola-events-git-push-listener
 gramolaEventsGitPullRequestEventListenerName: gramola-events-git-pull-request-listener

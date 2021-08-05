@@ -1,0 +1,118 @@
+# This listener should be called by the configuration repo atarazana/gramola if
+# a pull requests has been merged.
+# For instance the `events` pipeline sends a change to the `dev` overlay to the 
+# configuration repo somebody approves => merged (*)
+# (*) https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#pull_request
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: {{ .Values.gramolaEventsGitPullRequestEventListenerName }}
+  namespace: {{ .Values.cicdNamespace }}
+spec:
+  serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
+  triggers:
+    - name: github-listener
+      interceptors:
+        - github:
+            # secretRef:
+            #   secretName: github-secret
+            #   secretKey: secretToken
+            eventTypes:
+              - pull_request
+        - cel:
+            filter: "body.action in ['closed'] && body.pull_request.merged == true"
+            overlays:
+              - key: extensions.image_digest_clean
+                # expression: "body.pull_request.body.split('====')[1].parseYAML().imageDigestClean"
+                expression: "body.pull_request.body.parseYAML().imageDigestClean"
+              - key: extensions.overlay
+                # expression: "body.pull_request.body.split('====')[1].parseYAML().imageDigestClean"
+                expression: "body.pull_request.body.parseYAML().overlay"
+      bindings:
+        - kind: TriggerBinding
+          ref: "{{ .Values.appName }}-events-git-pull-request-trigger-binding"
+      template:
+        ref: "{{ .Values.appName }}-events-trigger-template"
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: "{{ .Values.appName }}-events-git-pull-request-trigger-binding"
+  namespace: {{ .Values.cicdNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  params:
+  - name: gitRepositoryUrl
+    value: $(body.repository.url)
+  - name: gitRepository
+    value: $(body.repository.full_name)
+  - name: pullRequestBaseRef # merged to
+    value: $(body.pull_request.base.ref)
+  - name: pullRequestHeadRef # merged from
+    value: $(body.pull_request.head.ref)
+  - name: pullRequestTitle
+    value: $(body.pull_request.title)
+  - name: pullRequestBody
+    value: $(body.pull_request.body)
+  - name: imageDigestClean
+    value: $(body.extensions.image_digest_clean)
+  - name: overlay
+    value: $(body.extensions.overlay)
+  - name: contentType
+    value: $(header.Content-Type)
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: "{{ .Values.appName }}-events-trigger-template"
+  namespace: {{ .Values.cicdNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  params:
+  - name: gitRepositoryUrl
+  - name: gitRevision
+  - name: pullRequestBaseRef
+  - name: pullRequestHeadRef
+  - name: pullRequestTitle
+  - name: pullRequestBody
+  - name: imageDigestClean
+  - name: overlay
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: events-pull-request-plr-
+      namespace: {{ .Values.cicdNamespace }}
+      labels:
+        app.kubernetes.io/instance: events
+        pipeline.openshift.io/runtime: quarkus
+        pipeline.openshift.io/type: knative
+        tekton.dev/pipeline: events-pipeline
+    spec:
+      params:
+        - name: APP_NAME
+          value: "{{ .Values.appName }}-events"
+        - name: GIT_REPO_CONFIG
+          value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
+        - name: GIT_REVISION_CONFIG
+          value: main
+        - name: IMAGE_DIGEST_CLEAN
+          value: $(tt.params.imageDigestClean)
+        - name: OVERLAY
+          value: $(tt.params.overlay)
+      pipelineRef:
+        name: events-pull-request-pl
+      serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
+      timeout: 1h0m0s
+      workspaces:
+        - name: workspace-source
+          persistentVolumeClaim:
+            claimName: events-source-pvc
+        - name: workspace-cache
+          persistentVolumeClaim:
+            claimName: events-cache-pvc
