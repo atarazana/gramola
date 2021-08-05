@@ -21,6 +21,9 @@ spec:
       type: string
     - name: OVERLAY
       type: string
+    - name: NEXT_OVERLAY
+      type: string
+      default: test
   tasks:
     # - name: parse-body
     #   params:
@@ -51,7 +54,8 @@ spec:
     - name: update-image
       params:
         - name: FILE_TO_UPDATE
-          value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml"
+          # value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml"
+          value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"gramola-events*\")).newTag"
         - name: NEW_VALUE
@@ -67,10 +71,17 @@ spec:
     - name: pr-create
       params:
         - name: PR_TITLE
-          value: "Updating '{{ .Values.appName }}-events' image for overlay '$(params.OVERLAY)' with new image"
+          value: "Updating '{{ .Values.appName }}-events' image for overlay '$(params.NEXT_OVERLAY)' with new image"
+        # - name: PR_BODY
+        #   value: >-
+        #     command: UPDATE_IMAGE\noverlay: $(params.OVERLAY)\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml\nimageDigestClean: $(params.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
         - name: PR_BODY
-          value: >-
-            command: UPDATE_IMAGE\noverlay: $($(params.OVERLAY))\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml\nimageDigestClean: $(params.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
+          value: |
+            command: UPDATE_IMAGE
+            overlay: $(params.NEXT_OVERLAY)
+            kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml
+            imageDigestClean: $(params.IMAGE_DIGEST_CLEAN)
+            pipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY
