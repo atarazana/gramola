@@ -122,9 +122,16 @@ spec:
           value: >-
             "Updating '{{ .Values.appName }}-events' image for overlay 'dev' with new image"
         - name: PR_BODY
-          value: >- 
-            "Automated PR to UPDATE_IMAGE for OVERLAY='dev' in KUSTOMIZATION_FILE='{{ .Values.gramolaEventsOverlayDevKustomizationPath }}' 
-            with IMAGE_DIGEST_CLEAN='$(tasks.build.results.IMAGE_DIGEST_CLEAN)' from PIPELINE='{{ .Values.gramolaEventsPushPipelineName }}'"
+          value: | 
+            Automated PR to UPDATE_IMAGE for OVERLAY='dev' in KUSTOMIZATION_FILE='{{ .Values.gramolaEventsOverlayDevKustomizationPath }}' with IMAGE_DIGEST_CLEAN='$(tasks.build.results.IMAGE_DIGEST_CLEAN)' from PIPELINE='{{ .Values.gramolaEventsPushPipelineName }}'
+
+            UPDATE_IMAGE|dev|{{ .Values.gramolaEventsOverlayDevKustomizationPath }}|$(tasks.build.results.IMAGE_DIGEST_CLEAN)|{{ .Values.gramolaEventsPushPipelineName }}
+            ====
+            command: "UPDATE_IMAGE"
+            overlay: "dev"
+            kustomizationPath: "{{ .Values.gramolaEventsOverlayDevKustomizationPath }}"
+            imageDigestClean: "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
+            pipelineName: "{{ .Values.gramolaEventsPushPipelineName }}"
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY
