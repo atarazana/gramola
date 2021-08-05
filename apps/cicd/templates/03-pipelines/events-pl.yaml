@@ -125,7 +125,6 @@ spec:
           value: | 
             Automated PR to UPDATE_IMAGE for OVERLAY='dev' in KUSTOMIZATION_FILE='{{ .Values.gramolaEventsOverlayDevKustomizationPath }}' with IMAGE_DIGEST_CLEAN='$(tasks.build.results.IMAGE_DIGEST_CLEAN)' from PIPELINE='{{ .Values.gramolaEventsPushPipelineName }}'
 
-            UPDATE_IMAGE|dev|{{ .Values.gramolaEventsOverlayDevKustomizationPath }}|$(tasks.build.results.IMAGE_DIGEST_CLEAN)|{{ .Values.gramolaEventsPushPipelineName }}
             ====
             command: "UPDATE_IMAGE"
             overlay: "dev"
