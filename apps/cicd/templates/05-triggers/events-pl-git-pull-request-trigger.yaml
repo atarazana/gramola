@@ -33,7 +33,7 @@ spec:
         - kind: TriggerBinding
           ref: "{{ .Values.appName }}-events-git-pull-request-trigger-binding"
       template:
-        ref: "{{ .Values.appName }}-events-trigger-template"
+        ref: "{{ .Values.appName }}-events-git-pull-trigger-template"
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
