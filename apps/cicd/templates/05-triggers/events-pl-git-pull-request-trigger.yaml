@@ -58,9 +58,9 @@ spec:
   - name: pullRequestBody
     value: $(body.pull_request.body)
   - name: imageDigestClean
-    value: $(body.extensions.image_digest_clean)
+    value: $(extensions.image_digest_clean)
   - name: overlay
-    value: $(body.extensions.overlay)
+    value: $(extensions.overlay)
   - name: contentType
     value: $(header.Content-Type)
 
