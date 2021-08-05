@@ -86,7 +86,7 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: events-pull-request-plr-
+      generateName: "{{ .Values.gramolaEventsPullRequestPipelineName }}-plr-"
       namespace: {{ .Values.cicdNamespace }}
       labels:
         app.kubernetes.io/instance: events
@@ -106,7 +106,7 @@ spec:
         - name: OVERLAY
           value: $(tt.params.overlay)
       pipelineRef:
-        name: events-pull-request-pl
+        name: {{ .Values.gramolaEventsPullRequestPipelineName }}
       serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
       timeout: 1h0m0s
       workspaces:

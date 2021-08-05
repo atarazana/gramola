@@ -60,7 +60,7 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: events-plr-
+      generateName: "{{ .Values.gramolaEventsPushPipelineName }}-plr-"
       namespace: {{ .Values.cicdNamespace }}
       labels:
         app.kubernetes.io/instance: events
@@ -93,7 +93,7 @@ spec:
         - name: REVISION_NAME
           value: v1
       pipelineRef:
-        name: events-pl
+        name: {{ .Values.gramolaEventsPushPipelineName }}
       serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
       timeout: 1h0m0s
       workspaces:
