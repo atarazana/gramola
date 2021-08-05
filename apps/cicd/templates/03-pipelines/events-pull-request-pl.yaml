@@ -67,10 +67,10 @@ spec:
     - name: pr-create
       params:
         - name: PR_TITLE
-          value: "Updating '{{ .Values.appName }}-events' image for overlay '$(tasks.parse-body.results.OVERLAY)' with new image"
+          value: "Updating '{{ .Values.appName }}-events' image for overlay '$(params.OVERLAY)' with new image"
         - name: PR_BODY
           value: >-
-            command: UPDATE_IMAGE\noverlay: $(tasks.parse-body.results.OVERLAY)\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(tasks.parse-body.results.OVERLAY)/kustomization.yml\nimageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
+            command: UPDATE_IMAGE\noverlay: $($(params.OVERLAY))\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml\nimageDigestClean: $(params.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY
