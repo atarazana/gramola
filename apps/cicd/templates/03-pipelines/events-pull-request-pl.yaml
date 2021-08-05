@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: events-pl
+  name: {{ .Values.gramolaEventsPullRequestPipelineName }}
   namespace: {{ .Values.cicdNamespace }}
   labels:
     app.kubernetes.io/instance: events

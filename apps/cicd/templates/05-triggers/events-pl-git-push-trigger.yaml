@@ -20,7 +20,7 @@ spec:
         - kind: TriggerBinding
           ref: "{{ .Values.appName }}-events-git-push-trigger-binding"
       template:
-        ref: "{{ .Values.appName }}-events-trigger-template"
+        ref: "{{ .Values.appName }}-events-git-push-trigger-template"
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
@@ -47,7 +47,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: "{{ .Values.appName }}-events-trigger-template"
+  name: "{{ .Values.appName }}-events-git-push-trigger-template"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
