@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: events-pl
+  name: {{ .Values.gramolaEventsPushPipelineName }}
   namespace: {{ .Values.cicdNamespace }}
   labels:
     app.kubernetes.io/instance: events
@@ -103,7 +103,7 @@ spec:
     - name: update-image
       params:
         - name: FILE_TO_UPDATE
-          value: ./events-deployment/overlays/dev/kustomization.yml
+          value: "{{ .Values.gramolaEventsOverlayDevKustomizationPath }}"
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"gramola-events*\")).newTag"
         - name: NEW_VALUE
@@ -119,9 +119,12 @@ spec:
     - name: pr-create
       params:
         - name: PR_TITLE
-          value: "Updating image of Gramola **events** in DEV environment"
+          value: >-
+            "Updating '{{ .Values.appName }}-events' image for overlay 'dev' with new image"
         - name: PR_BODY
-          value: "Automated PR to update **events** image to `$(tasks.build.results.IMAGE_DIGEST)`"
+          value: >- 
+            "Automated PR to UPDATE_IMAGE for OVERLAY='dev' in KUSTOMIZATION_FILE='{{ .Values.gramolaEventsOverlayDevKustomizationPath }}' 
+            with IMAGE_DIGEST_CLEAN='$(tasks.build.results.IMAGE_DIGEST_CLEAN)' from PIPELINE='{{ .Values.gramolaEventsPushPipelineName }}'"
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY
