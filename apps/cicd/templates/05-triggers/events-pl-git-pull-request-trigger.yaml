@@ -23,10 +23,10 @@ spec:
         - cel:
             filter: "body.action in ['closed'] && body.pull_request.merged == true"
             overlays:
-              - key: extensions.image_digest_clean
+              - key: image_digest_clean
                 # expression: "body.pull_request.body.split('====')[1].parseYAML().imageDigestClean"
                 expression: "body.pull_request.body.parseYAML().imageDigestClean"
-              - key: extensions.overlay
+              - key: overlay
                 # expression: "body.pull_request.body.split('====')[1].parseYAML().imageDigestClean"
                 expression: "body.pull_request.body.parseYAML().overlay"
       bindings:
