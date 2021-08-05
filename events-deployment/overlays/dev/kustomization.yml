@@ -18,7 +18,7 @@ secretGenerator:
 images:
   - name: gramola-events:0.0.0
     newName: quay.io/atarazana/gramola-events@sha256
-    newTag: f4c981d780087aa535182da8b3db6cb03f254ec0155825b761d78b12ba4575a0
+    newTag: 692f23fd6ec6527fd0f6e7d9ae7275e37fb068f78b46e2a073c24cdd44d562c3
 patchesJson6902:
   - target:
       group: apps
