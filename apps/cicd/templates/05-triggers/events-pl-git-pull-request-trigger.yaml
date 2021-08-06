@@ -28,7 +28,7 @@ spec:
               - key: image_digest_clean
                 expression: "body.pull_request.body.parseYAML().imageDigestClean"
               - key: count
-                expression: "body.pull_request.body.parseYAML().count + 1"
+                expression: "body.pull_request.body.parseYAML().count + 1.0"
               - key: overlay
                 expression: "body.pull_request.body.parseYAML().overlay"
               - key: next_overlay
