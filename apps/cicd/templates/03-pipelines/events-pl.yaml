@@ -125,8 +125,8 @@ spec:
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
-            overlay: dev
             count: 0
+            overlay: dev
             kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml
             imageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)
             pipelineName: {{ .Values.gramolaEventsPushPipelineName }}

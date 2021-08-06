@@ -19,11 +19,12 @@ spec:
       default: main
     - name: IMAGE_DIGEST_CLEAN
       type: string
+    - name: COUNT
+      type: string
     - name: OVERLAY
       type: string
     - name: NEXT_OVERLAY
       type: string
-      default: test
   tasks:
     # - name: parse-body
     #   params:
@@ -69,15 +70,17 @@ spec:
         - name: source
           workspace: workspace-source
     - name: pr-create
+      when:
+        - input: "$(params.NEXT_OVERLAY)"
+          operator: in
+          values: ["{{ .Values.overlays }}"]
       params:
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-events' image for overlay '$(params.NEXT_OVERLAY)' with new image"
-        # - name: PR_BODY
-        #   value: >-
-        #     command: UPDATE_IMAGE\noverlay: $(params.OVERLAY)\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml\nimageDigestClean: $(params.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
+            count: $(params.COUNT)
             overlay: $(params.NEXT_OVERLAY)
             kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml
             imageDigestClean: $(params.IMAGE_DIGEST_CLEAN)
