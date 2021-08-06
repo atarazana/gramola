@@ -118,15 +118,15 @@ spec:
           workspace: workspace-source
     - name: pr-create
       params:
+        # PR Title describes the change and the overlay where it happens
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-events' image for overlay 'dev' with new image"
-        # - name: PR_BODY
-        #   value: >-
-        #     command: UPDATE_IMAGE\noverlay: dev\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml\nimageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsPushPipelineName }}
+        # PR Body is a YAML with information for the next pipelines (stages)
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
             overlay: dev
+            count: 0
             kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml
             imageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)
             pipelineName: {{ .Values.gramolaEventsPushPipelineName }}

@@ -21,14 +21,18 @@ spec:
             eventTypes:
               - pull_request
         - cel:
+            # Triggers only if the PR was merged
             filter: "body.action in ['closed'] && body.pull_request.merged == true"
+            # PR Body is a YAML here we extract information to trigger the next step
             overlays:
               - key: image_digest_clean
-                # expression: "body.pull_request.body.split('====')[1].parseYAML().imageDigestClean"
                 expression: "body.pull_request.body.parseYAML().imageDigestClean"
+              - key: count
+                expression: "body.pull_request.body.parseYAML().count + 1"
               - key: overlay
-                # expression: "body.pull_request.body.split('====')[1].parseYAML().imageDigestClean"
                 expression: "body.pull_request.body.parseYAML().overlay"
+              - key: next_overlay
+                expression: "'{{ .Values.overlays }}'.split(',')[body.pull_request.body.parseYAML().count + 1]"
       bindings:
         - kind: TriggerBinding
           ref: "{{ .Values.appName }}-events-git-pull-request-trigger-binding"
@@ -61,6 +65,8 @@ spec:
     value: $(extensions.image_digest_clean)
   - name: overlay
     value: $(extensions.overlay)
+  - name: nextOverlay
+    value: $(extensions.next_overlay)
   - name: contentType
     value: $(header.Content-Type)
 
@@ -82,6 +88,7 @@ spec:
   - name: pullRequestBody
   - name: imageDigestClean
   - name: overlay
+  - name: next_overlay
   resourcetemplates:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
@@ -105,6 +112,8 @@ spec:
           value: $(tt.params.imageDigestClean)
         - name: OVERLAY
           value: $(tt.params.overlay)
+        - name: NEXT_OVERLAY
+          value: $(tt.params.nextOverlay)
       pipelineRef:
         name: {{ .Values.gramolaEventsPullRequestPipelineName }}
       serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
