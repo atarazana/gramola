@@ -32,7 +32,7 @@ spec:
               - key: overlay
                 expression: "body.pull_request.body.parseYAML().overlay"
               - key: next_overlay
-                expression: "int(body.pull_request.body.parseYAML().count) < size('{{ .Values.overlays }}'.split(',')) ? '{{ .Values.overlays }}'.split(',')[int(body.pull_request.body.parseYAML().count) + 1] : ''"
+                expression: "int(body.pull_request.body.parseYAML().count + 1) < size('{{ .Values.overlays }}'.split(',')) ? '{{ .Values.overlays }}'.split(',')[int(body.pull_request.body.parseYAML().count) + 1] : ''"
       bindings:
         - kind: TriggerBinding
           ref: "{{ .Values.appName }}-events-git-pull-request-trigger-binding"
