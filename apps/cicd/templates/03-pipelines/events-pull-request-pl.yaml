@@ -73,7 +73,7 @@ spec:
       when:
         - input: "$(params.NEXT_OVERLAY)"
           operator: in
-          values: ["{{ .Values.overlays }}"]
+          values: [{{ .Values.overlays }}]
       params:
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-events' image for overlay '$(params.NEXT_OVERLAY)' with new image"
