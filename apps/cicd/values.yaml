@@ -22,7 +22,7 @@ gitPatSecretKey: password
 
 overlays: "dev,test"
 
-gramolaEventsOverlayPath: ./events-deployment/overlays/
+gramolaEventsOverlayPath: ./events-deployment/overlays
 
 gramolaEventsPushPipelineName: events-pl
 gramolaEventsPullRequestPipelineName: events-pr-pl
