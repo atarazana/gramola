@@ -53,10 +53,14 @@ spec:
         - name: output
           workspace: workspace-source
     - name: update-image
+      when:
+        - input: "$(params.NEXT_OVERLAY)"
+          operator: in
+          values: [{{ .Values.overlays }}]
       params:
         - name: FILE_TO_UPDATE
           # value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml"
-          value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.OVERLAY)/kustomization.yml"
+          value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"gramola-events*\")).newTag"
         - name: NEW_VALUE
