@@ -16,7 +16,7 @@ spec:
     helm:
       parameters:
         - name: baseRepoUrl
-          value: "{{ .Values.baseRepoUrl }}.git"
+          value: "{{ .Values.baseRepoUrl }}"
     path: apps/test
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
