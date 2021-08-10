@@ -1,2 +1,3 @@
 baseRepoUrl: https://github.com/atarazana/gramola
 destinationName: in-cluster
+sourcePath: apps/cicd
