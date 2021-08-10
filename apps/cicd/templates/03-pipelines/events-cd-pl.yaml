@@ -75,7 +75,7 @@ spec:
             overlay: $(params.NEXT_OVERLAY)
             kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml
             imageDigestClean: $(params.IMAGE_DIGEST_CLEAN)
-            pipelineName: {{ .Values.gramolaEventsPullRequestPipelineName }}
+            pipelineName: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY
