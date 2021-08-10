@@ -12,6 +12,11 @@ if [ -z "${GIT_PAT}" ]; then
     exit 1
 fi
 
+if [ "$(kubectl get namespace/${CICD_NAMESPACE} -o jsonpath='{.status.phase}')" eq "Active" ]; then
+    echo "Wait until ArgoCD has create ns ${CICD_NAMESPACE} or create it manually"
+    exit 1
+fi
+
 kubectl create secret -n ${CICD_NAMESPACE} generic ${GIT_PAT_SECRET_NAME} --dry-run=client -o yaml \
   | yq w - type kubernetes.io/basic-auth \
   | yq w - stringData.[user.name] ${GIT_USERNAME} \
