@@ -32,4 +32,6 @@ spec:
           value: "{{ .Values.debug }}"
         - name: DESTINATION_NAME
           value: "{{ .Values.destinationName }}"
+        - name: BASE_REPO_URL
+          value: "{{ .Values.baseRepoUrl }}"
       name: kustomized-helm
