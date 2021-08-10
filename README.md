@@ -1,6 +1,16 @@
-# gramola
-
 # Install ArgoCD using the operator
+
+TODO text and images.
+
+# READ THIS BEFORE YOU GO BEYOND
+
+If you want to execute the pipelines section you have to fork this repositories. 
+
+NOTE: This is necessary because webhooks need to be created and obviously you need permissions on them.
+
+- https://github.com/atarazana/gramola.git
+- https://github.com/atarazana/gramola-events.git
+
 
 # Add plugin section to ArgoCD Custom Resource
 
@@ -146,6 +156,7 @@ spec:
     targetRevision: HEAD
 EOF
 ```
+
 # Pipelines
 
 Deploy app to deploy pipelines.
@@ -178,6 +189,16 @@ spec:
     targetRevision: HEAD
 EOF
 ```
+
+We are going to create secrets instead of storing then in the git repo, but before we do let's check that ArgoCD has created the namespace for us.
+
+NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync gramola-cicd-app`
+
+```sh
+oc get project gramola-cicd
+```
+
+Once the namespace is created you can create the secrets.
 
 # Sync Root Apps alone
 

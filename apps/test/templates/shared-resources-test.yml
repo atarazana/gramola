@@ -16,6 +16,6 @@ spec:
   project: gramola-project-test
   source:
     path: apps/test/shared
-    repoURL: {{ .Values.baseRepoUrl }}
+    repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
     

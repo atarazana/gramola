@@ -24,7 +24,7 @@ spec:
     #     - name: clusterName
     #       value: {{ .Values.destinationName }}
     path: events-deployment/overlays/dev
-    repoURL: {{ .Values.baseRepoUrl }}
+    repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
     plugin:
       env:

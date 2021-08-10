@@ -1,4 +1,4 @@
-baseRepoUrl: https://github.com/atarazana/gramola.git
+baseRepoUrl: https://github.com/atarazana/gramola
 debug: false
 destinationName: in-cluster
 
