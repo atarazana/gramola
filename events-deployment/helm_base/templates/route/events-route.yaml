@@ -11,8 +11,8 @@ metadata:
     template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
     app.openshift.io/connects-to: >-
       ["events-database",{"apiVersion":"apps/v1","kind":"Deployment","name":"events-database"}]
-    app.openshift.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
-    app.quarkus.io/vcs-url: 'https://github.com/atarazana/gramola-events.git'
+    app.openshift.io/vcs-url: '{{ .Values.Values.baseRepoUrl }}-events.git'
+    app.quarkus.io/vcs-url: '{{ .Values.Values.baseRepoUrl }}-events.git'
   
 spec:
   path: /
