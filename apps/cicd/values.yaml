@@ -20,12 +20,30 @@ containerRegistrySecretName: container-registry-secret
 gitPatSecretName: git-pat-secret
 gitPatSecretKey: password
 
+# Pipelines have these stages => overlays
 overlays: "dev,test"
 
+# Overlays relative path in the config repository
 gramolaEventsOverlayPath: ./events-deployment/overlays
 
-gramolaEventsPushPipelineName: events-pl
-gramolaEventsPullRequestPipelineName: events-pr-pl
+# Pipeline names
 
-gramolaEventsGitPushEventListenerName: gramola-events-git-push-listener
-gramolaEventsGitPullRequestEventListenerName: gramola-events-git-pull-request-listener
+## These pipelines run CI tasks and are triggered by PUSH to the source code git repo
+## The final task sends a PR to the config repository for the first overlay
+gramolaEventsContinuosIntegrationPipeline: events-ci-pl
+
+## These pipelines run CD tasks and are triggered by PULL REQUESTS closed and merged to the config repo
+gramolaEventsContinuosDeliveryPipeline: events-cd-pl
+
+# gramolaEventsPushPipelineName: events-pl
+# gramolaEventsPullRequestPipelineName: events-pr-pl
+
+# Pipelines triggers
+
+## CI pipelines triggered by PUSH
+gramolaEventsCiPushTriggerRootName: events-ci-pl-push
+# gramolaEventsGitPushEventListenerName: gramola-events-git-push-listener
+
+## CD pipelines triggered by PR closed and merged
+gramolaEventsCdPrTriggerRootName: events-cd-pl-pr
+# gramolaEventsGitPullRequestEventListenerName: gramola-events-git-pull-request-listener
