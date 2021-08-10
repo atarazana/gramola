@@ -227,5 +227,3 @@ argocd app sync -l app.kubernetes.io/instance=gramola-root-app-test-cloud
 
 # AUX
 git clone https://oauth2:1AbCDeF_g2HIJKLMNOPqr@gitlab.com/yourusername/project.git project
-
-# To be deleted
