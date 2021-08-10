@@ -26,16 +26,6 @@ spec:
     - name: NEXT_OVERLAY
       type: string
   tasks:
-    # - name: parse-body
-    #   params:
-    #     - name: PULL_REQUEST_BODY
-    #       value: $(params.PULL_REQUEST_BODY)
-    #   taskRef:
-    #     kind: ClusterTask
-    #     name: pull-request-body-parser
-    #   workspaces:
-    #     - name: output
-    #       workspace: workspace-source
     - name: fetch-config-repository
       params:
         - name: url
@@ -44,8 +34,6 @@ spec:
           value: $(params.GIT_REVISION_CONFIG)
         - name: deleteExisting
           value: 'true'
-      # runAfter:
-      #   - parse-body
       taskRef:
         kind: ClusterTask
         name: git-clone
