@@ -10,6 +10,8 @@ spec:
     namespace: gramola-test
     name: {{ .Values.destinationName }}
   project: gramola-project-test
+  syncPolicy:
+    automated: {}
   source:
     # This is not possible because plugin has been set to kustomized-helm and source.helm applies only to helm
     # helm:
