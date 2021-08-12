@@ -23,6 +23,9 @@ gitPatSecretKey: password
 # Pipelines have these stages => overlays
 overlays: "dev,test"
 
+# Service names Gramola is made of services, these are their names
+gramolaEventServiceName: events
+
 # Overlays relative path in the config repository
 gramolaEventsOverlayPath: ./events-deployment/overlays
 
@@ -34,9 +37,6 @@ gramolaEventsContinuosIntegrationPipeline: events-ci-pl
 
 ## These pipelines run CD tasks and are triggered by PULL REQUESTS closed and merged to the config repo
 gramolaEventsContinuosDeliveryPipeline: events-cd-pl
-
-# gramolaEventsPushPipelineName: events-pl
-# gramolaEventsPullRequestPipelineName: events-pr-pl
 
 # Pipelines triggers
 

@@ -1,4 +1,4 @@
-# Install ArgoCD using the operator
+# Install ArgoCD and Pipelines using the operators
 
 TODO text and images.
 
@@ -8,8 +8,8 @@ If you want to execute the pipelines section you have to fork this repositories.
 
 NOTE: This is necessary because webhooks need to be created and obviously you need permissions on them.
 
-- https://github.com/atarazana/gramola.git
-- https://github.com/atarazana/gramola-events.git
+- CONFIGURATION REPO: https://github.com/atarazana/gramola.git
+- SOURCE CODE REPO: https://github.com/atarazana/gramola-events.git
 
 
 # Add plugin section to ArgoCD Custom Resource
@@ -41,9 +41,22 @@ kubectl apply -f util/argocd-service-account-permissions.yaml
 
 # Register repos
 
+In this guide we cover the case of a protected git repositories that's why you need to create a Personal Access Token so that you don't have to expose your personal account.
+
+EXPLANATION and IMAGES...
+
+NOTE: We're covering Github in this guide if you use a different git server you may have to do some adjustments.
+
+In order to refer to a repository in ArgoCD you have to register it before, the next command will do this for you asking for the repo url and the the Personal Access Token (PAT) to access to the repository. 
+
+
 ```sh
 ./util/argocd-register-repos.sh
+```
 
+Run this command to list the registered repositories.
+
+```sh
 argocd repo list
 ```
 
@@ -88,6 +101,8 @@ argocd proj list
 ```
 
 # Create Root Apps
+
+Change BASE_REPO_URL value to point to your forked configuration repo.
 
 NOTE: https://argoproj.github.io/argo-cd/user-guide/helm/
 
@@ -159,7 +174,7 @@ EOF
 
 # Pipelines
 
-Deploy app to deploy pipelines.
+Deploy another ArgoCD app to deploy pipelines.
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
@@ -198,7 +213,55 @@ NOTE: If the namespace is not there yet, you can check the sync status of the Ar
 oc get project gramola-cicd
 ```
 
-Once the namespace is created you can create the secrets.
+Once the namespace is created you can create the secrets. This commands will ask you for the PAT again, this time to create a secret with it.
+
+```sh
+cd apps/cicd
+./create-secrets.sh
+```
+
+# Check pipelines, etc.
+
+... triggers are in place but we need web hooks
+
+Check routes are fine
+
+# Create Web Hooks
+
+Go to github to the gramola-events repo
+
+Go to Settings
+
+Go to Web Hooks
+
+Annotate route to the CI pipeline the one triggered with Push to the source code
+
+```sh
+ oc get route/el-events-ci-pl-push-listener -n ${CICD_NAMESPACE}
+NAME                            HOST/PORT                                                                                   PATH   SERVICES                        PORT            TERMINATION   WILDCARD
+el-events-ci-pl-push-listener   el-events-ci-pl-push-listener-gramola-cicd.apps.cluster-5fbb.5fbb.sandbox1585.opentlc.com          el-events-ci-pl-push-listener   http-listener                 None
+```
+
+Create Web Hook (click on Add Webhook)
+- Type a secret... any thing should work
+- Just the push event ==> fine
+
+Now let's to the same for the config repo, this time for Pull Requests
+
+```sh
+ oc get route/el-events-cd-pl-pr-listener -n ${CICD_NAMESPACE}
+NAME                          HOST/PORT                                                                                 PATH   SERVICES                      PORT            TERMINATION   WILDCARD
+el-events-cd-pl-pr-listener   el-events-cd-pl-pr-listener-gramola-cicd.apps.cluster-5fbb.5fbb.sandbox1585.opentlc.com          el-events-cd-pl-pr-listener   http-listener                 None
+```
+
+Go to the config repo, then to Settings/WebHooks
+
+* Cliek on Let me.... and select Pull Requests and deselect Push Events...
+
+
+
+
+# Useful commands
 
 # Sync Root Apps alone
 

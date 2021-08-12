@@ -1,5 +1,4 @@
-# This listener should be called by the configuration repo atarazana/gramola if
-# a pull requests has been merged.
+# This listener should be called by the configuration repo if a pull requests has been merged.
 # For instance the `events` pipeline sends a change to the `dev` overlay to the 
 # configuration repo somebody approves => merged (*)
 # (*) https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#pull_request
@@ -22,7 +21,7 @@ spec:
               - pull_request
         - cel:
             # Triggers only if the PR was merged
-            filter: "body.action in ['closed'] && body.pull_request.merged == true"
+            filter: "body.action in ['closed'] && body.pull_request.merged == true && body.pull_request.body.parseYAML().serviceName == {{ .Values.gramolaEventServiceName }}"
             # PR Body is a YAML here we extract information to trigger the next step
             overlays:
               - key: image_digest_clean

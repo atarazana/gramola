@@ -71,6 +71,7 @@ spec:
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
+            serviceName: {{ .Values.gramolaEventServiceName }}
             count: $(params.COUNT)
             overlay: $(params.NEXT_OVERLAY)
             kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml
