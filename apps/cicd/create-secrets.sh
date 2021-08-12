@@ -6,14 +6,15 @@ export GIT_URL=$(yq r ./values.yaml gitUrl)
 export GIT_USERNAME=$(yq r ./values.yaml gitUsername)
 export GIT_PAT_SECRET_NAME=$(yq r ./values.yaml gitPatSecretName)
 
-echo "PAT for ${GIT_URL}: " && read -s GIT_PAT
-if [ -z "${GIT_PAT}" ]; then
-    echo "You should provide a PAT for ${GIT_URL}"
+NAMESPACE_STATUS=$(kubectl get namespace/${CICD_NAMESPACE} -o jsonpath='{.status.phase}')
+if [ "${NAMESPACE_STATUS}" == *"Active"* ]; then
+    echo "Wait until ArgoCD has create ns ${CICD_NAMESPACE} or create it manually"
     exit 1
 fi
 
-if [ "$(kubectl get namespace/${CICD_NAMESPACE} -o jsonpath='{.status.phase}')" eq "Active" ]; then
-    echo "Wait until ArgoCD has create ns ${CICD_NAMESPACE} or create it manually"
+echo "PAT for ${GIT_URL}: " && read -s GIT_PAT
+if [ -z "${GIT_PAT}" ]; then
+    echo "You should provide a PAT for ${GIT_URL}"
     exit 1
 fi
 
