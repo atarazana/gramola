@@ -21,7 +21,7 @@ spec:
               - pull_request
         - cel:
             # Triggers only if the PR was merged
-            filter: "body.action in ['closed'] && body.pull_request.merged == true && body.pull_request.body.parseYAML().serviceName in ['{{ .Values.gramolaEventServiceName }}']"
+            filter: "body.action in ['closed'] && body.pull_request.merged == true && body.pull_request.body.parseYAML().serviceName in ['{{ .Values.gramolaEventsServiceName }}']"
             # PR Body is a YAML here we extract information to trigger the next step
             overlays:
               - key: image_digest_clean

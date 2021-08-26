@@ -4,14 +4,14 @@ metadata:
   name: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
   namespace: {{ .Values.cicdNamespace }}
   labels:
-    app.kubernetes.io/instance: {{ .Values.gramolaEventServiceName }}
+    app.kubernetes.io/instance: {{ .Values.gramolaEventsServiceName }}
     pipeline.openshift.io/runtime: quarkus
     pipeline.openshift.io/type: knative
 spec:
   params:
     - name: APP_NAME
       type: string
-      default: {{ .Values.gramolaEventServiceName }}
+      default: {{ .Values.gramolaEventsServiceName }}
     - name: GIT_REPO_CONFIG
       type: string
     - name: GIT_REVISION_CONFIG
@@ -49,7 +49,7 @@ spec:
         - name: FILE_TO_UPDATE
           value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
         - name: SELECT_EXPRESSION
-          value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventServiceName }}*\")).newTag"
+          value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}*\")).newTag"
         - name: NEW_VALUE
           value: "$(params.IMAGE_DIGEST_CLEAN)"
       runAfter:
@@ -67,11 +67,11 @@ spec:
           values: [{{ .Values.overlays }}]
       params:
         - name: PR_TITLE
-          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
+          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
-            serviceName: {{ .Values.gramolaEventServiceName }}
+            serviceName: {{ .Values.gramolaEventsServiceName }}
             count: $(params.COUNT)
             overlay: $(params.NEXT_OVERLAY)
             kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml

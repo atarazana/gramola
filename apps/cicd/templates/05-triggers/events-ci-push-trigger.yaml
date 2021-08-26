@@ -63,7 +63,7 @@ spec:
       generateName: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-plr-"
       namespace: {{ .Values.cicdNamespace }}
       labels:
-        app.kubernetes.io/instance: {{ .Values.gramolaEventServiceName }}
+        app.kubernetes.io/instance: {{ .Values.gramolaEventsServiceName }}
         pipeline.openshift.io/runtime: quarkus
         pipeline.openshift.io/type: knative
         tekton.dev/pipeline: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}

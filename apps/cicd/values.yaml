@@ -24,7 +24,7 @@ gitPatSecretKey: password
 overlays: "dev,test"
 
 # Service names Gramola is made of services, these are their names
-gramolaEventServiceName: events
+gramolaEventsServiceName: events
 gramolaGatewayServiceName: gateway
 
 # Overlays relative path in the config repository

@@ -108,7 +108,6 @@ NOTE: https://argoproj.github.io/argo-cd/user-guide/helm/
 
 ```sh
 export BASE_REPO_URL=https://github.com/atarazana/gramola
-#helm template ./argocd/root-apps/ --name-template portales-cloud-root-apps --set baseRepoUrl=${BASE_REPO_URL} | kubectl apply -f -
 
 cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
@@ -207,10 +206,14 @@ EOF
 
 We are going to create secrets instead of storing then in the git repo, but before we do let's check that ArgoCD has created the namespace for us.
 
+```sh
+export CICD_NAMESPACE=$(yq r ./apps/cicd/values.yaml cicdNamespace)
+```
+
 NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync gramola-cicd-app`
 
 ```sh
-oc get project gramola-cicd
+oc get project ${CICD_NAMESPACE}
 ```
 
 Once the namespace is created you can create the secrets. This commands will ask you for the PAT again, this time to create a secret with it.
@@ -226,9 +229,11 @@ cd apps/cicd
 
 Check routes are fine
 
-# Create Web Hooks
+# Creating Web Hooks for the CI Pipelines
 
-Go to github to the gramola-events repo
+First we want to create a webhook to trigger the CI pipeline for each of the services in this application:
+
+Go to github to the gramola-events repo:
 
 Go to Settings
 
@@ -237,27 +242,149 @@ Go to Web Hooks
 Annotate route to the CI pipeline the one triggered with Push to the source code
 
 ```sh
- oc get route/el-events-ci-pl-push-listener -n ${CICD_NAMESPACE}
-NAME                            HOST/PORT                                                                                   PATH   SERVICES                        PORT            TERMINATION   WILDCARD
-el-events-ci-pl-push-listener   el-events-ci-pl-push-listener-gramola-cicd.apps.cluster-5fbb.5fbb.sandbox1585.opentlc.com          el-events-ci-pl-push-listener   http-listener                 None
+oc get route/el-events-ci-pl-push-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+```
+
+Expect something like: 
+
+```sh
+el-events-ci-pl-push-listener-gramola-cicd.apps.acme.com
 ```
 
 Create Web Hook (click on Add Webhook)
+- Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
 - Type a secret... any thing should work
-- Just the push event ==> fine
+- Just the push event 
 
-Now let's to the same for the config repo, this time for Pull Requests
+Click on `Add webhook`
+
+Let's check the webhook is working:
 
 ```sh
- oc get route/el-events-cd-pl-pr-listener -n ${CICD_NAMESPACE}
-NAME                          HOST/PORT                                                                                 PATH   SERVICES                      PORT            TERMINATION   WILDCARD
-el-events-cd-pl-pr-listener   el-events-cd-pl-pr-listener-gramola-cicd.apps.cluster-5fbb.5fbb.sandbox1585.opentlc.com          el-events-cd-pl-pr-listener   http-listener                 None
+oc logs -f deployment/el-events-ci-pl-push-listener -n ${CICD_NAMESPACE}
 ```
 
-Go to the config repo, then to Settings/WebHooks
+You should get something like this, pay attention to one of the last lines saying **"event type ping is not allowed"**.
 
-* Cliek on Let me.... and select Pull Requests and deselect Push Events...
+```sh
+...
+{"level":"info","ts":"2021-08-26T15:31:19.005Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"c5b06856-471d-43e5-9892-2d812b23e1ac","/trigger":"github-listener"}
+```
 
+Now if you push a change in the code the CI pipeline for `events` should we kicked off.
+
+If you haven't stopped the log output you should see something like:
+
+```sh
+...
+{"level":"info","ts":"2021-08-26T15:37:54.796Z","logger":"eventlistener","caller":"resources/create.go:95","msg":"Generating resource: kind: &APIResource{Name:pipelineruns,Namespaced:true,Kind:PipelineRun,Verbs:[delete deletecollection get list patch create update watch],ShortNames:[pr prs],SingularName:pipelinerun,Categories:[tekton tekton-pipelines],Group:tekton.dev,Version:v1beta1,StorageVersionHash:RcAKAgPYYoo=,}, name: events-ci-pl-push-plr-","knative.dev/controller":"eventlistener"}
+{"level":"info","ts":"2021-08-26T15:37:54.796Z","logger":"eventlistener","caller":"resources/create.go:103","msg":"For event ID \"57d7515c-f954-43ee-b99b-bf53a1578058\" creating resource tekton.dev/v1beta1, Resource=pipelineruns","knative.dev/controller":"eventlistener"}
+```
+
+Stop the log output with `Ctrl+C`.
+
+We have to do the same for the `gateway` service, you now the drill, let's get the route host got the listener.
+
+```sh
+oc get route/el-gateway-ci-pl-push-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+```
+
+This time go to the `gramola-gateway` repo and create a webhook like we did before but using the host you just got.
+
+Again as we did for `gramola-events` let's have a look to the logs of the listener:
+
+```sh
+oc logs -f deployment/el-gateway-ci-pl-push-listener -n ${CICD_NAMESPACE}
+```
+
+If it all went well you should see this:
+
+```sh
+...
+{"level":"info","ts":"2021-08-26T15:58:30.986Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"bf2144ab-d3ca-471c-a340-9d9ae9e150e4","/trigger":"github-listener"}
+```
+
+Now make a change to the code of `gramola-gateway` and let's see if the pipeline is triggered or not.
+
+```sh
+...
+{"level":"info","ts":"2021-08-26T16:03:26.383Z","logger":"eventlistener","caller":"resources/create.go:95","msg":"Generating resource: kind: &APIResource{Name:pipelineruns,Namespaced:true,Kind:PipelineRun,Verbs:[delete deletecollection get list patch create update watch],ShortNames:[pr prs],SingularName:pipelinerun,Categories:[tekton tekton-pipelines],Group:tekton.dev,Version:v1beta1,StorageVersionHash:RcAKAgPYYoo=,}, name: gateway-ci-pl-push-plr-","knative.dev/controller":"eventlistener"}
+{"level":"info","ts":"2021-08-26T16:03:26.383Z","logger":"eventlistener","caller":"resources/create.go:103","msg":"For event ID \"de0712e7-9d0e-4896-87a2-1058047fe7ce\" creating resource tekton.dev/v1beta1, Resource=pipelineruns","knative.dev/controller":"eventlistener"}
+```
+
+# Creating Web Hooks for the Cd Pipelines
+
+Continuos Delivery pipelines are triggered once a PR to the configuration repository `gramola` changing the image of a deployment has been merged. This means we have to create webhooks for this type of event for all the services that comprises `gramola`, our application:
+
+Go to github to the gramola repo:
+
+Go to Settings
+
+Go to Web Hooks
+
+Annotate route to the CD pipeline, the one triggered with PR that changes the image of `events`.
+
+```sh
+oc get route/el-events-cd-pl-pr-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+```
+
+Expect something like: 
+
+```sh
+el-events-cd-pl-pr-listener-gramola-cicd.apps.acme.com
+```
+
+Create Web Hook (click on Add Webhook)
+- Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
+- Type a secret... any thing should work
+- Cliek on Let me.... and select Pull Requests and deselect Push Events...
+
+Click on `Add webhook`
+
+Let's check the webhook is working:
+
+```sh
+oc logs -f deployment/el-events-cd-pl-pr-listener -n ${CICD_NAMESPACE}
+```
+
+You should get something like this, pay attention to one of the last lines saying **"event type ping is not allowed"**.
+
+```sh
+...
+{"level":"info","ts":"2021-08-26T16:12:08.205Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"8e99abfc-f288-470b-b0dc-21e4167186fe","/trigger":"github-listener"}
+```
+
+We have to do the same for the `gateway` service... so annotate route to the CD pipeline, the one triggered with PR that changes the image of `gateway`.
+
+```sh
+oc get route/el-gateway-cd-pl-pr-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+```
+
+Expect something like: 
+
+```sh
+el-gateway-cd-pl-pr-listener-gramola-cicd.apps.acme.com
+```
+
+Create Web Hook (click on Add Webhook)
+- Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
+- Type a secret... any thing should work
+- Cliek on Let me.... and select Pull Requests and deselect Push Events...
+
+Click on `Add webhook`
+
+Let's check the webhook is working:
+
+```sh
+oc logs -f deployment/el-gateway-cd-pl-pr-listener -n ${CICD_NAMESPACE}
+```
+
+You should get something like this, pay attention to one of the last lines saying **"event type ping is not allowed"**.
+
+```sh
+...
+{"level":"info","ts":"2021-08-26T16:16:56.921Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"52fb39c6-40dc-431f-a155-224268ef95de","/trigger":"github-listener"}
+```
 
 
 
