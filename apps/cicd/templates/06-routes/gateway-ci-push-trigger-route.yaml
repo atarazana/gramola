@@ -5,14 +5,14 @@ metadata:
     app.kubernetes.io/instance: "{{ .Values.appName }}-cicd-app"
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
-    eventlistener: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-listener"
-  name: el-{{ .Values.gramolaEventsCiPushTriggerRootName }}-listener
+    eventlistener: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-listener"
+  name: el-{{ .Values.gramolaGatewayCiPushTriggerRootName }}-listener
   namespace: {{ .Values.cicdNamespace }}
 spec:
   port:
     targetPort: http-listener
   to:
     kind: Service
-    name: el-{{ .Values.gramolaEventsCiPushTriggerRootName }}-listener
+    name: el-{{ .Values.gramolaGatewayCiPushTriggerRootName }}-listener
     weight: 100
   wildcardPolicy: None

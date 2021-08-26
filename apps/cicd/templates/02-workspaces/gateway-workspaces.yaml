@@ -2,7 +2,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: "{{ .Values.gramolaEventServiceName }}-source-pvc"
+  name: "{{ .Values.gramolaGatewayServiceName }}-source-pvc"
   namespace: {{ .Values.cicdNamespace }}
 spec:
   accessModes:
@@ -14,7 +14,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: "{{ .Values.gramolaEventServiceName }}-cache-pvc"
+  name: "{{ .Values.gramolaGatewayServiceName }}-cache-pvc"
   namespace: {{ .Values.cicdNamespace }}
 spec:
   accessModes:

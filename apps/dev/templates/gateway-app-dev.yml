@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway-app-dev
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  # I was not able to make this work... so SHA256
+  # ignoreDifferences:
+  # - group: apps
+  #   kind: Deployment
+  #   jsonPointers:
+  #   - .spec.template.spec.initContainers[*].image
+  #   - .spec.template.spec.containers[*].image
+  destination:
+    namespace: gramola-dev
+    name: {{ .Values.destinationName }}
+  project: gramola-project-dev
+  syncPolicy:
+    automated: {}
+  source:
+    # This is not possible because plugin has been set to kustomized-helm and source.helm applies only to helm
+    # helm:
+    #   parameters:
+    #     - name: clusterName
+    #       value: {{ .Values.destinationName }}
+    path: gateway-deployment/overlays/dev
+    repoURL: "{{ .Values.baseRepoUrl }}.git"
+    targetRevision: HEAD
+    plugin:
+      env:
+        - name: DEBUG
+          value: "{{ .Values.debug }}"
+        - name: DESTINATION_NAME
+          value: "{{ .Values.destinationName }}"
+        - name: BASE_REPO_URL
+          value: "{{ .Values.baseRepoUrl }}"
+      name: kustomized-helm

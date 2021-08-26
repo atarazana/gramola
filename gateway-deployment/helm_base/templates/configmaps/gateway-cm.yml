@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-cm
+data:
+  MYSQL_HOST: "mysqlhost.acme.com"
+  LOCALE: es
+
+

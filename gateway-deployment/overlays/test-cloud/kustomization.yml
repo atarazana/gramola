@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+bases:
+- ../../helm_base
+namespace: gramola-test
+commonLabels:
+  productive-environment: "true"
+  app.kubernetes.io/part-of: gramola-app
+  app.kubernetes.io/managed-by: argocd
+patchesStrategicMerge:
+  - patch/gateway-cm_patch.yml
+images:
+  - name: gramola-gateway:0.0.0
+    newName: quay.io/atarazana/gramola-gateway@sha256
+    newTag: 6e3ad6f5355d37001aeef4c0e196624abdf0b858b69020fdf68def8af4ad49af
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: gateway
+    path: patch/deployment_patch.yml

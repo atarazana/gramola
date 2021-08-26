@@ -1,17 +1,17 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}
+  name: {{ .Values.gramolaGatewayContinuosIntegrationPipeline }}
   namespace: {{ .Values.cicdNamespace }}
   labels:
-    app.kubernetes.io/instance: {{ .Values.gramolaEventServiceName }}
+    app.kubernetes.io/instance: {{ .Values.gramolaGatewayServiceName }}
     pipeline.openshift.io/runtime: quarkus
     pipeline.openshift.io/type: knative
 spec:
   params:
     - name: APP_NAME
       type: string
-      default: {{ .Values.gramolaEventServiceName }}
+      default: {{ .Values.gramolaGatewayServiceName }}
     - name: GIT_REPO
       type: string
     - name: GIT_REVISION
@@ -103,9 +103,9 @@ spec:
     - name: update-image
       params:
         - name: FILE_TO_UPDATE
-          value: "{{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml"
+          value: "{{ .Values.gramolaGatewayOverlayPath }}/dev/kustomization.yml"
         - name: SELECT_EXPRESSION
-          value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventServiceName }}*\")).newTag"
+          value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
         - name: NEW_VALUE
           value: "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
       runAfter:
@@ -120,17 +120,17 @@ spec:
       params:
         # PR Title describes the change and the overlay where it happens
         - name: PR_TITLE
-          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventServiceName }}' image for overlay 'dev' with new image"
+          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}' image for overlay 'dev' with new image"
         # PR Body is a YAML with information for the next pipelines (stages)
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
-            serviceName: {{ .Values.gramolaEventServiceName }}
+            serviceName: {{ .Values.gramolaGatewayServiceName }}
             count: 0
             overlay: dev
-            kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml
+            kustomizationPath: {{ .Values.gramolaGatewayOverlayPath }}/dev/kustomization.yml
             imageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)
-            pipelineName: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}
+            pipelineName: {{ .Values.gramolaGatewayContinuosIntegrationPipeline }}
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY

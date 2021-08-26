@@ -1,17 +1,17 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
+  name: {{ .Values.gramolaGatewayContinuosDeliveryPipeline }}
   namespace: {{ .Values.cicdNamespace }}
   labels:
-    app.kubernetes.io/instance: {{ .Values.gramolaEventServiceName }}
+    app.kubernetes.io/instance: {{ .Values.gramolaGatewayServiceName }}
     pipeline.openshift.io/runtime: quarkus
     pipeline.openshift.io/type: knative
 spec:
   params:
     - name: APP_NAME
       type: string
-      default: {{ .Values.gramolaEventServiceName }}
+      default: {{ .Values.gramolaGatewayServiceName }}
     - name: GIT_REPO_CONFIG
       type: string
     - name: GIT_REVISION_CONFIG
@@ -47,9 +47,9 @@ spec:
           values: [{{ .Values.overlays }}]
       params:
         - name: FILE_TO_UPDATE
-          value: "{{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
+          value: "{{ .Values.gramolaGatewayOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
         - name: SELECT_EXPRESSION
-          value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventServiceName }}*\")).newTag"
+          value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
         - name: NEW_VALUE
           value: "$(params.IMAGE_DIGEST_CLEAN)"
       runAfter:
@@ -67,16 +67,16 @@ spec:
           values: [{{ .Values.overlays }}]
       params:
         - name: PR_TITLE
-          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
+          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
         - name: PR_BODY
           value: |
             command: UPDATE_IMAGE
-            serviceName: {{ .Values.gramolaEventServiceName }}
+            serviceName: {{ .Values.gramolaGatewayServiceName }}
             count: $(params.COUNT)
             overlay: $(params.NEXT_OVERLAY)
-            kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml
+            kustomizationPath: {{ .Values.gramolaGatewayOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml
             imageDigestClean: $(params.IMAGE_DIGEST_CLEAN)
-            pipelineName: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
+            pipelineName: {{ .Values.gramolaGatewayContinuosDeliveryPipeline }}
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
         - name: PAT_SECRET_KEY

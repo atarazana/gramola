@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-listener"
+  name: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-listener"
   namespace: {{ .Values.cicdNamespace }}
 spec:
   serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
@@ -18,15 +18,15 @@ spec:
         #     filter: "body.action in ['opened', 'synchronize', 'reopened']"
       bindings:
         - kind: TriggerBinding
-          ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-binding"
+          ref: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-trigger-binding"
       template:
-        ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-template"
+        ref: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-trigger-template"
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-binding"
+  name: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-trigger-binding"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -47,7 +47,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-template"
+  name: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-trigger-template"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -60,17 +60,17 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-plr-"
+      generateName: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-plr-"
       namespace: {{ .Values.cicdNamespace }}
       labels:
         app.kubernetes.io/instance: {{ .Values.gramolaEventServiceName }}
         pipeline.openshift.io/runtime: quarkus
         pipeline.openshift.io/type: knative
-        tekton.dev/pipeline: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}
+        tekton.dev/pipeline: {{ .Values.gramolaGatewayContinuosIntegrationPipeline }}
     spec:
       params:
         - name: APP_NAME
-          value: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+          value: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
         - name: GIT_REPO
           value: $(tt.params.gitRepositoryUrl)
         - name: GIT_REVISION
@@ -81,7 +81,7 @@ spec:
           value: main
         - name: IMAGE_NAME
           value: >-
-            {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}
+            {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}
         - name: IMAGE_TAG
           value: $(tt.params.gitRevision)
         - name: PATH_CONTEXT
@@ -89,17 +89,17 @@ spec:
         - name: QUARKUS_PROFILE
           value: prod
         - name: DB_HOST
-          value: "{{ .Values.gramolaEventsServiceName }}-database"
+          value: "{{ .Values.gramolaGatewayServiceName }}-database"
         - name: REVISION_NAME
           value: v1
       pipelineRef:
-        name: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}
+        name: {{ .Values.gramolaGatewayContinuosIntegrationPipeline }}
       serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
       timeout: 1h0m0s
       workspaces:
         - name: workspace-source
           persistentVolumeClaim:
-            claimName: "{{ .Values.gramolaEventsServiceName }}-source-pvc"
+            claimName: "{{ .Values.gramolaGatewayServiceName }}-source-pvc"
         - name: workspace-cache
           persistentVolumeClaim:
-            claimName: "{{ .Values.gramolaEventsServiceName }}-cache-pvc"
+            claimName: "{{ .Values.gramolaGatewayServiceName }}-cache-pvc"

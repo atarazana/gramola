@@ -1,0 +1,27 @@
+kind: Service
+apiVersion: v1
+metadata:
+  annotations:
+    template.openshift.io/expose-service_ip_port: '{.spec.clusterIP}:{.spec.ports[?(.name=="http")].port}'
+    app.openshift.io/connects-to: >-
+      ["events",{"apiVersion":"apps/v1","kind":"Deployment","name":"events"}]
+    app.openshift.io/vcs-url: '{{ .Values.baseRepoUrl }}-gateway.git'
+    app.quarkus.io/vcs-url: '{{ .Values.baseRepoUrl }}-gateway.git'
+  name: gateway
+  labels:
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/part-of: gramola-app
+    app.kubernetes.io/version: 0.0.1-SNAPSHOT
+    app.openshift.io/runtime: quarkus
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/part-of: gramola-app
+    app.kubernetes.io/version: 0.0.1-SNAPSHOT
+  type: ClusterIP
+  sessionAffinity: None

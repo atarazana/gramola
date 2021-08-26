@@ -25,25 +25,29 @@ overlays: "dev,test"
 
 # Service names Gramola is made of services, these are their names
 gramolaEventServiceName: events
+gramolaGatewayServiceName: gateway
 
 # Overlays relative path in the config repository
 gramolaEventsOverlayPath: ./events-deployment/overlays
+gramolaGatewayOverlayPath: ./gateway-deployment/overlays
 
 # Pipeline names
 
 ## These pipelines run CI tasks and are triggered by PUSH to the source code git repo
 ## The final task sends a PR to the config repository for the first overlay
 gramolaEventsContinuosIntegrationPipeline: events-ci-pl
+gramolaGatewayContinuosIntegrationPipeline: gateway-ci-pl
 
 ## These pipelines run CD tasks and are triggered by PULL REQUESTS closed and merged to the config repo
 gramolaEventsContinuosDeliveryPipeline: events-cd-pl
+gramolaGatewayContinuosDeliveryPipeline: gateway-cd-pl
 
 # Pipelines triggers
 
 ## CI pipelines triggered by PUSH
 gramolaEventsCiPushTriggerRootName: events-ci-pl-push
-# gramolaEventsGitPushEventListenerName: gramola-events-git-push-listener
+gramolaGatewayCiPushTriggerRootName: gateway-ci-pl-push
 
 ## CD pipelines triggered by PR closed and merged
 gramolaEventsCdPrTriggerRootName: events-cd-pl-pr
-# gramolaEventsGitPullRequestEventListenerName: gramola-events-git-pull-request-listener
+gramolaGatewayCdPrTriggerRootName: gateway-cd-pl-pr

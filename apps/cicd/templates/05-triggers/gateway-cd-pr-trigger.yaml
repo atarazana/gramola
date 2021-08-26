@@ -1,12 +1,12 @@
 # This listener should be called by the configuration repo if a pull requests has been merged.
-# For instance the `events` pipeline sends a change to the `dev` overlay to the 
+# For instance the `gateway` pipeline sends a change to the `dev` overlay to the 
 # configuration repo somebody approves => merged (*)
 # (*) https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#pull_request
 
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-listener"
+  name: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-listener"
   namespace: {{ .Values.cicdNamespace }}
 spec:
   serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
@@ -34,15 +34,15 @@ spec:
                 expression: "(int(body.pull_request.body.parseYAML().count) + 1) < size('{{ .Values.overlays }}'.split(',')) ? '{{ .Values.overlays }}'.split(',')[int(body.pull_request.body.parseYAML().count) + 1] : ''"
       bindings:
         - kind: TriggerBinding
-          ref: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-trigger-binding"
+          ref: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-trigger-binding"
       template:
-        ref: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-trigger-template"
+        ref: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-trigger-template"
 
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-trigger-binding"
+  name: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-trigger-binding"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -75,7 +75,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-trigger-template"
+  name: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-trigger-template"
   namespace: {{ .Values.cicdNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
@@ -95,17 +95,17 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-$(tt.params.overlay)-plr-"
+      generateName: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-$(tt.params.overlay)-plr-"
       namespace: {{ .Values.cicdNamespace }}
       labels:
-        app.kubernetes.io/instance: {{ .Values.gramolaEventServiceName }}
+        app.kubernetes.io/instance: {{ .Values.gramolaGatewayServiceName }}
         pipeline.openshift.io/runtime: quarkus
         pipeline.openshift.io/type: knative
-        tekton.dev/pipeline: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
+        tekton.dev/pipeline: {{ .Values.gramolaGatewayContinuosDeliveryPipeline }}
     spec:
       params:
         - name: APP_NAME
-          value: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+          value: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
         - name: GIT_REPO_CONFIG
           value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
         - name: GIT_REVISION_CONFIG
@@ -119,13 +119,13 @@ spec:
         - name: NEXT_OVERLAY
           value: $(tt.params.nextOverlay)
       pipelineRef:
-        name: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
+        name: {{ .Values.gramolaGatewayContinuosDeliveryPipeline }}
       serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
       timeout: 1h0m0s
       workspaces:
         - name: workspace-source
           persistentVolumeClaim:
-            claimName: events-source-pvc
+            claimName: "{{ .Values.gramolaGatewayServiceName }}-source-pvc"
         - name: workspace-cache
           persistentVolumeClaim:
-            claimName: events-cache-pvc
+            claimName: "{{ .Values.gramolaGatewayServiceName }}-cache-pvc"

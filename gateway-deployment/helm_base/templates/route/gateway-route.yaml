@@ -1,0 +1,25 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: gateway
+  labels:
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/part-of: gramola-app
+    app.kubernetes.io/version: 0.0.1-SNAPSHOT
+    app.openshift.io/runtime: quarkus
+  annotations:
+    template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    app.openshift.io/connects-to: >-
+      ["events",{"apiVersion":"apps/v1","kind":"Deployment","name":"events"}]
+    app.openshift.io/vcs-url: '{{ .Values.baseRepoUrl }}-gateway.git'
+    app.quarkus.io/vcs-url: '{{ .Values.baseRepoUrl }}-gateway.git'
+  
+spec:
+  path: /
+  to:
+    kind: Service
+    name: gateway
+    weight: 100
+  port:
+    targetPort: 8080
+  wildcardPolicy: None

@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway-app-test
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: gramola-test
+    name: {{ .Values.destinationName }}
+  project: gramola-project-test
+  syncPolicy:
+    automated: {}
+  source:
+    # This is not possible because plugin has been set to kustomized-helm and source.helm applies only to helm
+    # helm:
+    #   parameters:
+    #     - name: clusterName
+    #       value: {{ .Values.destinationName }}
+    path: gateway-deployment/overlays/test
+    repoURL: "{{ .Values.baseRepoUrl }}.git"
+    targetRevision: HEAD
+    plugin:
+      env:
+        - name: DEBUG
+          value: "{{ .Values.debug }}"
+        - name: DESTINATION_NAME
+          value: "{{ .Values.destinationName }}"
+        - name: BASE_REPO_URL
+          value: "{{ .Values.baseRepoUrl }}"
+      name: kustomized-helm
