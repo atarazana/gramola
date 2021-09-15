@@ -46,8 +46,12 @@ spec:
           operator: in
           values: [{{ .Values.overlays }}]
       params:
-        - name: FILE_TO_UPDATE
-          value: "{{ .Values.gramolaGatewayOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
+        # - name: FILE_TO_UPDATE
+        #   value: "{{ .Values.gramolaGatewayOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml"
+        - name: OVERLAYS_PATH
+          value: "{{ .Values.gramolaGatewayOverlayPath }}"
+        - name: OVERLAY
+          value: "$(params.NEXT_OVERLAY)"
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
         - name: NEW_VALUE

@@ -27,6 +27,10 @@ spec:
       name: FILE_NAME
       type: string
       default: "kustomization.yaml"
+    - description: Overlay suffix if twin overlay
+      name: TWIN_OVERLAY_SUFFIX
+      type: string
+      default: "cloud"
     - description: Expression to select the node to update
       name: SELECT_EXPRESSION
       type: string
@@ -52,8 +56,8 @@ spec:
 
         echo "NEW_VALUE=$(params.NEW_VALUE)"
 
-        FILE_TO_UPDATE=$(params.OVERLAYS_PATH)/$(params.OVERLAY)/$(params.FILE_NAME)
-
+        FILE_TO_UPDATE="$(params.OVERLAYS_PATH)/$(params.OVERLAY)/$(params.FILE_NAME)"
+        
         echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
 
         if [ ! -f ${FILE_TO_UPDATE} ]; then
@@ -73,6 +77,15 @@ spec:
         echo "======== AFTER CHANGES ========"
 
         cat ${FILE_TO_UPDATE}
+
+        # If twin env
+        FILE_TO_UPDATE_TWIN="$(params.OVERLAYS_PATH)/$(params.OVERLAY)-$(params.TWIN_OVERLAY_SUFFIX)/$(params.FILE_NAME)"
+
+        if [ -f ${FILE_TO_UPDATE_TWIN} ]; then
+          echo "======== UPDATING TWIN OVERLAY ========"
+          # Update target with new value
+          yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE_TWIN}
+        fi;
 
         #echo -n "true" > $(results.SUCCESS)
   workspaces:

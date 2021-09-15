@@ -102,8 +102,12 @@ spec:
           workspace: workspace-source
     - name: update-image
       params:
-        - name: FILE_TO_UPDATE
-          value: "{{ .Values.gramolaGatewayOverlayPath }}/dev/kustomization.yml"
+        # - name: FILE_TO_UPDATE
+        #   value: "{{ .Values.gramolaGatewayOverlayPath }}/dev/kustomization.yml"
+        - name: OVERLAYS_PATH
+          value: "{{ .Values.gramolaGatewayOverlayPath }}"
+        - name: OVERLAY
+          value: "dev"
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
         - name: NEW_VALUE
