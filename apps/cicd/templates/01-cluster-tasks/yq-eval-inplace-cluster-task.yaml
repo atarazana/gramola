@@ -57,7 +57,6 @@ spec:
         echo "NEW_VALUE=$(params.NEW_VALUE)"
 
         FILE_TO_UPDATE="$(params.OVERLAYS_PATH)/$(params.OVERLAY)/$(params.FILE_NAME)"
-        
         echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
 
         if [ ! -f ${FILE_TO_UPDATE} ]; then
@@ -80,11 +79,14 @@ spec:
 
         # If twin env
         FILE_TO_UPDATE_TWIN="$(params.OVERLAYS_PATH)/$(params.OVERLAY)-$(params.TWIN_OVERLAY_SUFFIX)/$(params.FILE_NAME)"
+        echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
 
         if [ -f ${FILE_TO_UPDATE_TWIN} ]; then
           echo "======== UPDATING TWIN OVERLAY ========"
           # Update target with new value
           yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE_TWIN}
+        else
+          echo "TWIN OVERLAY NOT FOUND!"
         fi;
 
         #echo -n "true" > $(results.SUCCESS)
