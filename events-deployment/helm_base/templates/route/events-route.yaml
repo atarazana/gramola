@@ -8,12 +8,11 @@ metadata:
     app.kubernetes.io/version: 0.0.1-SNAPSHOT
     app.openshift.io/runtime: quarkus
   annotations:
-    template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    template.openshift.io/expose-uri: https://{.spec.host}{.spec.path}
     app.openshift.io/connects-to: >-
       ["events-database",{"apiVersion":"apps/v1","kind":"Deployment","name":"events-database"}]
     app.openshift.io/vcs-url: '{{ .Values.baseRepoUrl }}-events.git'
     app.quarkus.io/vcs-url: '{{ .Values.baseRepoUrl }}-events.git'
-  
 spec:
   path: /
   to:
@@ -22,4 +21,7 @@ spec:
     weight: 100
   port:
     targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
   wildcardPolicy: None
