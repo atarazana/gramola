@@ -14,9 +14,19 @@ spec:
   description: >-
     These Task evaluates an expression and make changes in-place.
   params:
-    - description: File to update in-place, it should be a YAML file
-      name: FILE_TO_UPDATE
+    # - description: File to update in-place, it should be a YAML file
+    #   name: FILE_TO_UPDATE
+    #   type: string
+    - description: Overlays path
+      name: OVERLAYS_PATH
       type: string
+    - description: Overlays where the file to be updated is
+      name: OVERLAY
+      type: string
+    - description: File to update in-place, it should be a YAML file
+      name: FILE_NAME
+      type: string
+      default: "kustomization.yaml"
     - description: Expression to select the node to update
       name: SELECT_EXPRESSION
       type: string
@@ -42,9 +52,11 @@ spec:
 
         echo "NEW_VALUE=$(params.NEW_VALUE)"
 
-        echo "FILE_TO_UPDATE=$(params.FILE_TO_UPDATE)"
+        FILE_TO_UPDATE=$(params.OVERLAYS_PATH)/$(params.OVERLAY)/$(params.FILE_NAME)
 
-        if [ ! -f $(params.FILE_TO_UPDATE) ]; then
+        echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
+
+        if [ ! -f ${FILE_TO_UPDATE} ]; then
           echo "======== ERROR ========"
           echo "File not found, aborting"
           ls -ltrh
@@ -53,15 +65,14 @@ spec:
 
         echo "======== BEFORE CHANGES ========"
 
-        cat $(params.FILE_TO_UPDATE)
+        cat ${FILE_TO_UPDATE}
 
         # Update target with new value
-        #yq -i eval '(.images.[] | select(.name == "gramola-events*")).newTag |= "111111"' ./events-deployment/overlays/dev/kustomization.yml
-        yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' $(params.FILE_TO_UPDATE)
+        yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE}
         
         echo "======== AFTER CHANGES ========"
 
-        cat $(params.FILE_TO_UPDATE)
+        cat ${FILE_TO_UPDATE}
 
         #echo -n "true" > $(results.SUCCESS)
   workspaces:
