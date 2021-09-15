@@ -26,7 +26,7 @@ spec:
     - description: File to update in-place, it should be a YAML file
       name: FILE_NAME
       type: string
-      default: "kustomization.yaml"
+      default: "kustomization.yml"
     - description: Overlay suffix if twin overlay
       name: TWIN_OVERLAY_SUFFIX
       type: string
