@@ -49,7 +49,7 @@ kubectl apply -f util/argocd-service-account-permissions.yaml
 
 In this guide we cover the case of a protected git repositories that's why you need to create a Personal Access Token so that you don't have to expose your personal account.
 
-EXPLANATION and IMAGES...
+You can find an easy guide step by step by following this link: [Creating a personal access token - GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
 NOTE: We're covering Github in this guide if you use a different git server you may have to do some adjustments.
 
