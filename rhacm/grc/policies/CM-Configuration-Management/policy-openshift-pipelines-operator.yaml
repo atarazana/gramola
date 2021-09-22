@@ -61,4 +61,4 @@ spec:
     type: ManagedClusterConditionAvailable
   clusterSelector:
     matchExpressions:
-      - {key: deployer, operator: In, values: ["tekton"]}
+      - {key: ci-cd, operator: In, values: ["tekton"]}

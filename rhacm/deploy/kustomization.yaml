@@ -12,5 +12,5 @@ generatorOptions:
 resources:
   - namespace.yaml
   - channel.yaml
-  - subscription-cm.yaml 
+#  - subscription-cm.yaml 
   - subscription.yaml
