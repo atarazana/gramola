@@ -25,6 +25,20 @@ roleRef:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
+  name: openshift-pipelines-clusterinterceptors-{{ .Values.pipelinesServiceAccountName }}-rolebinding
+  namespace: {{ .Values.cicdNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.pipelinesServiceAccountName }}
+    namespace: {{ .Values.cicdNamespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openshift-pipelines-clusterinterceptors
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
   name: edit-{{ .Values.pipelinesServiceAccountName }}-rolebinding
   namespace: {{ .Values.cicdNamespace }}
 subjects:
