@@ -22,10 +22,10 @@ roleRef:
   kind: ClusterRole
   name: pipelines-scc-clusterrole
 ---
-kind: RoleBinding
+kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: openshift-pipelines-clusterinterceptors-{{ .Values.pipelinesServiceAccountName }}-rolebinding
+  name: openshift-pipelines-clusterinterceptors-{{ .Values.pipelinesServiceAccountName }}-clusterrolebinding
   namespace: {{ .Values.cicdNamespace }}
 subjects:
   - kind: ServiceAccount
