@@ -1,3 +1,9 @@
+# Install ArgoCD and Pipelines using Red Hat Advanced Cluster Management for Kubernetes (ACM)
+
+Red Hat Advanced Cluster Management for Kubernetes provides end-to-end management visibility and control to manage your Kubernetes environment. Take control of your application modernization program with management capabilities for cluster creation, application lifecycle, and provide security and compliance for all of them across data centers and hybrid cloud environments. Clusters and applications are all visible and managed from a single console, with built-in security policies. Run your operations from anywhere that Red Hat OpenShift runs, and manage any Kubernetes cluster in your fleet.
+
+If you have already deployed an instance of ACM or you want to [install](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.3/html/install/index) it and leverage the Governance, Risk, and Compliance (GRC) super powers for this demo, use this [policies](rhacm) to get the operators installed automatically in your behalf.
+
 # Install ArgoCD and Pipelines using the operators
 
 TODO text and images.
@@ -43,7 +49,7 @@ kubectl apply -f util/argocd-service-account-permissions.yaml
 
 In this guide we cover the case of a protected git repositories that's why you need to create a Personal Access Token so that you don't have to expose your personal account.
 
-EXPLANATION and IMAGES...
+You can find an easy guide step by step by following this link: [Creating a personal access token - GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
 NOTE: We're covering Github in this guide if you use a different git server you may have to do some adjustments.
 

@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gramola-demo-policies-github
+  namespace: rhacm-policies
+data:
+    path: rhacm/grc/policies/
+    branch: main
