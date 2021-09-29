@@ -31,6 +31,9 @@ spec:
       script: |
         #!/bin/sh
 
+        echo "ARGOCD_VERSION=$(argocd version)"
+        echo "OC_VERSION=$(oc version)"
+
         ARGOCD_USERNAME=admin
         ARGOCD_SERVER=$(oc get route/openshift-gitops-server -o jsonpath='{.status.ingress[0].host}' -n openshift-gitops)
         ARGOCD_PASSWORD=$(oc get secret openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' -n openshift-gitops | base64 -d)
