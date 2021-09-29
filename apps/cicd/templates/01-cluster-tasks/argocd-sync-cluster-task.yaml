@@ -16,6 +16,10 @@ spec:
     - description: Name of the Application to sync
       name: APP_NAME
       type: string
+    - description: Overlay suffix if twin overlay
+      name: TWIN_OVERLAY_SUFFIX
+      type: string
+      default: "cloud"
     - default: quay.io/atarazana/argocd:0.0.1
       description: The image used where the argocd binary is
       name: TASK_IMAGE
@@ -40,5 +44,22 @@ spec:
         argocd login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 
         argocd app sync --timeout 120 $(params.APP_NAME)
-
+        if [ "$?" == 0 ]; then
+          argocd app get $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
+          if [ "$?" == 0 ]; then
+            argocd app sync --timeout 120 $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
+            if [ "$?" ne 0 ]; then
+              echo "ERROR WHILE SYNCING TWIN APP $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)"
+              echo -n "false" > $(results.APP_SYNC_SUCCESS.path)
+              exit 1
+            fi
+          else
+            echo "No Twin App called: $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)"
+          fi
+        else
+          echo "ERROR WHILE SYNCING $(params.APP_NAME)"
+          echo -n "false" > $(results.APP_SYNC_SUCCESS.path)
+          exit 1
+        fi
+        
         echo -n "true" > $(results.APP_SYNC_SUCCESS.path)
