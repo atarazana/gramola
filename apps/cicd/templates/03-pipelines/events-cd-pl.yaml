@@ -26,6 +26,13 @@ spec:
     - name: NEXT_OVERLAY
       type: string
   tasks:
+    - name: argocd-sync
+      params:
+        - name: APP_NAME
+          value: $(params.APP_NAME)-app-$(params.OVERLAY)
+      taskRef:
+        kind: ClusterTask
+        name: argocd-sync
     - name: fetch-config-repository
       params:
         - name: url

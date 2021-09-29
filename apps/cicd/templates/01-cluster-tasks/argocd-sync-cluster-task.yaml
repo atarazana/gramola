@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  annotations:
+    tekton.dev/displayName: GitHub create pull request cluster task
+    tekton.dev/pipelines.minVersion: '0.19'
+    tekton.dev/tags: 'argocd, gitops'
+  name: argocd-sync
+  labels:
+    app.kubernetes.io/version: '0.1'
+    operator.tekton.dev/provider-type: redhat
+spec:
+  description: >-
+    These Task triggers a sync operation.
+  params:
+    - description: Name of the Application to sync
+      name: APP_NAME
+      type: string
+    - default: quay.io/atarazana/argocd:0.0.1
+      description: The image used where the argocd binary is
+      name: TASK_IMAGE
+      type: string
+  results:
+    - description: Success or failure
+      name: APP_SYNC_SUCCESS
+  steps:
+    - image: $(params.TASK_IMAGE)
+      name: eval
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+
+        ARGOCD_USERNAME=admin
+        ARGOCD_SERVER=$(oc get route/openshift-gitops-server -o jsonpath='{.status.ingress[0].host}' -n openshift-gitops)
+        ARGOCD_PASSWORD=$(oc get secret openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' -n openshift-gitops | base64 -d)
+
+        argocd login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
+
+        argocd app sync -l app.kubernetes.io/instance=$(params.APP_NAME)
+
+        echo -n "true" > APP_SYNC_SUCCESS)
