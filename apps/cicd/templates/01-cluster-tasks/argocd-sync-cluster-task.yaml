@@ -41,4 +41,4 @@ spec:
 
         argocd app sync -l app.kubernetes.io/instance=$(params.APP_NAME)
 
-        echo -n "true" > APP_SYNC_SUCCESS)
+        echo -n "true" > $(results.APP_SYNC_SUCCESS.path)
