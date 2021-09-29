@@ -48,7 +48,7 @@ spec:
           argocd app get $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
           if [ "$?" == 0 ]; then
             argocd app sync --timeout 120 $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
-            if [ "$?" ne 0 ]; then
+            if ! [ "$?" == 0 ]; then
               echo "ERROR WHILE SYNCING TWIN APP $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)"
               echo -n "false" > $(results.APP_SYNC_SUCCESS.path)
               exit 1
