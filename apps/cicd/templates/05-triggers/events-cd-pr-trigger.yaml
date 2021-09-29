@@ -105,7 +105,7 @@ spec:
     spec:
       params:
         - name: APP_NAME
-          value: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+          value: "{{ .Values.gramolaEventsServiceName }}"
         - name: GIT_REPO_CONFIG
           value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
         - name: GIT_REVISION_CONFIG

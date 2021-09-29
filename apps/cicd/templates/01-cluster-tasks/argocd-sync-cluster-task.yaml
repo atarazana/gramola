@@ -39,6 +39,6 @@ spec:
 
         argocd login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 
-        argocd app sync -l app.kubernetes.io/instance=$(params.APP_NAME)
+        argocd app sync $(params.APP_NAME)
 
         echo -n "true" > $(results.APP_SYNC_SUCCESS.path)
