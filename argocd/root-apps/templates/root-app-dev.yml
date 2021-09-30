@@ -17,8 +17,6 @@ spec:
       parameters:
         - name: baseRepoUrl
           value: "{{ .Values.baseRepoUrl }}"
-        - name: debug
-          value: "true"
     path: apps/dev
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD

@@ -74,8 +74,6 @@ spec:
                   fieldPath: metadata.namespace
             - name: JAVA_APP_JAR
               value: /deployments/quarkus-run.jar
-            - name: DEBUG
-              value: "{{ .Values.debug }}"
           ports:
             - name: http
               containerPort: 8080
