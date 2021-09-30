@@ -25,8 +25,10 @@ spec:
       name: TASK_IMAGE
       type: string
   results:
-    - description: Success or failure
+    - description: Success or failure while syncing APP_NAME
       name: APP_SYNC_SUCCESS
+    - description: Success or failure while syncing APP_NAME-TWIN_OVERLAY_SUFFIX
+      name: TWIN_APP_SYNC_SUCCESS
   steps:
     - image: $(params.TASK_IMAGE)
       name: eval
@@ -34,32 +36,52 @@ spec:
       script: |
         #!/bin/sh
 
-        echo "ARGOCD_VERSION=$(argocd version)"
-        echo "OC_VERSION=$(oc version)"
+        printf "\n>>> START\n\n"
 
+        printf "APP_NAME=$(params.APP_NAME)\n"
+        printf "TWIN_OVERLAY_SUFFIX=$(params.TWIN_OVERLAY_SUFFIX)\n\n"
+
+        printf "Gathering credentials for logging in ArgoCD instance in-cluster\n"
+        printf "===============================================================\n\n"
         ARGOCD_USERNAME=admin
         ARGOCD_SERVER=$(oc get route/openshift-gitops-server -o jsonpath='{.status.ingress[0].host}' -n openshift-gitops)
         ARGOCD_PASSWORD=$(oc get secret openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' -n openshift-gitops | base64 -d)
 
+        printf "\nARGOCD_USERNAME=${ARGOCD_USERNAME}"
+        printf "\nARGOCD_SERVER=${ARGOCD_SERVER}\n\n"
+
+        printf "Attempting logging in ArgoCD instance in-cluster\n"
+        printf "================================================\n\n"
         argocd login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 
+        printf "Starting sync of $(params.APP_NAME)\n"
+        printf "================================================\n\n"
         argocd app sync --timeout 120 $(params.APP_NAME)
+        printf "\nSync of $(params.APP_NAME) ended\n"
+        printf "================================================\n\n"
         if [ "$?" == 0 ]; then
+          printf "Checking if twin app $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) exists\n"
+          printf "================================================================\n\n"
           argocd app get $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
           if [ "$?" == 0 ]; then
+            printf "Starting sync of $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)\n"
+            printf "==============================================================\n\n"
             argocd app sync --timeout 120 $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
             if ! [ "$?" == 0 ]; then
-              echo "ERROR WHILE SYNCING TWIN APP $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)"
-              echo -n "false" > $(results.APP_SYNC_SUCCESS.path)
+              printf "\n*** ERROR WHILE SYNCING TWIN APP $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) ***\n"
+              echo -n "false" > $(results.TWIN_APP_SYNC_SUCCESS.path)
               exit 1
+            else
+              echo -n "true" > $(results.TWIN_APP_SYNC_SUCCESS.path)
             fi
           else
-            echo "No Twin App called: $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)"
+            printf "\n*** APP $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) NOT FOUND ***\n"
           fi
         else
-          echo "ERROR WHILE SYNCING $(params.APP_NAME)"
+          printf "\n*** ERROR WHILE SYNCING $(params.APP_NAME) ***"
           echo -n "false" > $(results.APP_SYNC_SUCCESS.path)
           exit 1
         fi
         
         echo -n "true" > $(results.APP_SYNC_SUCCESS.path)
+        printf "\n<<< END\n\n"
