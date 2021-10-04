@@ -15,8 +15,8 @@ spec:
           params:
             - name: secretRef
               value: 
-              secretName: {{ .Values.gitPatSecretName }}
-              secretKey: {{ .Values.gitPatSecretKey }}
+                secretName: {{ .Values.gitPatSecretName }}
+                secretKey: {{ .Values.gitPatSecretKey }}
             - name: eventTypes
               value:
                 - push
