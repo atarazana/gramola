@@ -6,7 +6,11 @@ If you have already deployed an instance of ACM or you want to [install](https:/
 
 # Install ArgoCD and Pipelines using the operators
 
-TODO text and images.
+Install ArgoCD Operator with OCP OAuth and Openshift Pipelines:
+
+```sh
+until oc apply -k util/bootstrap/; do sleep 2; done
+```
 
 # READ THIS BEFORE YOU GO BEYOND
 
