@@ -8,12 +8,24 @@ spec:
   triggers:
     - name: github-listener
       interceptors:
-        - github:
-            # secretRef:
-            #   secretName: github-secret
-            #   secretKey: secretToken
-            eventTypes:
-              - push
+        - ref:
+            name: github
+            kind: ClusterInterceptor
+            apiVersion: triggers.tekton.dev
+          params:
+            # - name: secretRef
+            #   value: 
+            #     secretName: {{ .Values.gitPatSecretName }}
+            #     secretKey: {{ .Values.gitPatSecretKey }}
+            - name: eventTypes
+              value:
+                - push
+        # - github:
+        #     # secretRef:
+        #     #   secretName: github-secret
+        #     #   secretKey: secretToken
+        #     eventTypes:
+        #       - push
         # - cel:
         #     filter: "body.action in ['opened', 'synchronize', 'reopened']"
       bindings:

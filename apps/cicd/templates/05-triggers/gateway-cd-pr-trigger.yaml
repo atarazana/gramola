@@ -13,12 +13,24 @@ spec:
   triggers:
     - name: github-listener
       interceptors:
-        - github:
-            # secretRef:
-            #   secretName: github-secret
-            #   secretKey: secretToken
-            eventTypes:
-              - pull_request
+        - ref:
+            name: github
+            kind: ClusterInterceptor
+            apiVersion: triggers.tekton.dev
+          params:
+            # - name: secretRef
+            #   value: 
+            #     secretName: {{ .Values.gitPatSecretName }}
+            #     secretKey: {{ .Values.gitPatSecretKey }}
+            - name: eventTypes
+              value:
+                - pull_request
+        # - github:
+        #     # secretRef:
+        #     #   secretName: github-secret
+        #     #   secretKey: secretToken
+        #     eventTypes:
+        #       - pull_request
         - cel:
             # Triggers only if the PR was merged
             filter: "body.action in ['closed'] && body.pull_request.merged == true && body.pull_request.body.parseYAML().serviceName in ['{{ .Values.gramolaGatewayServiceName }}']"

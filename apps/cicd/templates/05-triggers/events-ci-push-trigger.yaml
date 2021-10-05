@@ -13,10 +13,10 @@ spec:
             kind: ClusterInterceptor
             apiVersion: triggers.tekton.dev
           params:
-            - name: secretRef
-              value: 
-                secretName: {{ .Values.gitPatSecretName }}
-                secretKey: {{ .Values.gitPatSecretKey }}
+            # - name: secretRef
+            #   value: 
+            #     secretName: {{ .Values.gitPatSecretName }}
+            #     secretKey: {{ .Values.gitPatSecretKey }}
             - name: eventTypes
               value:
                 - push
