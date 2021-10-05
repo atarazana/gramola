@@ -9,7 +9,7 @@ If you have already deployed an instance of ACM or you want to [install](https:/
 Install ArgoCD Operator with OCP OAuth and Openshift Pipelines:
 
 ```sh
-until oc apply -k util/bootstrap/; do sleep 2; done
+until kubectl apply -k util/bootstrap/; do sleep 2; done
 ```
 
 # READ THIS BEFORE YOU GO BEYOND
@@ -24,18 +24,7 @@ NOTE: This is necessary because webhooks need to be created and obviously you ne
 
 # Add plugin section to ArgoCD Custom Resource
 
-If OCP 4.6
-
-```sh
-kubectl patch argocd argocd-cluster -n openshift-gitops --patch "$(cat ./argocd/plugins/argocd-kustomized-helm-plugin.yaml)" --type=merge
-```
-
-If OCP 4.7+ 
-
-```sh
-kubectl patch argocd openshift-gitops -n openshift-gitops --patch "$(cat ./argocd/plugins/argocd-kustomized-helm-plugin.yaml)" --type=merge
-```
-
+We're using a custom plugin called `kustomized-helm` if you're interested have a look at section `configManagementPlugins` in `./util/bootstrap/2.openshift-gitops-patch`.
 
 # Adjust permissions of Service Account
 
@@ -72,21 +61,14 @@ argocd repo list
 
 # Register additional clusters
 
-First make sure there is a context with proper credentials, for instance by logging in.
-
+First make sure there is a context with proper credentials, in order to achieve this please log in the additional cluster.
 
 ```sh
 export API_SERVER=localhost:8443
 oc login ${API_SERVER} --username=myuser --password=mypass
 ```
 
-You can run this and follow instructions. CLUSTER_NAME is a name you choose for your cluster, API_SERVER is the host and port **without `http(s)`**.
-
-```sh
-./util/argocd-register-cluster.sh
-```
-
-Or run this directly.
+**CAUTION:** **CLUSTER_NAME** is a name you choose for your cluster, **API_SERVER** is the host and port **without `http(s)`**.
 
 ```sh
 export CLUSTER_NAME=aws-managed1
@@ -99,9 +81,9 @@ Check if your cluster has been added correctly.
 argocd cluster list
 ```
 
-Now you can log back in the cluster where ArgoCD is running if you want.
-
 # Add ArgoCD Project definitions
+
+**IMPORTANT:** Now you can log back in the cluster where ArgoCD is running.
 
 ```sh
 kubectl apply -f argocd/projects/project-dev.yml
