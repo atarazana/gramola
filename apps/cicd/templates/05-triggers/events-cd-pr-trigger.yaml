@@ -31,6 +31,25 @@ spec:
         #     #   secretKey: secretToken
         #     eventTypes:
         #       - pull_request
+        - ref:
+            name: cel
+            kind: ClusterInterceptor
+            apiVersion: triggers.tekton.dev
+          params:
+            # Triggers only if the PR was merged
+            - name: filter
+              value: "body.action in ['closed'] && body.pull_request.merged == true && body.pull_request.body.parseYAML().serviceName in ['{{ .Values.gramolaEventsServiceName }}']"
+            # PR Body is a YAML here we extract information to trigger the next step
+            - name: overlays
+              value:
+                - key: image_digest_clean
+                  expression: "body.pull_request.body.parseYAML().imageDigestClean"
+                - key: count
+                  expression: "int(body.pull_request.body.parseYAML().count) + 1"
+                - key: overlay
+                  expression: "body.pull_request.body.parseYAML().overlay"
+                - key: next_overlay
+                  expression: "(int(body.pull_request.body.parseYAML().count) + 1) < size('{{ .Values.overlays }}'.split(',')) ? '{{ .Values.overlays }}'.split(',')[int(body.pull_request.body.parseYAML().count) + 1] : ''" 
         - cel:
             # Triggers only if the PR was merged
             filter: "body.action in ['closed'] && body.pull_request.merged == true && body.pull_request.body.parseYAML().serviceName in ['{{ .Values.gramolaEventsServiceName }}']"
