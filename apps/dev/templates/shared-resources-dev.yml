@@ -4,7 +4,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: shared-resources-dev
-  namespace: openshift-gitops
+  namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:

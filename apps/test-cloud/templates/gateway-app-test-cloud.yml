@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: gateway-app-test-cloud
-  namespace: openshift-gitops
+  namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:

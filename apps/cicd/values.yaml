@@ -1,5 +1,8 @@
 appName: gramola
 
+namespaceBase: gramola
+namespaceSuffix: ""
+
 gitUrl: https://github.com
 gitUsername: atarazana
 baseRepoName: gramola
