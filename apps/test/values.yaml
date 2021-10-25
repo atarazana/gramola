@@ -1,5 +1,3 @@
 baseRepoUrl: https://github.com/atarazana/gramola
 debug: false
 destinationName: in-cluster
-namespaceBase: gramola
-namespaceSuffix: ""

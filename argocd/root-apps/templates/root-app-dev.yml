@@ -2,12 +2,12 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: gramola-root-app-dev
-  namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
+  namespace: openshift-gitops
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
+    namespace: openshift-gitops
     name: in-cluster
   project: default
   syncPolicy:
@@ -17,10 +17,6 @@ spec:
       parameters:
         - name: baseRepoUrl
           value: "{{ .Values.baseRepoUrl }}"
-        - name: namespaceBase
-          value: "{{ .Values.namespaceBase }}"
-        - name: namespaceSuffix
-          value: "{{ .Values.namespaceSuffix }}"
     path: apps/dev
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
