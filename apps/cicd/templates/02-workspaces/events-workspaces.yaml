@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: "{{ .Values.gramolaEventsServiceName }}-source-pvc"
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -15,7 +15,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: "{{ .Values.gramolaEventsServiceName }}-cache-pvc"
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
 spec:
   accessModes:
     - ReadWriteOnce

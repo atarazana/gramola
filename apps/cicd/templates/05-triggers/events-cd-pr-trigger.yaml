@@ -7,7 +7,7 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
   name: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-listener"
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
 spec:
   serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
   triggers:
@@ -74,7 +74,7 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-trigger-binding"
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
@@ -107,7 +107,7 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   name: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-trigger-template"
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
@@ -127,7 +127,7 @@ spec:
     kind: PipelineRun
     metadata:
       generateName: "{{ .Values.gramolaEventsCdPrTriggerRootName }}-$(tt.params.overlay)-plr-"
-      namespace: {{ .Values.cicdNamespace }}
+      namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
       labels:
         app.kubernetes.io/instance: {{ .Values.gramolaEventsServiceName }}
         pipeline.openshift.io/runtime: quarkus

@@ -14,7 +14,7 @@ spec:
   #   - .spec.template.spec.initContainers[*].image
   #   - .spec.template.spec.containers[*].image
   destination:
-    namespace: gramola-dev
+    namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
     name: {{ .Values.destinationName }}
   project: gramola-project-dev
   syncPolicy:
@@ -34,4 +34,6 @@ spec:
           value: "{{ .Values.destinationName }}"
         - name: BASE_REPO_URL
           value: "{{ .Values.baseRepoUrl }}"
+        - name: NAMESPACE_SUFFIX
+          value: "{{ .Values.namespaceSuffix }}"
       name: kustomized-helm

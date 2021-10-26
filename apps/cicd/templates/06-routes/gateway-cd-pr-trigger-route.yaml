@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/part-of: Triggers
     eventlistener: "{{ .Values.gramolaGatewayCdPrTriggerRootName }}-listener"
   name: el-{{ .Values.gramolaGatewayCdPrTriggerRootName }}-listener
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
 spec:
   port:
     targetPort: http-listener

@@ -17,8 +17,10 @@ spec:
       parameters:
         - name: baseRepoUrl
           value: "{{ .Values.baseRepoUrl }}"
+        - name: namespaceSuffix
+          value: "{{ .Values.namespaceSuffix }}"
         - name: destinationName
-          value: {{ .Values.destinationName }}
+          value: "{{ .Values.destinationName }}"
     path: apps/test-cloud
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD

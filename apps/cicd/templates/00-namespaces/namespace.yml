@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ .Values.cicdNamespace }}
+  name: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
   labels:
     argocd.argoproj.io/managed-by: openshift-gitops #argocd instance ns
   annotations:

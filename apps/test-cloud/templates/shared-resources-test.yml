@@ -11,10 +11,14 @@ spec:
   syncPolicy:
     automated: {}
   destination:
-    namespace: gramola-test
+    namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
     name: {{ .Values.destinationName }}
   project: gramola-project-test
   source:
+    helm:
+      parameters:
+        - name: namespaceSuffix
+          value: "{{ .Values.namespaceSuffix }}"
     path: apps/test-cloud/shared
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD

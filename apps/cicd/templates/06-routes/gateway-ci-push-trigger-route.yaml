@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/part-of: Triggers
     eventlistener: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-listener"
   name: el-{{ .Values.gramolaGatewayCiPushTriggerRootName }}-listener
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
 spec:
   port:
     targetPort: http-listener

@@ -7,7 +7,7 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: gramola-test
+    namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
     name: {{ .Values.destinationName }}
   project: gramola-project-test
   syncPolicy:
@@ -27,4 +27,6 @@ spec:
           value: "{{ .Values.destinationName }}"
         - name: BASE_REPO_URL
           value: "{{ .Values.baseRepoUrl }}"
+        - name: NAMESPACE_SUFFIX
+          value: "{{ .Values.namespaceSuffix }}"
       name: kustomized-helm

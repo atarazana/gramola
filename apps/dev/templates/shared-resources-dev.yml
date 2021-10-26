@@ -11,10 +11,14 @@ spec:
   syncPolicy:
     automated: {}
   destination:
-    namespace: gramola-dev
+    namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
     name: {{ .Values.destinationName }}
   project: gramola-project-dev
   source:
+    helm:
+      parameters:
+        - name: namespaceSuffix
+          value: "{{ .Values.namespaceSuffix }}"
     path: apps/dev/shared
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD

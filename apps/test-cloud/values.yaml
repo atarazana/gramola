@@ -1,3 +1,5 @@
 baseRepoUrl: https://github.com/atarazana/gramola
 debug: false
 destinationName: aws-managed1
+namespaceBase: gramola-test
+namespaceSuffix: ""

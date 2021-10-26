@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
   labels:
     app.kubernetes.io/instance: {{ .Values.gramolaEventsServiceName }}
     pipeline.openshift.io/runtime: quarkus
