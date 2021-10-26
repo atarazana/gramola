@@ -3,7 +3,7 @@ kind: Application
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
-  name: shared-resources-test-cloud
+  name: {{ printf "shared-resources-%s%s" "test-cloud" .Values.namespaceSuffix }}
   namespace: openshift-gitops
   finalizers:
   - resources-finalizer.argocd.argoproj.io

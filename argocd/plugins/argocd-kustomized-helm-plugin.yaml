@@ -8,7 +8,4 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - > 
-            helm template ../../helm_base --name-template $ARGOCD_APP_NAME \
-            --set debug=${DEBUG},clusterName=${DESTINATION_NAME},baseRepoUrl=${BASE_REPO_URL},namespaceSuffix=${NAMESPACE_SUFFIX} \
-            --include-crds > ../../helm_base/all.yml && \
-            kustomize build | sed "s/\(gramola-.*\)/\1${NAMESPACE_SUFFIX}/g"
+            helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${DEBUG},clusterName=${DESTINATION_NAME},baseRepoUrl=${BASE_REPO_URL},namespaceSuffix=${NAMESPACE_SUFFIX} --include-crds > ../../helm_base/all.yml && kustomize build | sed "s/\(namespace:[[:space:]]\{1,\}\)\(gramola-.*\)/\1\2${NAMESPACE_SUFFIX}/"

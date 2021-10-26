@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gramola-root-app-dev
+  name: {{ printf "%s-%s%s" .Values.rootAppNameBase "dev" .Values.namespaceSuffix }}
   namespace: openshift-gitops
   finalizers:
   - resources-finalizer.argocd.argoproj.io
