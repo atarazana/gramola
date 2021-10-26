@@ -17,6 +17,8 @@ spec:
       parameters:
         - name: baseRepoUrl
           value: "{{ .Values.baseRepoUrl }}.git"
+        - name: namespaceSuffix
+          value: "{{ .Values.namespaceSuffix }}"
     path: {{ .Values.sourcePath }}
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
