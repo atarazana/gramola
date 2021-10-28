@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-listener"
+  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-github-listener"
   namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
 spec:
   serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
@@ -30,31 +30,77 @@ spec:
         #     filter: "body.action in ['opened', 'synchronize', 'reopened']"
       bindings:
         - kind: TriggerBinding
-          ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-binding"
+          ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-github-trigger-binding"
       template:
         ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-template"
-
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-binding"
+  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-github-trigger-binding"
   namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   params:
   - name: gitRepositoryUrl
-    value: $(body.repository.url)
+    value: $(body.repository.clone_url)
   - name: gitRepository
     value: $(body.repository.full_name)
   - name: gitRevision
-    value: $(body.head_commit.id)
+    value: $(body.after)
   - name: contentType
     value: $(header.Content-Type)
   - name: gitId
     value: $(body.after)
-
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-gitlab-listener"
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
+spec:
+  serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
+  triggers:
+    - name: gitlab-listener
+      interceptors:
+        - ref:
+            name: gitlab
+            kind: ClusterInterceptor
+            apiVersion: triggers.tekton.dev
+          params:
+            # - name: secretRef
+            #   value: 
+            #     secretName: {{ .Values.gitPatSecretName }}
+            #     secretKey: {{ .Values.gitPatSecretKey }}
+            - name: eventTypes
+              value:
+                - push
+      bindings:
+        - kind: TriggerBinding
+          ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-gitlab-trigger-binding"
+      template:
+        ref: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-trigger-template"
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: "{{ .Values.gramolaEventsCiPushTriggerRootName }}-gitlab-trigger-binding"
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  params:
+  - name: gitRepositoryUrl
+    value: $(body.repository.clone_url)
+  - name: gitRepository
+    value: $(body.repository.full_name)
+  - name: gitRevision
+    value: $(body.after)
+  - name: contentType
+    value: $(header.Content-Type)
+  - name: gitId
+    value: $(body.after)
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
