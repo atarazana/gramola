@@ -19,6 +19,10 @@ spec:
           value: "{{ .Values.baseRepoUrl }}.git"
         - name: namespaceSuffix
           value: "{{ .Values.namespaceSuffix }}"
+        - name: containerRegistryServer
+          value: "{{ .Values.containerRegistryServer }}"
+        - name: containerRegistryOrg
+          value: "{{ .Values.containerRegistryOrg }}"
     path: {{ .Values.sourcePath }}
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
