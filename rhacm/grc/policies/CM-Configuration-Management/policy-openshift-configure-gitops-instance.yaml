@@ -14,7 +14,7 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: openshift-gitops-installed
+          name: openshift-gitops-configured
         spec:
           remediationAction: enforce
           severity: med
