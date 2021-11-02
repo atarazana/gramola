@@ -8,7 +8,7 @@ ENV YQ_VERSION=4.11.2
 #     KO_APP=/ko-app \
 #     KO_DATA_PATH=/kodata
 
-RUN microdnf install -y git openssh-clients
+RUN microdnf install -y git openssh-clients jq
 
 RUN rpm -i https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.rpm
 

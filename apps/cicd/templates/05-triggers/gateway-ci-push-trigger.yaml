@@ -54,6 +54,67 @@ spec:
     value: $(header.Content-Type)
   - name: gitId
     value: $(body.after)
+  - name: gitProvider
+    value: github
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-gitea-listener"
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
+spec:
+  serviceAccountName: {{ .Values.pipelinesServiceAccountName }}
+  triggers:
+    - name: github-listener
+      interceptors:
+        - ref:
+            name: github
+            kind: ClusterInterceptor
+            apiVersion: triggers.tekton.dev
+          params:
+            # - name: secretRef
+            #   value: 
+            #     secretName: {{ .Values.gitPatSecretName }}
+            #     secretKey: {{ .Values.gitPatSecretKey }}
+            - name: eventTypes
+              value:
+                - push
+        # - github:
+        #     # secretRef:
+        #     #   secretName: github-secret
+        #     #   secretKey: secretToken
+        #     eventTypes:
+        #       - push
+        # - cel:
+        #     filter: "body.action in ['opened', 'synchronize', 'reopened']"
+      bindings:
+        - kind: TriggerBinding
+          ref: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-gitea-trigger-binding"
+      template:
+        ref: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-trigger-template"
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: "{{ .Values.gramolaGatewayCiPushTriggerRootName }}-gitea-trigger-binding"
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  params:
+  - name: gitRepositoryUrl
+    value: $(body.repository.clone_url)
+  - name: gitRepository
+    value: $(body.repository.full_name)
+  - name: gitRevision
+    value: $(body.after)
+  - name: contentType
+    value: $(header.Content-Type)
+  - name: gitId
+    value: $(body.after)
+  - name: gitProvider
+    value: gitea
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
@@ -111,6 +172,8 @@ spec:
     value: $(header.Content-Type)
   - name: gitId
     value: $(body.after)
+  - name: gitProvider
+    value: gitlab
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
@@ -122,8 +185,10 @@ metadata:
 spec:
   params:
   - name: gitRepositoryUrl
+  - name: gitRepository
   - name: gitRevision
   - name: gitId
+  - name: gitProvider
   resourcetemplates:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
@@ -139,8 +204,12 @@ spec:
       params:
         - name: APP_NAME
           value: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
+        - name: GIT_PROVIDER
+          value: $(tt.params.gitProvider)
         - name: GIT_REPO
           value: $(tt.params.gitRepositoryUrl)
+        - name: GIT_REPO_NAME
+          value: $(tt.params.gitRepository)
         - name: GIT_REVISION
           value: $(tt.params.gitRevision)
         - name: GIT_REPO_CONFIG

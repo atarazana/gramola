@@ -1,0 +1,181 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  annotations:
+    tekton.dev/displayName: Gitea create pull request cluster task
+    tekton.dev/pipelines.minVersion: '0.19'
+    tekton.dev/tags: 'pr, gitea'
+  name: gitea-pr-create
+
+  labels:
+    app.kubernetes.io/version: '0.1'
+    operator.tekton.dev/provider-type: redhat
+spec:
+  description: >-
+    These Tasks are Gites tasks to work with repositories used by other tasks in
+    your Pipeline.
+
+    The pr-create Task will...
+  params:
+    - description: Git Repo Name
+      name: GIT_REPO_NAME
+      type: string
+    - description: PR Title
+      name: PR_TITLE
+      type: string
+    - description: PR Body
+      name: PR_BODY
+      type: string
+    - description: PR Head Branch
+      name: PR_HEAD
+      type: string
+      default: main
+    - description: Personal Access Token Secret Name
+      name: PAT_SECRET_NAME
+      type: string
+    - description: Personal Access Token Secret Key
+      name: PAT_SECRET_KEY
+      type: string
+      default: password
+    - description: Git User Name
+      name: USER_NAME_KEY
+      type: string
+      default: user.name
+    - description: Git User Email
+      name: USER_EMAIL_KEY
+      type: string
+      default: user.email
+    - default: quay.io/atarazana/gh:0.0.1
+      description: the image used where the gh binary is
+      name: TASK_IMAGE
+      type: string
+  results:
+    - description: The precise URL that was created for the PR
+      name: PR_BASE
+    - description: The precise URL that was created for the PR
+      name: PR_URL
+  steps:
+    - image: $(params.TASK_IMAGE)
+      name: prepare
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.PAT_SECRET_KEY)
+        - name: GIT_USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.USER_NAME_KEY)
+        - name: GIT_USER_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.USER_EMAIL_KEY)
+      script: |
+        #!/bin/sh
+
+        echo "====> ~/.gitconfig"
+        cat ~/.gitconfig
+
+        git config user.email "${GIT_USER_EMAIL}"
+        git config user.name "${GIT_USER_NAME}"
+
+        echo "====> ~/.gitconfig"
+        cat ~/.gitconfig
+    - image: $(params.TASK_IMAGE)
+      name: git-work
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.PAT_SECRET_KEY)
+      script: |
+        #!/bin/sh
+        echo "WORKING_DIR=$(workspaces.source.path)"
+        echo "PWD=`pwd`"
+
+        ls -ltrha
+
+        if [ ! -d .git ]; then
+          echo "Not a git repository found, aborting"
+          exit 1;
+        fi;
+
+        # Create a temporary branch to stash changes in
+        BRANCH_NAME=fb-$(tr -cd '[:alnum:]' < /dev/urandom | fold -w8 | head -n1)
+        echo "Creating branch ${BRANCH_NAME}..."    
+        git checkout -b ${BRANCH_NAME}
+
+        # Commit changes
+        git commit -a -m "$(params.PR_TITLE)"
+
+        # Push changes
+        git push origin ${BRANCH_NAME}
+
+        echo -n "${BRANCH_NAME}" > $(results.PR_BASE.path)
+    - image: $(params.TASK_IMAGE)
+      name: create
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GIT_REPO_NAME
+          value: $(params.GIT_REPO_NAME)
+        - name: PR_BASE
+          value: $(results.PR_BASE)
+        - name: PR_HEAD
+          value: $(params.PR_HEAD)
+        - name: PR_TITLE
+          value: $(params.PR_TITLE)
+        - name: PR_BODY
+          value: $(params.PR_BODY)
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.PAT_SECRET_NAME)
+              key: $(params.PAT_SECRET_KEY)
+      script: |
+        #!/bin/sh
+        echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
+        echo "PR_BASE=${PR_BASE}"
+        echo "PR_HEAD=${PR_HEAD}"
+        echo "PR_TITLE=${PR_TITLE}"
+        echo "PR_BODY=${PR_BODY}"
+        echo "PAT_SECRET_NAME=$(params.PAT_SECRET_NAME)"
+        echo "PAT_SECRET_KEY=$(params.PAT_SECRET_KEY)"
+
+        echo "WORKING_DIR=$(workspaces.source.path)"
+        echo "PWD=`pwd`"
+
+        GIT_REMOTE_URL=$(git remote get-url --push origin)
+        echo "GIT_REMOTE_URL=${GIT_REMOTE_URL}"
+        
+        GIT_API_HOST=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+        GIT_REPO_NAME=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|^[^/]*/||')
+        echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
+
+        # Create a PR
+        PR_CREATE_OUT=$(curl -X 'POST' \
+          'https://'"${GIT_API_HOST}"'/api/v1/repos/${GIT_REPO_NAME}/pulls' \
+          -H 'accept: application/json' \
+          -H 'Authorization: token '"${GIT_TOKEN}"'' \
+          -H 'Content-Type: application/json' \
+          -d '{
+          "base": "'"${PR_BASE}"'",
+          "body": "'"${PR_BODY}"'",
+          "head": "'"${PR_HEAD}"'",
+          "title": "'"${PR_TITLE}"'"
+        }')
+
+        PR_URL=`echo ${PR_CREATE_OUT} | jq .url`
+
+        echo -n "${PR_URL}" > $(results.PR_URL.path)
+  workspaces:
+    - mountPath: /workspace/source
+      name: source
