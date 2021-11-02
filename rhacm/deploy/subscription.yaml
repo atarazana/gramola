@@ -4,7 +4,7 @@ metadata:
   name: gramola-demo-policies
   namespace: rhacm-policies
   annotations:
-    apps.open-cluster-management.io/git-branch: main
+    apps.open-cluster-management.io/git-branch: github
     apps.open-cluster-management.io/git-path: rhacm/grc/policies  
 spec:
   channel: rhacm-policies/gramola-demo-policies
