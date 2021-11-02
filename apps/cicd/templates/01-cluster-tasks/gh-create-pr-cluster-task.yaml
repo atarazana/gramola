@@ -141,6 +141,7 @@ spec:
       script: |
         #!/bin/sh
         echo "PR_BASE=${PR_BASE}"
+        echo "PROBANDO=$(cat $(results.PR_HEAD.path))"
         echo "PR_HEAD=${PR_HEAD}"
         echo "PR_TITLE=${PR_TITLE}"
         echo "PR_BODY=${PR_BODY}"
