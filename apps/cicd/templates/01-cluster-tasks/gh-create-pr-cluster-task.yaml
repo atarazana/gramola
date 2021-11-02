@@ -23,6 +23,12 @@ spec:
     - description: PR Body
       name: PR_BODY
       type: string
+    - description: The branch into which you want your code merged (main)
+      name: PR_BASE
+      type: string
+    # - description: The branch that contains commits for your pull request (current branch)
+    #   name: PR_HEAD
+    #   type: string
     - description: Personal Access Token Secret Name
       name: PAT_SECRET_NAME
       type: string
@@ -45,6 +51,8 @@ spec:
   results:
     - description: The precise URL that was created for the PR
       name: PR_URL
+    - description: The branch that contains commits for your pull request (current branch)
+      name: PR_HEAD
   steps:
     - image: $(params.TASK_IMAGE)
       name: prepare
@@ -109,11 +117,22 @@ spec:
 
         # Push changes
         git push origin ${BRANCH_NAME}
+
+        # Lets put the random branch name into PR_HEAD
+        echo -n "${BRANCH_NAME}" > $(results.PR_HEAD.path)
     - image: $(params.TASK_IMAGE)
       name: create
       resources: {}
       workingDir: $(workspaces.source.path)
       env:
+        - name: PR_BASE
+          value: $(params.PR_BASE)
+        - name: PR_HEAD
+          value: $(results.PR_HEAD)
+        - name: PR_TITLE
+          value: $(params.PR_TITLE)
+        - name: PR_BODY
+          value: $(params.PR_BODY)
         - name: GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
@@ -121,8 +140,10 @@ spec:
               key: $(params.PAT_SECRET_KEY)
       script: |
         #!/bin/sh
-        echo "PR_TITLE=$(params.PR_TITLE)"
-        echo "PR_BODY=$(params.PR_BODY)"
+        echo "PR_BASE=${PR_BASE}"
+        echo "PR_HEAD=${PR_HEAD}"
+        echo "PR_TITLE=${PR_TITLE}"
+        echo "PR_BODY=${PR_BODY}"
         echo "PAT_SECRET_NAME=$(params.PAT_SECRET_NAME)"
         echo "PAT_SECRET_KEY=$(params.PAT_SECRET_KEY)"
 
@@ -134,7 +155,7 @@ spec:
         gh auth login --with-token < ./github.token 
 
         # Create a PR
-        PR_CREATE_OUT=`gh pr create --title "$(params.PR_TITLE)" --body "$(params.PR_BODY)"`
+        PR_CREATE_OUT=`gh pr create --base ${PR_BASE} --head ${PR_HEAD} --title "${PR_TITLE}" --body "${PR_BODY})"`
         PR_URL=`echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull"`
 
         echo -n "${PR_URL}" > $(results.PR_URL.path)

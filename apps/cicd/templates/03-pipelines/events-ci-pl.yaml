@@ -122,6 +122,8 @@ spec:
           workspace: workspace-source
     - name: pr-create
       params:
+        - name: PR_BASE
+          value: $(params.GIT_REVISION)
         # PR Title describes the change and the overlay where it happens
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}' image for overlay 'dev' with new image"
