@@ -1,6 +1,7 @@
 appName: gramola
 
 gitUrl: https://github.com
+gitRevision: github
 gitUsername: atarazana
 baseRepoName: gramola
 

@@ -90,7 +90,7 @@ spec:
         - name: GIT_REPO_CONFIG
           value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
         - name: GIT_REVISION_CONFIG
-          value: main
+          value: "{{ .Values.gitRevision }}"
         - name: IMAGE_NAME
           value: >-
             {{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}
