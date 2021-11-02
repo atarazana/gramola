@@ -34,7 +34,7 @@ spec:
                   name: openshift-pipelines-operator-rh
                   source: redhat-operators
                   sourceNamespace: openshift-marketplace
-                  startingCSV: redhat-openshift-pipelines.v1.5.1
+                  startingCSV: redhat-openshift-pipelines.v1.5.2
 
 ---
 apiVersion: policy.open-cluster-management.io/v1

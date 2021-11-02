@@ -6,4 +6,4 @@ metadata:
   namespace: rhacm-policies
 data:
     path: rhacm/grc/policies/
-    branch: main
+    branch: github
