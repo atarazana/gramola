@@ -78,6 +78,8 @@ spec:
           operator: in
           values: [{{ .Values.overlays }}]
       params:
+        - name: PR_BASE
+          value: $(params.GIT_REVISION_CONFIG)
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
         - name: PR_BODY
