@@ -156,8 +156,8 @@ spec:
         gh auth login --with-token < ./github.token 
 
         # Create a PR
-        PR_CREATE_OUT=`gh pr create --base ${PR_BASE} --head ${PR_HEAD} --title "${PR_TITLE}" --body "${PR_BODY})"`
-        PR_URL=`echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull"`
+        PR_CREATE_OUT=$(gh pr create --base ${PR_BASE} --head ${PR_HEAD} --title "${PR_TITLE}" --body "${PR_BODY}")
+        PR_URL=$(echo ${PR_CREATE_OUT} | grep -e "https://github.com/.*/pull")
 
         echo -n "${PR_URL}" > $(results.PR_URL.path)
   workspaces:
