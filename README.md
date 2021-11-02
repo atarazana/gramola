@@ -125,7 +125,7 @@ spec:
           value: ${BASE_REPO_URL}
     path: argocd/root-apps
     repoURL: ${BASE_REPO_URL}
-    targetRevision: HEAD
+    targetRevision: github
 EOF
 
 ```
@@ -159,7 +159,7 @@ spec:
           value: ${CLUSTER_NAME}
     path: argocd/root-apps-cloud
     repoURL: ${BASE_REPO_URL}
-    targetRevision: HEAD
+    targetRevision: github
 EOF
 ```
 
@@ -192,7 +192,7 @@ spec:
           value: ${BASE_REPO_URL}
     path: argocd/cicd
     repoURL: ${BASE_REPO_URL}.git
-    targetRevision: HEAD
+    targetRevision: github
 EOF
 ```
 

@@ -27,7 +27,7 @@ spec:
     #       value: {{ .Values.destinationName }}
     path: events-deployment/overlays/dev
     repoURL: "{{ .Values.baseRepoUrl }}.git"
-    targetRevision: HEAD
+    targetRevision: github
     plugin:
       env:
         - name: DESTINATION_NAME

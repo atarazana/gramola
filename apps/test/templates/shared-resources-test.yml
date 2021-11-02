@@ -17,5 +17,5 @@ spec:
   source:
     path: apps/test/shared
     repoURL: "{{ .Values.baseRepoUrl }}.git"
-    targetRevision: HEAD
+    targetRevision: github
     

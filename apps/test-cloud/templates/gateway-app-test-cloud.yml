@@ -20,7 +20,7 @@ spec:
     #       value: {{ .Values.destinationName }}
     path: gateway-deployment/overlays/test-cloud
     repoURL: {{ .Values.baseRepoUrl }}
-    targetRevision: HEAD
+    targetRevision: github
     plugin:
       env:
         - name: DESTINATION_NAME

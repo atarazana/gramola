@@ -19,4 +19,4 @@ spec:
           value: "{{ .Values.baseRepoUrl }}"
     path: apps/test
     repoURL: "{{ .Values.baseRepoUrl }}.git"
-    targetRevision: HEAD
+    targetRevision: github

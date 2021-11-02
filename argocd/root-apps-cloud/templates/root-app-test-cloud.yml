@@ -21,4 +21,4 @@ spec:
           value: {{ .Values.destinationName }}
     path: apps/test-cloud
     repoURL: "{{ .Values.baseRepoUrl }}.git"
-    targetRevision: HEAD
+    targetRevision: github

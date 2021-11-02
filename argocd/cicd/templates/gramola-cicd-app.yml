@@ -19,4 +19,4 @@ spec:
           value: "{{ .Values.baseRepoUrl }}.git"
     path: {{ .Values.sourcePath }}
     repoURL: "{{ .Values.baseRepoUrl }}.git"
-    targetRevision: HEAD
+    targetRevision: github
