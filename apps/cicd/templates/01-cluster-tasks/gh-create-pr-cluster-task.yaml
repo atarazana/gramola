@@ -127,8 +127,8 @@ spec:
       env:
         - name: PR_BASE
           value: $(params.PR_BASE)
-        - name: PR_HEAD
-          value: $(results.PR_HEAD)
+        # - name: PR_HEAD
+        #   value: $(results.PR_HEAD)
         - name: PR_TITLE
           value: $(params.PR_TITLE)
         - name: PR_BODY
@@ -141,7 +141,7 @@ spec:
       script: |
         #!/bin/sh
         echo "PR_BASE=${PR_BASE}"
-        echo "PROBANDO=$(cat $(results.PR_HEAD.path))"
+        PR_HEAD=$(cat $(results.PR_HEAD.path))
         echo "PR_HEAD=${PR_HEAD}"
         echo "PR_TITLE=${PR_TITLE}"
         echo "PR_BODY=${PR_BODY}"
