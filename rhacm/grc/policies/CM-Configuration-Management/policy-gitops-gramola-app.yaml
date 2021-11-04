@@ -145,4 +145,4 @@ spec:
     type: ManagedClusterConditionAvailable
   clusterSelector:
     matchExpressions:
-      - {key: app, operator: In, values: ["gramola"]}
+      - {key: app, operator: In, values: ["gramola", "gramola-cicd"]}
