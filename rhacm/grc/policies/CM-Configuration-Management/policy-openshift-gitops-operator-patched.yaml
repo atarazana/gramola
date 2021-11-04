@@ -1,0 +1,214 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-openshift-gitops-operator-patched
+  annotations:
+    policy.open-cluster-management.io/standards: NIST 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline 
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: openshift-gitops-installed
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  name: openshift-gitops-operator
+                  namespace: openshift-operators
+                  labels:
+                    operators.coreos.com/openshift-gitops-operator.openshift-operators: ''
+                spec:
+                  channel: stable
+                  installPlanApproval: Automatic
+                  name: openshift-gitops-operator
+                  source: redhat-operators
+                  sourceNamespace: openshift-marketplace
+                  startingCSV: openshift-gitops-operator.v1.2.0
+
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: openshift-gitops-patched
+        spec:
+          remediationAction: enforce
+          severity: medium
+          object-templates:
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: ArgoCD
+                metadata:
+                  name: openshift-gitops
+                  namespace: openshift-gitops
+                  annotations:
+                        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource
+                spec:
+                  applicationSet: {}
+                  resourceCustomizations: |
+                    bitnami.com/SealedSecret:
+                      health.lua: |
+                        hs = {}
+                        hs.status = "Healthy"
+                        hs.message = "Controller doesnt report resource status"
+                        return hs
+                    route.openshift.io/Route:
+                      ignoreDifferences: |
+                        jsonPointers:
+                        - /spec/host
+                  server:
+                    insecure: true
+                    route:
+                      enabled: true
+                      tls:
+                        insecureEdgeTerminationPolicy: Redirect
+                        termination: edge
+                  dex:
+                    openShiftOAuth: true
+                  rbac:
+                    defaultPolicy: 'role:admin'
+                    policy: 'g, system:cluster-admins, role:admin'
+                    scopes: '[groups]'
+                  configManagementPlugins: |
+                    - name: kustomized-helm
+                      init:
+                        command: ["/bin/sh", "-c"]
+                        args: ["helm dependency build ../../helm_base || true"]
+                      generate:
+                        command: ["/bin/sh", "-c"]
+                        args: ["helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${DEBUG},clusterName=${DESTINATION_NAME},baseRepoUrl=${BASE_REPO_URL}  --include-crds > ../../helm_base/all.yml && kustomize build"]
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRole
+                metadata:
+                  name: gitops-service-account
+                rules:
+                - apiGroups:
+                  - ''
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - kafka.strimzi.io
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - ''
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - apps
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - image.openshift.io
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - route.openshift.io
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - camel.apache.org
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - apps.openshift.io
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - monitoring.coreos.com
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - triggers.tekton.dev
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+                - apiGroups:
+                  - tekton.dev
+                  resources:
+                  - '*'
+                  verbs:
+                  - '*'
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRoleBinding
+                metadata:
+                  name: gitops-service-account
+                roleRef:
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: ClusterRole
+                  name: gitops-service-account
+                subjects:
+                - kind: ServiceAccount
+                  name: openshift-gitops-argocd-application-controller
+                  namespace: openshift-gitops
+                - kind: ServiceAccount
+                  name: argocd-cluster-argocd-application-controller
+                  namespace: openshift-gitops
+                - kind: ServiceAccount
+                  name: argocd-cluster-argocd-server
+                  namespace: openshift-gitops
+
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-openshift-gitops-operator-patched
+placementRef:
+  name: placement-policy-openshift-gitops-operator-patched
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-openshift-gitops-operator-patched
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-openshift-gitops-operator-patched
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - {key: deployer, operator: In, values: ["argo-patched"]}

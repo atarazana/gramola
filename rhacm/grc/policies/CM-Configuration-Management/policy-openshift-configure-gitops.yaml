@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: policy-openshift-configure-gitops-instance
+  name: policy-openshift-configure-gitops
   annotations:
     policy.open-cluster-management.io/standards: NIST 800-53
     policy.open-cluster-management.io/categories: CM Configuration Management
@@ -162,13 +162,13 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-openshift-configure-gitops-instance
+  name: binding-policy-openshift-configure-gitops
 placementRef:
-  name: placement-policy-openshift-configure-gitops-instance
+  name: placement-policy-openshift-configure-gitops
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-  - name: policy-openshift-configure-gitops-instance
+  - name: policy-openshift-configure-gitops
     kind: Policy
     apiGroup: policy.open-cluster-management.io
 
@@ -176,7 +176,7 @@ subjects:
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: placement-policy-openshift-configure-gitops-instance
+  name: placement-policy-openshift-configure-gitops
 spec:
   clusterConditions:
   - status: "True"
