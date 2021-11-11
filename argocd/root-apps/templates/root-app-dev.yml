@@ -19,6 +19,8 @@ spec:
           value: "{{ .Values.baseRepoUrl }}"
         - name: namespaceSuffix
           value: "{{ .Values.namespaceSuffix }}"
+        - name: username
+          value: "{{ .Values.username }}"
     path: apps/dev
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
