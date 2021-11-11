@@ -3,3 +3,4 @@ debug: false
 destinationName: aws-managed1
 namespaceBase: gramola-test
 namespaceSuffix: ""
+username: ""

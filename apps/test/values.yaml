@@ -3,3 +3,4 @@ debug: false
 destinationName: in-cluster
 namespaceBase: gramola-test
 namespaceSuffix: ""
+username: ""

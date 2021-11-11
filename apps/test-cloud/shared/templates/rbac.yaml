@@ -1,0 +1,17 @@
+{{ if .Values.username }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: edit-namespace
+  namespace: {{ printf "%s%s" .Values.namespaceBase .Values.namespaceSuffix }}
+subjects:
+  - kind: User
+    apiGroup: rbac.authorization.k8s.io
+    name: {{ .Values.username }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+---
+{{ end }}

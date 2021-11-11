@@ -23,6 +23,8 @@ spec:
           value: "{{ .Values.containerRegistryServer }}"
         - name: containerRegistryOrg
           value: "{{ .Values.containerRegistryOrg }}"
+        - name: username
+          value: "{{ .Values.username }}"
     path: {{ .Values.sourcePath }}
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD

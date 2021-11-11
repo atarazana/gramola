@@ -19,6 +19,8 @@ spec:
       parameters:
         - name: namespaceSuffix
           value: "{{ .Values.namespaceSuffix }}"
+        - name: username
+          value: "{{ .Values.username }}"
     path: apps/test-cloud/shared
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
