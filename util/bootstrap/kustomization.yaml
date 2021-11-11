@@ -1,5 +1,7 @@
 resources:
-  - 1.sub.yaml
+  - 1.openshift-gitops-sub.yaml
   - 2.openshift-gitops-patch.yaml
-  - 3.rbac.yaml
-  - 4.pipelines.yaml
+  - 3.openshift-gitops-rbac.yaml
+  - 4.openshift-gitops-projects.yaml
+  - 5.pipelines.yaml
+  - 6.gitops-guide-users-rbac.yaml
