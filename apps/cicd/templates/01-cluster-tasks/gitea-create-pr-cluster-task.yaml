@@ -127,8 +127,8 @@ spec:
       env:
         - name: GIT_REPO_NAME
           value: $(params.GIT_REPO_NAME)
-        - name: PR_BASE
-          value: $(results.PR_BASE)
+        # - name: PR_BASE
+        #   value: $(results.PR_BASE)
         - name: PR_HEAD
           value: $(params.PR_HEAD)
         - name: PR_TITLE
@@ -143,7 +143,7 @@ spec:
       script: |
         #!/bin/sh
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
-        echo "PR_BASE=${PR_BASE}"
+        echo "PR_BASE=$(cat $(results.PR_BASE.path))"
         echo "PR_HEAD=${PR_HEAD}"
         echo "PR_TITLE=${PR_TITLE}"
         echo "PR_BODY=${PR_BODY}"
@@ -158,6 +158,8 @@ spec:
         
         GIT_API_HOST=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|/.*$||')
         GIT_REPO_NAME=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|^[^/]*/||')
+        
+        echo "GIT_API_HOST=${GIT_API_HOST}"
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
 
         # Create a PR
