@@ -176,6 +176,8 @@ spec:
           "title": "'"${PR_TITLE}"'"
         }')
 
+        echo "PR_CREATE_OUT=${PR_CREATE_OUT}"
+
         PR_URL=`echo ${PR_CREATE_OUT} | jq .url`
 
         echo -n "${PR_URL}" > $(results.PR_URL.path)
