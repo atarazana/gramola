@@ -158,7 +158,7 @@ spec:
         echo "GIT_REMOTE_URL=${GIT_REMOTE_URL}"
         
         GIT_API_HOST=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|/.*$||')
-        GIT_REPO_NAME=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|^[^/]*/||')
+        #GIT_REPO_NAME=$(echo ${GIT_REMOTE_URL} | sed -e 's|^[^/]*//||' -e 's|^[^/]*/||')
         
         echo "GIT_API_HOST=${GIT_API_HOST}"
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
