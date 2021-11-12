@@ -329,7 +329,8 @@ spec:
         - name: GIT_PROVIDER
           value: $(tt.params.gitProvider)
         - name: GIT_REPO_CONFIG
-          value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
+          # value: "{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}"
+          value: "{{ .Values.baseRepoUrl }}"
         - name: GIT_REVISION_CONFIG
           value: main
         - name: IMAGE_DIGEST_CLEAN
