@@ -164,7 +164,7 @@ spec:
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
 
         # Create a PR
-        PR_CREATE_OUT=$(curl -X 'POST' \
+        PR_CREATE_OUT=$(curl -vvv -X 'POST' \
           'https://'"${GIT_API_HOST}"'/api/v1/repos/'"${GIT_REPO_NAME}"'/pulls' \
           -H 'accept: application/json' \
           -H 'Authorization: token '"${GIT_TOKEN}"'' \
