@@ -165,18 +165,16 @@ spec:
         echo "GIT_API_HOST=${GIT_API_HOST}"
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
 
+        BODY='"base": "'"${PR_BASE}"'","body": "'"${PR_BODY}"'","head": "'"${PR_HEAD}"'","title": "'"${PR_TITLE}"'"'
+        echo "BODY=${BODY}"
+
         # Create a PR
         PR_CREATE_OUT=$(curl -vvv -X 'POST' \
           'https://'"${GIT_API_HOST}"'/api/v1/repos/'"${GIT_REPO_NAME}"'/pulls' \
           -H 'accept: application/json' \
           -H 'Authorization: token '"${GIT_TOKEN}"'' \
           -H 'Content-Type: application/json' \
-          -d '{
-          "base": "'"${PR_BASE}"'",
-          "body": "'"${PR_BODY_B64}"'",
-          "head": "'"${PR_HEAD}"'",
-          "title": "'"${PR_TITLE}"'"
-        }')
+          -d '{'"${BODY}"'}')
 
         echo "PR_CREATE_OUT=${PR_CREATE_OUT}"
 
