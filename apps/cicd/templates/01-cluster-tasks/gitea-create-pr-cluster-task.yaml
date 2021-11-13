@@ -142,9 +142,11 @@ spec:
               key: $(params.PAT_SECRET_KEY)
       script: |
         #!/bin/sh
+        PR_BASE=$(cat $(results.PR_BASE.path))
+
         echo "GIT_TOKEN=${GIT_TOKEN}"
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
-        echo "PR_BASE=$(cat $(results.PR_BASE.path))"
+        echo "PR_BASE=${PR_BASE}"
         echo "PR_HEAD=${PR_HEAD}"
         echo "PR_TITLE=${PR_TITLE}"
         echo "PR_BODY=${PR_BODY}"
