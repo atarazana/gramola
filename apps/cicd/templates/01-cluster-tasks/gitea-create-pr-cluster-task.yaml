@@ -150,6 +150,7 @@ spec:
         echo "PR_HEAD=${PR_HEAD}"
         echo "PR_TITLE=${PR_TITLE}"
         echo "PR_BODY=${PR_BODY}"
+        PR_BODY_ESCAPED=$(echo ${PR_BODY} | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
         PR_BODY_B64=$(echo ${PR_BODY} | base64)
         echo "PR_BODY_B64=${PR_BODY_B64}"
         echo "PAT_SECRET_NAME=$(params.PAT_SECRET_NAME)"
@@ -176,7 +177,7 @@ spec:
           "base": "${PR_BASE}",
           "head": "${PR_HEAD}",
           "title": "${PR_TITLE}",
-          "body": "${PR_BODY}"
+          "body": "${PR_BODY_ESCAPED}"
         }
         EOF
 
