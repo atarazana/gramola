@@ -57,7 +57,7 @@ spec:
       workingDir: $(workspaces.source.path)
       args:
         - '$(params.SELECT_EXPRESSIONS[*])'
-        - '$(params.VALUES[*])'
+        - '$(params.NEW_VALUES[*])'
       script: |
         #!/bin/sh
 
