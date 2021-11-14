@@ -55,15 +55,17 @@ spec:
       name: eval
       resources: {}
       workingDir: $(workspaces.source.path)
+      args:
+        - '$(params.SELECT_EXPRESSIONS[*])'
+        - '$(params.VALUES[*])'
       script: |
         #!/bin/sh
 
+        echo "ARGS: $@"
+
         #echo "SELECT_EXPRESSION=\"$(params.SELECT_EXPRESSION)\""
 
-        echo "SELECT_EXPRESSIONS=$(params.SELECT_EXPRESSIONS)"
-        
         echo "NEW_VALUE=$(params.NEW_VALUE)"
-        echo "NEW_VALUES=$(params.NEW_VALUES)"
 
         FILE_TO_UPDATE="$(params.OVERLAYS_PATH)/$(params.OVERLAY)/$(params.FILE_NAME)"
         echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
