@@ -26,8 +26,8 @@ spec:
     - description: PR Body
       name: PR_BODY
       type: string
-    - description: PR Head Branch
-      name: PR_HEAD
+    - description: PR Base Branch
+      name: PR_BASE
       type: string
       default: main
     - description: Personal Access Token Secret Name
@@ -50,8 +50,8 @@ spec:
       name: TASK_IMAGE
       type: string
   results:
-    - description: The precise URL that was created for the PR
-      name: PR_BASE
+    - description: Head branch (to merge with base)
+      name: PR_HEAD
     - description: The precise URL that was created for the PR
       name: PR_URL
   steps:
@@ -119,7 +119,7 @@ spec:
         # Push changes
         git push origin ${BRANCH_NAME}
 
-        echo -n "${BRANCH_NAME}" > $(results.PR_BASE.path)
+        echo -n "${BRANCH_NAME}" > $(results.PR_HEAD.path)
     - image: $(params.TASK_IMAGE)
       name: create
       resources: {}
@@ -127,10 +127,8 @@ spec:
       env:
         - name: GIT_REPO_NAME
           value: $(params.GIT_REPO_NAME)
-        # - name: PR_BASE
-        #   value: $(results.PR_BASE)
-        - name: PR_HEAD
-          value: $(params.PR_HEAD)
+        - name: PR_BASE
+          value: $(params.PR_BASE)
         - name: PR_TITLE
           value: $(params.PR_TITLE)
         - name: PR_BODY
@@ -142,7 +140,7 @@ spec:
               key: $(params.PAT_SECRET_KEY)
       script: |
         #!/bin/sh
-        PR_BASE=$(cat $(results.PR_BASE.path))
+        PR_HEAD=$(cat $(results.PR_HEAD.path))
 
         echo "GIT_TOKEN=${GIT_TOKEN}"
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
