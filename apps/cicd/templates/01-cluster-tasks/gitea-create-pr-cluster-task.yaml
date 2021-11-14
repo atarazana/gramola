@@ -180,6 +180,7 @@ spec:
         }
         EOF
 
+        cat /tmp/pr.json
 
         PR_CREATE_OUT=$(curl -vvv -X 'POST' \
           'https://'"${GIT_API_HOST}"'/api/v1/repos/'"${GIT_REPO_NAME}"'/pulls' \
