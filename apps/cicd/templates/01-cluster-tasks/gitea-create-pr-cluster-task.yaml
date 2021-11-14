@@ -171,12 +171,22 @@ spec:
         echo "BODY=${BODY}"
 
         # Create a PR
+        cat <<EOF > /tmp/pr.json
+        {
+          "base": "${PR_BASE}",
+          "head": "${PR_HEAD}"
+          "title": "${PR_TITLE}"
+          "body": "${PR_BODY}"
+        }
+        EOF
+
+
         PR_CREATE_OUT=$(curl -vvv -X 'POST' \
           'https://'"${GIT_API_HOST}"'/api/v1/repos/'"${GIT_REPO_NAME}"'/pulls' \
           -H 'accept: application/json' \
           -H 'Authorization: token '"${GIT_TOKEN}"'' \
           -H 'Content-Type: application/json' \
-          -d '{'"${BODY}"'}')
+          -d @/tmp/pr.json )
 
         echo "PR_CREATE_OUT=${PR_CREATE_OUT}"
 
