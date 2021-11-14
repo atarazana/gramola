@@ -168,13 +168,13 @@ spec:
           value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}' image for overlay 'dev' with new image"
         # PR Body is a YAML with information for the next pipelines (stages)
         - name: PR_BODY
-          value: |
-            command: UPDATE_IMAGE
-            serviceName: {{ .Values.gramolaEventsServiceName }}
-            count: 0
-            overlay: dev
-            kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml
-            imageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)
+          value:
+            command: UPDATE_IMAGE\n
+            serviceName: {{ .Values.gramolaEventsServiceName }}\n
+            count: 0\n
+            overlay: dev\n
+            kustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/dev/kustomization.yml\n
+            imageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)\n
             pipelineName: {{ .Values.gramolaEventsContinuosIntegrationPipeline }}
         - name: PAT_SECRET_NAME
           value: {{ .Values.gitPatSecretName }}
