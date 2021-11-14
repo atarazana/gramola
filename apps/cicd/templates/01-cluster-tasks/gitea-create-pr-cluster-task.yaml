@@ -167,15 +167,15 @@ spec:
         echo "GIT_API_HOST=${GIT_API_HOST}"
         echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
 
-        BODY='"base": "'"${PR_BASE}"'","body": "'"${PR_BODY}"'","head": "'"${PR_HEAD}"'","title": "'"${PR_TITLE}"'"'
-        echo "BODY=${BODY}"
+        # BODY='"base": "'"${PR_BASE}"'","body": "'"${PR_BODY}"'","head": "'"${PR_HEAD}"'","title": "'"${PR_TITLE}"'"'
+        # echo "BODY=${BODY}"
 
         # Create a PR
         cat <<EOF > /tmp/pr.json
         {
           "base": "${PR_BASE}",
-          "head": "${PR_HEAD}"
-          "title": "${PR_TITLE}"
+          "head": "${PR_HEAD}",
+          "title": "${PR_TITLE}",
           "body": "${PR_BODY}"
         }
         EOF
