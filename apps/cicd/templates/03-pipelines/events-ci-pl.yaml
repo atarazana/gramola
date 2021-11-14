@@ -123,7 +123,7 @@ spec:
         - name: NEW_VALUES
           value: 
             - "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
-            - "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}"
+            - "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}@sha256"
       runAfter:
         - fetch-config-repository
       taskRef:
