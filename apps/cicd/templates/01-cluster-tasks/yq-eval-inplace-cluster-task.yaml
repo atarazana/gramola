@@ -34,9 +34,15 @@ spec:
     - description: Expression to select the node to update
       name: SELECT_EXPRESSION
       type: string
+    - description: Expression to select the node to update
+      name: SELECT_EXPRESSIONS
+      type: array
     - description: New 'string' value.
       name: NEW_VALUE
       type: string
+    - description: New array of values.
+      name: NEW_VALUES
+      type: array
     - default: quay.io/atarazana/yq:0.0.1
       description: the image used where the yq binary is
       name: TASK_IMAGE
@@ -54,7 +60,10 @@ spec:
 
         #echo "SELECT_EXPRESSION=\"$(params.SELECT_EXPRESSION)\""
 
+        echo "SELECT_EXPRESSIONS=$(params.SELECT_EXPRESSIONS)"
+        
         echo "NEW_VALUE=$(params.NEW_VALUE)"
+        echo "NEW_VALUES=$(params.NEW_VALUES)"
 
         FILE_TO_UPDATE="$(params.OVERLAYS_PATH)/$(params.OVERLAY)/$(params.FILE_NAME)"
         echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
