@@ -64,6 +64,12 @@ spec:
         echo "ARGS_NUM: $#"
         echo "ARGS: $@"
 
+        NUM_ARGS=$#
+        if [ "${NUM_ARGS}" -le 0 ] || [ $((NUM_ARGS%2)) -ne 0 ] ; then
+            echo "Number of parameters should be greater than zero and an even number"
+            exit 1
+        fi
+
         #echo "SELECT_EXPRESSION=\"$(params.SELECT_EXPRESSION)\""
 
         echo "NEW_VALUE=$(params.NEW_VALUE)"
@@ -83,7 +89,15 @@ spec:
         cat ${FILE_TO_UPDATE}
 
         # Update target with new value
-        yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE}
+        #yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE}
+        for i in $(seq 1 ${NUM_ARGS}); 
+        do
+            SELECT_EXPRESSION=${!i}
+            NEW_VALUE=${!(i+1)}
+
+            # Update target with new value
+            yq -i eval ''"${SELECT_EXPRESSION}"' |= '"${NEW_VALUE}"'' ${FILE_TO_UPDATE}
+        done
         
         echo "======== AFTER CHANGES ========"
 
@@ -96,7 +110,15 @@ spec:
         if [ -f ${FILE_TO_UPDATE_TWIN} ]; then
           echo "======== UPDATING TWIN OVERLAY ========"
           # Update target with new value
-          yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE_TWIN}
+          #yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE_TWIN}
+          for i in $(seq 1 ${NUM_ARGS}); 
+          do
+              SELECT_EXPRESSION=${!i}
+              NEW_VALUE=${!(i+1)}
+
+              # Update target with new value
+              yq -i eval ''"${SELECT_EXPRESSION}"' |= '"${NEW_VALUE}"'' ${FILE_TO_UPDATE_TWIN}
+          done
         else
           echo "TWIN OVERLAY NOT FOUND!"
         fi;
