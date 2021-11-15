@@ -17,9 +17,6 @@ spec:
 
     The pr-create Task will...
   params:
-    - description: Git Repo Name
-      name: GIT_REPO_NAME
-      type: string
     - description: PR Title
       name: PR_TITLE
       type: string
@@ -141,7 +138,6 @@ spec:
         PR_HEAD=$(cat $(results.PR_HEAD.path))
 
         echo "GIT_TOKEN=${GIT_TOKEN}"
-        echo "GIT_REPO_NAME=${GIT_REPO_NAME}"
         echo "PR_BASE=${PR_BASE}"
         echo "PR_HEAD=${PR_HEAD}"
         echo "PR_TITLE=${PR_TITLE}"
