@@ -91,11 +91,11 @@ spec:
         # Update target with new value
         #yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE}
         let END=${NUM_ARGS}/2
-        for i in $(seq 0 2 ${END}); 
+        for i in $(seq 1 ${END}); 
         do
-            let j=${i}+1
+            let j=${i}
             SELECT_EXPRESSION=${!j}
-            let k=${j}+1
+            let k=${j}+${END}
             NEW_VALUE=${!k}
 
             # Update target with new value
@@ -115,11 +115,11 @@ spec:
           echo "======== UPDATING TWIN OVERLAY ========"
           # Update target with new value
           #yq -i eval '$(params.SELECT_EXPRESSION) |= "$(params.NEW_VALUE)"' ${FILE_TO_UPDATE_TWIN}
-          for i in $(seq 0 2 ${END}); 
+          for i in $(seq 1 ${END}); 
           do
-              let j=${i}+1
+              let j=${i}
               SELECT_EXPRESSION=${!j}
-              let k=${j}+1
+              let k=${j}+${END}
               NEW_VALUE=${!k}
 
               # Update target with new value
