@@ -12,6 +12,8 @@ spec:
     - name: APP_NAME
       type: string
       default: {{ .Values.gramolaEventsServiceName }}
+    - name: GIT_PROVIDER
+      type: string
     - name: GIT_REPO_CONFIG
       type: string
     - name: GIT_REVISION_CONFIG
