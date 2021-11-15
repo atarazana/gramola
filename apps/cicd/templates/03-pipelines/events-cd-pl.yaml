@@ -31,7 +31,7 @@ spec:
     - name: argocd-sync
       params:
         - name: APP_NAME
-          value: $(params.APP_NAME)-app-$(params.OVERLAY)
+          value: "$(params.APP_NAME)-app-$(params.OVERLAY){{.Values.namespaceSuffix }}"
       taskRef:
         kind: ClusterTask
         name: argocd-sync
