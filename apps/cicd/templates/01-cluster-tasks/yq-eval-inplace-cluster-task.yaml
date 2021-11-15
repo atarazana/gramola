@@ -100,10 +100,10 @@ spec:
 
             # Update target with new value
             echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
-            YQ_SENTENCE=$(printf "\'%s |= \"%s\"\'" ${SELECT_EXPRESSION} ${NEW_VALUE})
+            YQ_SENTENCE=$(printf "yq -i eval \'${SELECT_EXPRESSION} |= \"${NEW_VALUE}\"\' $FILE_TO_UPDATE")
             echo "YQ_SENTENCE=${YQ_SENTENCE}"
             #yq -i eval ''"${SELECT_EXPRESSION}"' |= strenv(NEW_VALUE)' $FILE_TO_UPDATE
-            yq -i eval ${YQ_SENTENCE} $FILE_TO_UPDATE
+            eval ${YQ_SENTENCE}
         done
         
         echo "======== AFTER CHANGES ========"
