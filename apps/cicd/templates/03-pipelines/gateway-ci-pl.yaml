@@ -12,7 +12,11 @@ spec:
     - name: APP_NAME
       type: string
       default: {{ .Values.gramolaGatewayServiceName }}
+    - name: GIT_PROVIDER
+      type: string
     - name: GIT_REPO
+      type: string
+    - name: GIT_REPO_NAME
       type: string
     - name: GIT_REVISION
       type: string
@@ -112,6 +116,14 @@ spec:
           value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
         - name: NEW_VALUE
           value: "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
+        - name: SELECT_EXPRESSIONS
+          value: 
+            - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
+            - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newName"
+        - name: NEW_VALUES
+          value: 
+            - "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
+            - "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}@sha256"
       runAfter:
         - fetch-config-repository
       taskRef:
@@ -120,7 +132,11 @@ spec:
       workspaces:
         - name: source
           workspace: workspace-source
-    - name: pr-create
+    - name: github-pr-create
+      when:
+        - input: "$(params.GIT_PROVIDER)"
+          operator: in
+          values: ['github']
       params:
         # PR Title describes the change and the overlay where it happens
         - name: PR_TITLE
@@ -143,7 +159,32 @@ spec:
         - update-image
       taskRef:
         kind: ClusterTask
-        name: pr-create
+        name: github-pr-create
+      workspaces:
+        - name: source
+          workspace: workspace-source
+    - name: gitea-pr-create
+      when:
+        - input: "$(params.GIT_PROVIDER)"
+          operator: in
+          values: ['gitea']
+      params:
+        # PR Title describes the change and the overlay where it happens
+        - name: PR_TITLE
+          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}' image for overlay 'dev' with new image"
+        # PR Body is a YAML with information for the next pipelines (stages)
+        - name: PR_BODY
+          value: |
+            command: UPDATE_IMAGE\nserviceName: {{ .Values.gramolaGatewayServiceName }}\ncount: 0\noverlay: dev\nkustomizationPath: {{ .Values.gramolaGatewayOverlayPath }}/dev/kustomization.yml\nimageDigestClean: $(tasks.build.results.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaGatewayContinuosIntegrationPipeline }}
+        - name: PAT_SECRET_NAME
+          value: {{ .Values.gitPatSecretName }}
+        - name: PAT_SECRET_KEY
+          value: {{ .Values.gitPatSecretKey }}
+      runAfter:
+        - update-image
+      taskRef:
+        kind: ClusterTask
+        name: gitea-pr-create
       workspaces:
         - name: source
           workspace: workspace-source

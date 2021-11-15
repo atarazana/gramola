@@ -114,12 +114,12 @@ spec:
           value: "dev"
         - name: SELECT_EXPRESSION
           value: "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}*\")).newTag"
+        - name: NEW_VALUE
+          value: "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
         - name: SELECT_EXPRESSIONS
           value: 
             - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}*\")).newTag"
             - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}*\")).newName"
-        - name: NEW_VALUE
-          value: "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"
         - name: NEW_VALUES
           value: 
             - "$(tasks.build.results.IMAGE_DIGEST_CLEAN)"

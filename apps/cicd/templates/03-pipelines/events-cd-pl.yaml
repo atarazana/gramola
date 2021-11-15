@@ -110,7 +110,7 @@ spec:
         - update-image
       taskRef:
         kind: ClusterTask
-        name: pr-create
+        name: github-pr-create
       workspaces:
         - name: source
           workspace: workspace-source
