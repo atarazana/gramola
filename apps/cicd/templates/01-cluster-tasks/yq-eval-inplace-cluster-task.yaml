@@ -99,6 +99,7 @@ spec:
             NEW_VALUE=${!k}
 
             # Update target with new value
+            echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
             yq -i eval ''"${SELECT_EXPRESSION}"' |= '"${NEW_VALUE}"'' ${FILE_TO_UPDATE}
         done
         
@@ -122,6 +123,7 @@ spec:
               NEW_VALUE=${!k}
 
               # Update target with new value
+              echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
               yq -i eval ''"${SELECT_EXPRESSION}"' |= '"${NEW_VALUE}"'' ${FILE_TO_UPDATE_TWIN}
           done
         else
