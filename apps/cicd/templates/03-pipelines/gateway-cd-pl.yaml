@@ -67,12 +67,12 @@ spec:
           value: "$(params.IMAGE_DIGEST_CLEAN)"
         - name: SELECT_EXPRESSIONS
           value: 
-            - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}*\")).newTag"
-            - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}*\")).newName"
+            - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newTag"
+            - "(.images.[] | select(.name == \"{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}*\")).newName"
         - name: NEW_VALUES
           value: 
             - "$(params.IMAGE_DIGEST_CLEAN)"
-            - "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}@sha256"
+            - "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}@sha256"
       runAfter:
         - argocd-sync
         - fetch-config-repository
