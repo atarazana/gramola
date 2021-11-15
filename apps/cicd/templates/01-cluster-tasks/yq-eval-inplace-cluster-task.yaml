@@ -100,7 +100,7 @@ spec:
 
             # Update target with new value
             echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
-            yq -i eval ''"${SELECT_EXPRESSION}"' |= '"${NEW_VALUE}"'' ${FILE_TO_UPDATE}
+            yq -i eval ''"${SELECT_EXPRESSION}"' |= strenv(NEW_VALUE)' $FILE_TO_UPDATE
         done
         
         echo "======== AFTER CHANGES ========"
@@ -124,7 +124,7 @@ spec:
 
               # Update target with new value
               echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
-              yq -i eval ''"${SELECT_EXPRESSION}"' |= '"${NEW_VALUE}"'' ${FILE_TO_UPDATE_TWIN}
+              yq -i eval ''"${SELECT_EXPRESSION}"' |= strenv(NEW_VALUE)' ${FILE_TO_UPDATE_TWIN}
           done
         else
           echo "TWIN OVERLAY NOT FOUND!"
