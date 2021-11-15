@@ -61,6 +61,7 @@ spec:
       script: |
         #!/bin/sh
 
+        echo "ARGS_NUM: $#"
         echo "ARGS: $@"
 
         #echo "SELECT_EXPRESSION=\"$(params.SELECT_EXPRESSION)\""
