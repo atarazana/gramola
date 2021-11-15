@@ -123,8 +123,6 @@ spec:
           operator: in
           values: ['gitea']
       params:
-        - name: GIT_REPO_NAME
-          value: "$(params.GIT_REPO_NAME)"
         # PR Title describes the change and the overlay where it happens
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"

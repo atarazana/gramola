@@ -125,8 +125,6 @@ spec:
       resources: {}
       workingDir: $(workspaces.source.path)
       env:
-        - name: GIT_REPO_NAME
-          value: $(params.GIT_REPO_NAME)
         - name: PR_BASE
           value: $(params.PR_BASE)
         - name: PR_TITLE
