@@ -80,11 +80,14 @@ spec:
       workspaces:
         - name: source
           workspace: workspace-source
-    - name: pr-create
+    - name: github-pr-create
       when:
         - input: "$(params.NEXT_OVERLAY)"
           operator: in
           values: [{{ .Values.overlays }}]
+        - input: "$(params.GIT_PROVIDER)"
+          operator: in
+          values: ['github']
       params:
         - name: PR_TITLE
           value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
@@ -106,6 +109,36 @@ spec:
       taskRef:
         kind: ClusterTask
         name: pr-create
+      workspaces:
+        - name: source
+          workspace: workspace-source
+    - name: gitea-pr-create
+      when:
+        - input: "$(params.NEXT_OVERLAY)"
+          operator: in
+          values: [{{ .Values.overlays }}]
+        - input: "$(params.GIT_PROVIDER)"
+          operator: in
+          values: ['gitea']
+      params:
+        - name: GIT_REPO_NAME
+          value: "$(params.GIT_REPO_NAME)"
+        # PR Title describes the change and the overlay where it happens
+        - name: PR_TITLE
+          value: "Updating '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}' image for overlay '$(params.NEXT_OVERLAY)' with new image"
+        # PR Body is a YAML with information for the next pipelines (stages)
+        - name: PR_BODY
+          value: |
+            command: UPDATE_IMAGE\nserviceName: {{ .Values.gramolaEventsServiceName }}\ncount: $(params.COUNT)\noverlay: $(params.NEXT_OVERLAY)\nkustomizationPath: {{ .Values.gramolaEventsOverlayPath }}/$(params.NEXT_OVERLAY)/kustomization.yml\nimageDigestClean: $(params.IMAGE_DIGEST_CLEAN)\npipelineName: {{ .Values.gramolaEventsContinuosDeliveryPipeline }}
+        - name: PAT_SECRET_NAME
+          value: {{ .Values.gitPatSecretName }}
+        - name: PAT_SECRET_KEY
+          value: {{ .Values.gitPatSecretKey }}
+      runAfter:
+        - update-image
+      taskRef:
+        kind: ClusterTask
+        name: gitea-pr-create
       workspaces:
         - name: source
           workspace: workspace-source
