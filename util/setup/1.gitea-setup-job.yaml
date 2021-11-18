@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: gitea-setup-
+  namespace: gitea-system
+  name: borrar
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      containers:
+      - name: worker
+        image: quay.io/atarazana/gh:0.0.1
+        env:
+        - name: GITEA_HOST
+          value: repository:3000
+        - name: COUNT
+          value: "20"
+        - name: SLEEP_TIME
+          value: "30"
+        - name: PASSWORD
+          value: openshift
+        - name: KUBECONFIG
+          value: "/tmp/config"
+        command:
+        - /bin/sh
+        - '-c'
+        args:
+        - |-
+          echo "------------------------------"
+          curl -f -LI http://${GITEA_HOST}/
+          RET=$?
+          if [ ${RET} -ne 0 ]; then
+            echo "ERROR curl to GITEA_HOST=${GITEA_HOST} failed with ${RET}"
+            sleep ${SLEEP_TIME}
+            echo "------------------------------"
+            exit ${RET}
+          fi
+
+          TOKEN_NAME="install-$RANDOM"
+          GITEA_INSTALL_TOKEN=$(curl -s -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' -u opentlc-mgr:r3dh4t1\! http://${GITEA_HOST}/api/v1/users/opentlc-mgr/tokens | jq -r .sha1)
+          echo "GITEA_INSTALL_TOKEN=${GITEA_INSTALL_TOKEN}"
+
+          for i in $(seq 1 $COUNT); 
+          do
+            echo "Creating user${i}"
+            curl -X 'POST' \
+              "http://${GITEA_HOST}/api/v1/admin/users?access_token=${GITEA_INSTALL_TOKEN}" \
+              -H 'accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                    "email": "user'"${i}"'@example.com",
+                    "full_name": "User user'"${i}"'",
+                    "login_name": "user'"${i}"'",
+                    "must_change_password": false,
+                    "password": "'"${PASSWORD}"'",
+                    "send_notify": true,
+                    "source_id": 0,
+                    "username": "user'"${i}"'",
+                    "visibility" : "public"
+              }'
+          done
+          
+          echo "------------------------------"
+        imagePullPolicy: Always
+      restartPolicy: Never
