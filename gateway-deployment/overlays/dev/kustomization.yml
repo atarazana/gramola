@@ -9,7 +9,7 @@ commonLabels:
 images:
   - name: gramola-gateway:0.0.0
     newName: quay.io/atarazana/gramola-gateway@sha256
-    newTag: b339faa7c595425c213896f98c62d4e8ca6a34b41375feb2c0cabebce147edc1
+    newTag: d99d730f7c09757b57bf35be63b2e05c9c4f5604fe691d88b6ccd2c264dec148
 patchesJson6902:
   - target:
       group: apps
