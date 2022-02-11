@@ -27,6 +27,6 @@ if [ -z "${GIT_TOKEN}" ]; then
 fi
 
 # Register
-argocd repo add ${GIT_BASE_URL}.git --username ${GIT_USERNAME} --password $GIT_TOKEN --upsert
+argocd repo add ${GIT_BASE_URL}.git --username ${GIT_USERNAME} --password $GIT_TOKEN --upsert --grpc-web
 #argocd repo add ${GIT_BASE_URL}-events.git --username ${GIT_USERNAME} --password $GIT_TOKEN --upsert
 

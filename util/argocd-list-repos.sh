@@ -1,5 +1,5 @@
 #!/bin/sh
 
-argocd repo list
+argocd repo list --grpc-web
 
 
