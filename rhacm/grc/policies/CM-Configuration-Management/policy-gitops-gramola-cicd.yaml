@@ -1,0 +1,74 @@
+## This policy creates two Argo projects and deploy the gramola app.
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-gitops-gramola-cicd
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:              
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: gramola-cicd-argo-app
+        spec:
+          remediationAction: inform # will be overridden by remediationAction in parent policy
+          severity: low
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: Application
+                metadata:
+                  name: gramola-root-app-cicd
+                  namespace: openshift-gitops
+                  labels:
+                    argocd-cicd-app: "true"
+                  finalizers:
+                  - resources-finalizer.argocd.argoproj.io
+                spec:
+                  destination:
+                    namespace: openshift-gitops
+                    name: in-cluster
+                  project: default
+                  syncPolicy:
+                    automated: {}
+                  source:
+                    helm:
+                      parameters:
+                        - name: baseRepoUrl
+                          value: https://github.com/atarazana/gramola
+                    path: argocd/cicd
+                    repoURL: https://github.com/atarazana/gramola.git
+                    targetRevision: github    
+
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-gitops-gramola-cicd
+placementRef:
+  name: placement-policy-gitops-gramola-cicd
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+- name: policy-gitops-gramola-cicd
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-gitops-gramola-cicd
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - {key: app, operator: In, values: ["gramola-cicd"]}
