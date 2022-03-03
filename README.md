@@ -199,7 +199,7 @@ EOF
 We are going to create secrets instead of storing then in the git repo, but before we do let's check that ArgoCD has created the namespace for us.
 
 ```sh
-export CICD_NAMESPACE=$(yq r ./apps/cicd/values.yaml cicdNamespace)
+export CICD_NAMESPACE=$(yq eval '.cicdNamespace' ./apps/cicd/values.yaml)
 ```
 
 NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync gramola-cicd-app`
