@@ -1,0 +1,64 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-openshift-pipelines-operator
+  annotations:
+    policy.open-cluster-management.io/standards: NIST 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline 
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: openshift-pipelines-installed
+        spec:
+          remediationAction: enforce
+          severity: med
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  name: openshift-pipelines-operator
+                  namespace: openshift-operators
+                  labels:
+                    operators.coreos.com/openshift-pipelines-operator-rh.openshift-operators: ''
+                spec:
+                  channel: '{{hub fromConfigMap "" "policies-config" "pipeline-channel" hub}}'
+                  installPlanApproval: '{{hub fromConfigMap "" "policies-config" "pipeline-install-plan" hub}}'
+                  name: '{{hub fromConfigMap "" "policies-config" "pipeline-name" hub}}'
+                  source: '{{hub fromConfigMap "" "policies-config" "pipeline-source" hub}}'
+                  sourceNamespace: '{{hub fromConfigMap "" "policies-config" "pipeline-source-ns" hub}}'
+                  startingCSV: '{{hub fromConfigMap "" "policies-config" "pipeline-starting-csv" hub}}'
+
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-openshift-pipelines-operator
+placementRef:
+  name: placement-policy-openshift-pipelines-operator
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-openshift-pipelines-operator
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-openshift-pipelines-operator
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - {key: ci-cd, operator: In, values: ["tekton"]}
