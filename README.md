@@ -64,15 +64,20 @@ argocd repo list
 First make sure there is a context with proper credentials, in order to achieve this please log in the additional cluster.
 
 ```sh
-export API_SERVER=localhost:8443
-oc login ${API_SERVER} --username=myuser --password=mypass
+export API_USER=opentlc-mgr
+export API_SERVER_MANAGED=api.example.com:6443
+oc login --server=https://${API_SERVER_MANAGED} -u ${API_USER} --insecure-skip-tls-verify
 ```
+
+Give a name to the additional cluster and add it with the next command.
 
 **CAUTION:** **CLUSTER_NAME** is a name you choose for your cluster, **API_SERVER** is the host and port **without `http(s)`**.
 
 ```sh
 export CLUSTER_NAME=aws-managed1
-./util/argocd-register-cluster.sh ${CLUSTER_NAME} ${API_SERVER}
+CONTEXT_NAME=$(oc config get-contexts -o name | grep ${API_SERVER_MANAGED})
+
+argocd cluster add ${CONTEXT_NAME} --name ${CLUSTER_NAME}
 ```
 
 Check if your cluster has been added correctly.
