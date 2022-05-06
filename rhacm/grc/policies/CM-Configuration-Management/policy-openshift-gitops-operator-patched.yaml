@@ -30,12 +30,12 @@ spec:
                   labels:
                     operators.coreos.com/openshift-gitops-operator.openshift-operators: ''
                 spec:
-                  channel: stable
-                  installPlanApproval: Automatic
-                  name: openshift-gitops-operator
-                  source: redhat-operators
-                  sourceNamespace: openshift-marketplace
-                  startingCSV: openshift-gitops-operator.v1.5.0
+                  channel: '{{hub fromConfigMap "" "policies-config" "gitops-channel" hub}}'
+                  installPlanApproval: '{{hub fromConfigMap "" "policies-config" "gitops-install-plan" hub}}'
+                  name: '{{hub fromConfigMap "" "policies-config" "gitops-name" hub}}'
+                  source: '{{hub fromConfigMap "" "policies-config" "gitops-source" hub}}'
+                  sourceNamespace: '{{hub fromConfigMap "" "policies-config" "gitops-source-ns" hub}}'
+                  startingCSV: '{{hub fromConfigMap "" "policies-config" "gitops-starting-csv" hub}}'
 
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1

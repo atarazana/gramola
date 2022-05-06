@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: policy-openshift-pipelines-operator-cm
+  name: policy-openshift-pipelines-operator
   annotations:
     policy.open-cluster-management.io/standards: NIST 800-53
     policy.open-cluster-management.io/categories: CM Configuration Management
@@ -40,13 +40,13 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-openshift-pipelines-operator-cm
+  name: binding-policy-openshift-pipelines-operator
 placementRef:
-  name: placement-policy-openshift-pipelines-operator-cm
+  name: placement-policy-openshift-pipelines-operator
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-  - name: policy-openshift-pipelines-operator-cm
+  - name: policy-openshift-pipelines-operator
     kind: Policy
     apiGroup: policy.open-cluster-management.io
 
@@ -54,7 +54,7 @@ subjects:
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: placement-policy-openshift-pipelines-operator-cm
+  name: placement-policy-openshift-pipelines-operator
 spec:
   clusterConditions:
   - status: "True"
