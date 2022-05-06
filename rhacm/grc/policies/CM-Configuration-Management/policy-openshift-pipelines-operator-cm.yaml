@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: policy-openshift-pipelines-operator
+  name: policy-openshift-pipelines-operator-cm
   annotations:
     policy.open-cluster-management.io/standards: NIST 800-53
     policy.open-cluster-management.io/categories: CM Configuration Management
@@ -29,24 +29,24 @@ spec:
                   labels:
                     operators.coreos.com/openshift-pipelines-operator-rh.openshift-operators: ''
                 spec:
-                  channel: stable
-                  installPlanApproval: Automatic
-                  name: openshift-pipelines-operator-rh
-                  source: redhat-operators
-                  sourceNamespace: openshift-marketplace
-                  startingCSV: openshift-pipelines-operator-rh.v1.6.2
+                  channel: '{{hub fromConfigMap "" "policies-config" "pipeline-channel" hub}}'
+                  installPlanApproval: '{{hub fromConfigMap "" "policies-config" "pipeline-install-plan" hub}}'
+                  name: '{{hub fromConfigMap "" "policies-config" "pipeline-name" hub}}'
+                  source: '{{hub fromConfigMap "" "policies-config" "pipeline-source" hub}}'
+                  sourceNamespace: '{{hub fromConfigMap "" "policies-config" "pipeline-source-ns" hub}}'
+                  startingCSV: '{{hub fromConfigMap "" "policies-config" "pipeline-starting-csv" hub}}'
 
 ---
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-openshift-pipelines-operator
+  name: binding-policy-openshift-pipelines-operator-cm
 placementRef:
-  name: placement-policy-openshift-pipelines-operator
+  name: placement-policy-openshift-pipelines-operator-cm
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-  - name: policy-openshift-pipelines-operator
+  - name: policy-openshift-pipelines-operator-cm
     kind: Policy
     apiGroup: policy.open-cluster-management.io
 
@@ -54,7 +54,7 @@ subjects:
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: placement-policy-openshift-pipelines-operator
+  name: placement-policy-openshift-pipelines-operator-cm
 spec:
   clusterConditions:
   - status: "True"
