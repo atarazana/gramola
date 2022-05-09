@@ -1,0 +1,18 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: policies-config
+  namespace: rhacm-policies
+data: 
+  pipeline-channel: stable
+  pipeline-install-plan: Automatic
+  pipeline-name: openshift-pipelines-operator-rh
+  pipeline-source: redhat-operators
+  pipeline-source-ns: openshift-marketplace
+  pipeline-starting-csv: openshift-pipelines-operator-rh.v1.6.2
+  gitops-channel: stable
+  gitops-install-plan: Automatic
+  gitops-name: openshift-gitops-operator
+  gitops-source: redhat-operators
+  gitops-source-ns: openshift-marketplace
+  gitops-starting-csv: openshift-gitops-operator.v1.5.0
