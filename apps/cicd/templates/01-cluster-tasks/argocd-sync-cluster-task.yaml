@@ -52,21 +52,25 @@ spec:
 
         printf "Attempting logging in ArgoCD instance in-cluster\n"
         printf "================================================\n\n"
-        argocd login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
+        argocd --grpc-web login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 
         printf "Starting sync of $(params.APP_NAME)\n"
         printf "================================================\n\n"
-        argocd app sync --timeout 120 $(params.APP_NAME)
+        #argocd --grpc-web app sync --timeout 120 $(params.APP_NAME)
+        argocd --grpc-web app sync --async $(params.APP_NAME)
+        argocd --grpc-web app get --refresh $(params.APP_NAME) > /dev/null && argocd --grpc-web app wait $(params.APP_NAME) --sync --health
         printf "\nSync of $(params.APP_NAME) ended\n"
         printf "================================================\n\n"
         if [ "$?" == 0 ]; then
           printf "Checking if twin app $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) exists\n"
           printf "================================================================\n\n"
-          argocd app get $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
+          argocd --grpc-web app get $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
           if [ "$?" == 0 ]; then
             printf "Starting sync of $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)\n"
             printf "==============================================================\n\n"
-            argocd app sync --timeout 120 $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
+            #argocd --grpc-web app sync --timeout 120 $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
+            argocd --grpc-web app sync --async $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX)
+            argocd --grpc-web app get --refresh $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) > /dev/null && argocd --grpc-web app wait $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) --sync --health
             if ! [ "$?" == 0 ]; then
               printf "\n*** ERROR WHILE SYNCING TWIN APP $(params.APP_NAME)-$(params.TWIN_OVERLAY_SUFFIX) ***\n"
               echo -n "false" > $(results.TWIN_APP_SYNC_SUCCESS.path)
