@@ -99,9 +99,8 @@ argocd proj list
 
 # Create Root Apps
 
-Change BASE_REPO_URL value to point to your forked configuration repo.
+Change **BASE_REPO_URL** value to point to your forked configuration repo.
 
-NOTE: https://argoproj.github.io/argo-cd/user-guide/helm/
 
 ```sh
 export BASE_REPO_URL=https://github.com/atarazana/gramola
@@ -334,7 +333,7 @@ el-events-cd-pl-pr-listener-gramola-cicd.apps.acme.com
 Create Web Hook (click on Add Webhook)
 - Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
 - Type a secret... any thing should work
-- Cliek on Let me.... and select Pull Requests and deselect Push Events...
+- Click on Let me.... and select Pull Requests and deselect Push Events...
 
 Click on `Add webhook`
 
@@ -366,7 +365,7 @@ el-gateway-cd-pl-pr-listener-gramola-cicd.apps.acme.com
 Create Web Hook (click on Add Webhook)
 - Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
 - Type a secret... any thing should work
-- Cliek on Let me.... and select Pull Requests and deselect Push Events...
+- Click on Let me.... and select Pull Requests and deselect Push Events...
 
 Click on `Add webhook`
 
@@ -393,14 +392,6 @@ You should get something like this, pay attention to one of the last lines sayin
 argocd app sync gramola-root-app-dev
 argocd app sync gramola-root-app-test
 argocd app sync gramola-root-app-test-cloud
-```
-
-# Sync apps manually
-
-```sh
-argocd app sync economiacircular-app-dev
-argocd app sync economiacircular-app-test
-argocd app sync economiacircular-app-test-cloud
 ```
 
 # Sync children apps (app of apps)
