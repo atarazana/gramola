@@ -5,3 +5,4 @@ resources:
   - 4.openshift-gitops-projects.yaml
   - 5.pipelines.yaml
   - 6.gitops-guide-users-rbac.yaml
+  - 7.quay.yaml
