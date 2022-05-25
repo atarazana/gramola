@@ -16,3 +16,15 @@ data:
   gitops-source: redhat-operators
   gitops-source-ns: openshift-marketplace
   gitops-starting-csv: openshift-gitops-operator.v1.5.0
+  odf-channel: stable-4.10
+  odf-install-plan: Automatic
+  odf-name: odf-operator
+  odf-source: redhat-operators
+  odf-source-ns: openshift-marketplace
+  odf-starting-csv: odf-operator.v4.10.2
+  quay-channel: stable-3.7
+  quay-install-plan: Automatic
+  quay-name: quay-operator
+  quay-source: redhat-operators
+  quay-source-ns: openshift-marketplace
+  quay-starting-csv: quay-operator.v3.7.0
