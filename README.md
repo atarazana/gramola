@@ -26,12 +26,6 @@ NOTE: This is necessary because webhooks need to be created and obviously you ne
 
 We're using a custom plugin called `kustomized-helm` if you're interested have a look at section `configManagementPlugins` in `./util/bootstrap/2.openshift-gitops-patch`.
 
-# Adjust permissions of Service Account
-
-```sh
-kubectl apply -f util/argocd-service-account-permissions.yaml
-```
-
 # Log in ArgoCD with CLI
 
 ```sh
