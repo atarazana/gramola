@@ -47,7 +47,7 @@ spec:
                           value: '{{hub .ManagedClusterName hub}}'
                     path: argocd/root-apps-cloud
                     repoURL: https://github.com/atarazana/gramola
-                    targetRevision: HEAD
+                    targetRevision: github
 
 ---
 apiVersion: policy.open-cluster-management.io/v1
