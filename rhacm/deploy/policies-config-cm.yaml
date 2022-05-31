@@ -9,13 +9,13 @@ data:
   pipeline-name: openshift-pipelines-operator-rh
   pipeline-source: redhat-operators
   pipeline-source-ns: openshift-marketplace
-  pipeline-starting-csv: openshift-pipelines-operator-rh.v1.6.2
+  pipeline-starting-csv: openshift-pipelines-operator-rh.v1.6.3
   gitops-channel: stable
   gitops-install-plan: Automatic
   gitops-name: openshift-gitops-operator
   gitops-source: redhat-operators
   gitops-source-ns: openshift-marketplace
-  gitops-starting-csv: openshift-gitops-operator.v1.5.0
+  gitops-starting-csv: openshift-gitops-operator.v1.5.1
   odf-channel: stable-4.10
   odf-install-plan: Automatic
   odf-name: odf-operator
