@@ -37,14 +37,15 @@ spec:
                     name: in-cluster
                   project: default
                   syncPolicy:
-                    automated: {}
+                    automated:
+                      selfHeal: true   
                   source:
                     helm:
                       parameters:
                         - name: baseRepoUrl
                           value: https://github.com/atarazana/gramola
                         - name: destinationName
-                          value: '{{hub .ManagedClusterName hub}}'
+                          value: aws-managed1
                     path: argocd/root-apps-cloud
                     repoURL: https://github.com/atarazana/gramola
                     targetRevision: github
@@ -73,4 +74,4 @@ spec:
     type: ManagedClusterConditionAvailable
   clusterSelector:
     matchExpressions:
-      - {key: app, operator: In, values: ["gramola-cloud"]}
+      - {key: app, operator: In, values: ["gramola-all"]}
