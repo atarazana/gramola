@@ -4,7 +4,7 @@ metadata:
   namespace: gitea-system
   name: gitea-setup
 spec:
-  backoffLimit: 4
+  backoffLimit: 6
   template:
     spec:
       containers:
@@ -40,7 +40,7 @@ spec:
           TOKEN_NAME="install-$RANDOM"
           GITEA_INSTALL_TOKEN=$(curl -s -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' -u opentlc-mgr:r3dh4t1\! http://${GITEA_HOST}/api/v1/users/opentlc-mgr/tokens | jq -r .sha1)
           echo "GITEA_INSTALL_TOKEN=${GITEA_INSTALL_TOKEN}"
-          if [ -z "${GITEA_INSTALL_TOKEN}" ]; then
+          if [ -z "${GITEA_INSTALL_TOKEN}" ] || [ "${GITEA_INSTALL_TOKEN}" == "null" ]; then
             echo "ERROR no GITEA_INSTALL_TOKEN was returned, exiting"
             sleep ${SLEEP_TIME}
             echo "------------------------------"
