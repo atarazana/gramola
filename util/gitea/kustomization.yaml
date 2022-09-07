@@ -2,3 +2,4 @@ resources:
   - 1.gitea-catalog-source.yaml
   - 2.gitea-sub.yaml
   - 3.gitea-server.yaml
+  - 4.gitea-setup-job.yaml
