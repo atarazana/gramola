@@ -11,7 +11,8 @@ spec:
     name: {{ .Values.destinationName }}
   project: gramola-project-test
   syncPolicy:
-    automated: {}
+    automated:
+      selfHeal: true
   source:
     # This is not possible because plugin has been set to kustomized-helm and source.helm applies only to helm
     # helm:
