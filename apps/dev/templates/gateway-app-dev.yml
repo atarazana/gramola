@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: {{ printf "gateway-app-%s%s" "dev" .Values.namespaceSuffix }}
   namespace: openshift-gitops
+  labels:
+    username: {{ .Values.username }}
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:

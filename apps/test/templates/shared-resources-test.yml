@@ -3,6 +3,8 @@ kind: Application
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    username: {{ .Values.username }}
   name: {{ printf "shared-resources-%s%s" "test" .Values.namespaceSuffix }}
   namespace: openshift-gitops
   finalizers:
