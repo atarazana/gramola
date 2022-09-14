@@ -5,7 +5,7 @@ metadata:
     tekton.dev/displayName: buildah custom build
     tekton.dev/pipelines.minVersion: '0.19'
     tekton.dev/tags: 'buildah, workspace'
-  name: quarkus-package
+  name: {{ printf "quarkus-package%s" .Values.namespaceSuffix }}
 
   labels:
     app.kubernetes.io/version: '0.1'

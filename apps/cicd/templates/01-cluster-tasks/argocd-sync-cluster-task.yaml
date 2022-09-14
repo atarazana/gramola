@@ -5,7 +5,7 @@ metadata:
     tekton.dev/displayName: GitHub create pull request cluster task
     tekton.dev/pipelines.minVersion: '0.19'
     tekton.dev/tags: 'argocd, gitops'
-  name: argocd-sync
+  name: {{ printf "argocd-sync%s" .Values.namespaceSuffix }}
   labels:
     app.kubernetes.io/version: '0.1'
     operator.tekton.dev/provider-type: redhat

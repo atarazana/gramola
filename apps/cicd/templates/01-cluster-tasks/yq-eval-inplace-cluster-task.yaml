@@ -5,7 +5,7 @@ metadata:
     tekton.dev/displayName: GitHub create pull request cluster task
     tekton.dev/pipelines.minVersion: '0.19'
     tekton.dev/tags: 'yq, github'
-  name: yq-eval-in-place
+  name: {{ printf "yq-eval-in-place%s" .Values.namespaceSuffix }}
 
   labels:
     app.kubernetes.io/version: '0.1'

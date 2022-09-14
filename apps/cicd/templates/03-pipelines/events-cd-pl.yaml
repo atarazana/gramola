@@ -39,7 +39,7 @@ spec:
           value: "$(params.APP_NAME)-app-$(params.OVERLAY)-$(params.TWIN_OVERLAY_SUFFIX){{.Values.namespaceSuffix }}"
       taskRef:
         kind: ClusterTask
-        name: argocd-sync
+        name: {{ printf "argocd-sync%s" .Values.namespaceSuffix }}
     - name: fetch-config-repository
       params:
         - name: url
@@ -83,7 +83,7 @@ spec:
         - fetch-config-repository
       taskRef:
         kind: ClusterTask
-        name: yq-eval-in-place
+        name: {{ printf "yq-eval-in-place%s" .Values.namespaceSuffix }}
       workspaces:
         - name: source
           workspace: workspace-source
@@ -115,7 +115,7 @@ spec:
         - update-image
       taskRef:
         kind: ClusterTask
-        name: github-pr-create
+        name: {{ printf "github-pr-create%s" .Values.namespaceSuffix }}
       workspaces:
         - name: source
           workspace: workspace-source
@@ -143,7 +143,7 @@ spec:
         - update-image
       taskRef:
         kind: ClusterTask
-        name: gitea-pr-create
+        name: {{ printf "gitea-pr-create%s" .Values.namespaceSuffix }}
       workspaces:
         - name: source
           workspace: workspace-source
