@@ -12,7 +12,7 @@ metadata:
     operator.tekton.dev/provider-type: redhat
 spec:
   description: >-
-    These Task evaluates an expression and make changes in-place.
+        These Task evaluates an expression and make changes in-place.
   params:
     # - description: File to update in-place, it should be a YAML file
     #   name: FILE_TO_UPDATE
@@ -112,7 +112,7 @@ spec:
 
         # If twin env
         FILE_TO_UPDATE_TWIN="$(params.OVERLAYS_PATH)/$(params.OVERLAY)-$(params.TWIN_OVERLAY_SUFFIX)/$(params.FILE_NAME)"
-        echo "FILE_TO_UPDATE=${FILE_TO_UPDATE}"
+        echo "FILE_TO_UPDATE_TWIN=${FILE_TO_UPDATE_TWIN}"
 
         if [ -f ${FILE_TO_UPDATE_TWIN} ]; then
           echo "======== UPDATING TWIN OVERLAY ========"
@@ -126,14 +126,20 @@ spec:
               NEW_VALUE=${!k}
 
               # Update target with new value
+              #echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
+              #yq -i eval ''"${SELECT_EXPRESSION}"' |= strenv(NEW_VALUE)' ${FILE_TO_UPDATE_TWIN}
+              # Update target with new value
               echo "SELECT_EXPRESSION=${SELECT_EXPRESSION} NEW_VALUE=${NEW_VALUE}"
-              yq -i eval ''"${SELECT_EXPRESSION}"' |= strenv(NEW_VALUE)' ${FILE_TO_UPDATE_TWIN}
+              YQ_SENTENCE=$(printf "yq -i eval \'${SELECT_EXPRESSION} |= \"${NEW_VALUE}\"\' $FILE_TO_UPDATE_TWIN")
+              echo "YQ_SENTENCE=${YQ_SENTENCE}"
+              #yq -i eval ''"${SELECT_EXPRESSION}"' |= strenv(NEW_VALUE)' $FILE_TO_UPDATE
+              eval ${YQ_SENTENCE}
           done
         else
           echo "TWIN OVERLAY NOT FOUND!"
         fi;
 
-        #echo -n "true" > $(results.SUCCESS)
+        #echo -n "true" > $(results.SUCCESS)        
   workspaces:
     - mountPath: /workspace/source
       name: source
