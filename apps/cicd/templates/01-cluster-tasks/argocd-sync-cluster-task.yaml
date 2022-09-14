@@ -11,7 +11,7 @@ metadata:
     operator.tekton.dev/provider-type: redhat
 spec:
   description: >-
-        These Task triggers a sync operation.
+    These Task triggers a sync operation.
   params:
     - description: Name of the Application to sync
       name: APP_NAME
@@ -51,21 +51,21 @@ spec:
 
         printf "Attempting logging in ArgoCD instance in-cluster\n"
         printf "================================================\n\n"
-        argocd login $ARGOCD_SERVER --insecure --grpc-web --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
+        argocd login $ARGOCD_SERVER --insecure --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 
         printf "Starting sync of $(params.APP_NAME)\n"
         printf "================================================\n\n"
-        argocd app sync --grpc-web --timeout 120 $(params.APP_NAME)
+        argocd app sync --timeout 120 $(params.APP_NAME)
         printf "\nSync of $(params.APP_NAME) ended\n"
         printf "================================================\n\n"
         if [ "$?" == 0 ]; then
           printf "Checking if twin app $(params.TWIN_APP_NAME) exists\n"
           printf "================================================================\n\n"
-          argocd app get --grpc-web $(params.TWIN_APP_NAME)
+          argocd app get $(params.TWIN_APP_NAME)
           if [ "$?" == 0 ]; then
             printf "Starting sync of $(params.TWIN_APP_NAME)\n"
             printf "==============================================================\n\n"
-            argocd app sync --grpc-web --timeout 120 $(params.TWIN_APP_NAME)
+            argocd app sync --timeout 120 $(params.TWIN_APP_NAME)
             if ! [ "$?" == 0 ]; then
               printf "\n*** ERROR WHILE SYNCING TWIN APP $(params.TWIN_APP_NAME) ***\n"
               echo -n "false" > $(results.TWIN_APP_SYNC_SUCCESS.path)
