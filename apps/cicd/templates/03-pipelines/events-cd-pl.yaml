@@ -27,11 +27,16 @@ spec:
       type: string
     - name: NEXT_OVERLAY
       type: string
+    - name: TWIN_OVERLAY_SUFFIX
+      type: string
+      default: "cloud"
   tasks:
     - name: argocd-sync
       params:
         - name: APP_NAME
           value: "$(params.APP_NAME)-app-$(params.OVERLAY){{.Values.namespaceSuffix }}"
+        - name: TWIN_APP_NAME
+          value: "$(params.APP_NAME)-app-$(params.OVERLAY)-$(params.TWIN_OVERLAY_SUFFIX){{.Values.namespaceSuffix }}"
       taskRef:
         kind: ClusterTask
         name: argocd-sync
