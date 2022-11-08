@@ -28,7 +28,7 @@ spec:
         - |-
           echo "------------------------------"
           echo " Checking http://${GITEA_HOST}/"
-          curl -sf -LI http://${GITEA_HOST}/
+          curl -sSf -LI http://${GITEA_HOST}/
           RET=$?
           if [ ${RET} -ne 0 ]; then
             echo "ERROR curl to GITEA_HOST=${GITEA_HOST} failed with ${RET}"
@@ -36,9 +36,8 @@ spec:
             echo "------------------------------"
             exit ${RET}
           fi
-
           TOKEN_NAME="install-$RANDOM"
-          GITEA_INSTALL_TOKEN=$(curl -s -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' -u opentlc-mgr:r3dh4t1\! http://${GITEA_HOST}/api/v1/users/opentlc-mgr/tokens | jq -r .sha1)
+          GITEA_INSTALL_TOKEN=$(curl -sS -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' -u opentlc-mgr:r3dh4t1\! http://${GITEA_HOST}/api/v1/users/opentlc-mgr/tokens | jq -r .sha1)
           echo "GITEA_INSTALL_TOKEN=${GITEA_INSTALL_TOKEN}"
           if [ -z "${GITEA_INSTALL_TOKEN}" ] || [ "${GITEA_INSTALL_TOKEN}" == "null" ]; then
             echo "ERROR no GITEA_INSTALL_TOKEN was returned, exiting"
@@ -46,11 +45,10 @@ spec:
             echo "------------------------------"
             exit ${RET}
           fi
-
           for i in $(seq 1 $COUNT); 
           do
             echo "Creating user${i}"
-            curl -X 'POST' \
+            curl -sS -X 'POST' \
               "http://${GITEA_HOST}/api/v1/admin/users?access_token=${GITEA_INSTALL_TOKEN}" \
               -H 'accept: application/json' \
               -H 'Content-Type: application/json' \
@@ -66,7 +64,6 @@ spec:
                     "visibility" : "public"
               }'
           done
-          
           echo "------------------------------"
         imagePullPolicy: Always
       restartPolicy: Never

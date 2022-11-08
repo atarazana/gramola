@@ -240,21 +240,18 @@ spec:
             sleep 15
             bucket_name=$(oc get objectbucketclaim  quay-object -o yaml| grep bucketName | awk -F ': ' '{print $2}' | grep -v {)
           done
-
           access_key=""
           while [ "$access_key" == "" ]
           do
             sleep 5
             access_key=$(oc get secret quay-object -o yaml | grep AWS_ACCESS_KEY_ID | awk -F ': ' '{print $2}' | grep -v { | base64 -d)
           done
-
           secret_key=""
           while [ "$secret_key" == "" ]
           do
             sleep 5
             secret_key=$(oc get secret quay-object -o yaml | grep AWS_SECRET_ACCESS_KEY | awk -F ': ' '{print $2}' | grep -v { | base64 -d)
           done
-
           ## Workaround to not using a privileged service account in openshift-storage: create a service+route and check the default domain
           oc create service clusterip test --tcp=5678:8080
           oc create route edge test --service=test
@@ -262,7 +259,6 @@ spec:
           oc delete route test
           oc delete service test
           S3_HOSTNAME=s3-insecure-openshift-storage.apps.$DOMAIN
-
           cat <<EOF > /tmp/config.yaml
           DISTRIBUTED_STORAGE_CONFIG:
               default:
@@ -296,9 +292,7 @@ spec:
           TEAM_RESYNC_STALE_TIME: 60m
           TESTING: false
           EOF
-
           oc create secret generic quay-config --from-file config.yaml=/tmp/config.yaml
-
           cat <<EOF > /tmp/quay.yaml
           apiVersion: quay.redhat.com/v1
           kind: QuayRegistry
@@ -310,19 +304,14 @@ spec:
               - kind: objectstorage
                 managed: false
           EOF
-
           oc create -f  /tmp/quay.yaml
-
           ## WAIT
-
-          # QUAY_HOST="http://myregistry-quay-app"
-
           RETURN=0
           retry=0
           while [ $RETURN != "200" ]
           do
             echo "waiting for Quay..."
-            RETURN=$(curl -k -sL -o /dev/null -w "%{http_code}" $QUAY_HOST/health/instance)
+            RETURN=$(curl -k -sSL -o /dev/null -w "%{http_code}" $QUAY_HOST/health/instance)
             sleep 15
             if [[ "$retry" == 10 ]]
             then
@@ -333,38 +322,29 @@ spec:
             fi
             ((retry=retry+1))
           done
-
           ## Create quayadmin user
-          RETURN=$(curl -s -X POST -k  $QUAY_HOST/api/v1/user/initialize -H 'Content-Type: application/json' \
+          RETURN=$(curl -sS -X POST -k  $QUAY_HOST/api/v1/user/initialize -H 'Content-Type: application/json' \
             --data '{ "username": "quayadmin", "password":"quaypass123", "email": "quayadmin@example.com", "access_token": true}')
-
           echo "RETURN=${RETURN}"
-
           ACCESS_TOKEN=$(echo ${RETURN} | jq -r .access_token)
-
-          echo "ACCESS_TOKEN=${ACCESS_TOKEN}"
-
+          if [ -z "${ACCESS_TOKEN}" ] || [ "${ACCESS_TOKEN}" == "null" ]; then
+            echo "ACCESS_TOKEN=${ACCESS_TOKEN} is null"
+            exit 1
+          else
+            echo "ACCESS_TOKEN=${ACCESS_TOKEN}"
+          fi
           echo "========== Users before creating lab users ==========="
-          curl -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
-          
-          # RETURN_CREATE=$(curl -s -X POST -k  $QUAY_HOST/api/v1/superuser/users/ \
-          #   -H "Authorization: Bearer ${ACCESS_TOKEN}" -H 'Content-Type: application/json' \
-          #   --data '{ "username": "user1", "email": "user1@example.com"}')
-          
-          # echo "RETURN_CREATE=${RETURN_CREATE}"
-
-          # for i in {1..20}
+          curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
           for i in $(seq 1 $COUNT); 
           do
             echo "Creating user$i"
-            curl $QUAY_HOST/api/v1/user/ \
+            curl -sS $QUAY_HOST/api/v1/user/ \
               -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
               -H 'Content-Type: application/json' \
               --data-raw '{"password":"openshift","username":"user'$i'","email":"user'$i'@ocp.com","repeatPassword":"openshift"}'
           done
-          
           echo "========== Users after creating lab users ==========="
-          curl -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
+          curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
         # image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
         image: quay.io/atarazana/jq:0.0.1
         name: quay-config-preparation
