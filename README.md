@@ -25,16 +25,22 @@ until oc apply -k util/gitea/; do sleep 2; done
 Let's prepare some environment variables:
 
 ```sh
+export GIT_REVISION=main
+
 # Gitea
 export GIT_USERNAME=opentlc-mgr
 export GIT_PASSWORD=r3dh4t1!
+
 export BASE_REPO_NAME=gramola
+export EVENTS_REPO_NAME=gramola-events
+export GATEWAY_REPO_NAME=gramola-gateway
 
 # Source Repo to Migrate from
 export GIT_USERNAME_SRC=cvicens
-export GIT_URL_EVENTS_SRC=https://github.com/atarazana/gramola-events
-export GIT_URL_GATEWAY_SRC=https://github.com/atarazana/gramola-gateway
-export GIT_CONF_URL_SRC=https://github.com/${GIT_USERNAME_SRC}/${BASE_REPO_NAME}
+export GIT_URL_BASE_SRC=https://github.com/atarazana
+export GIT_URL_EVENTS_SRC=${GIT_URL_BASE_SRC}/${EVENTS_REPO_NAME}
+export GIT_URL_GATEWAY_SRC=${GIT_URL_BASE_SRC}/${GATEWAY_REPO_NAME}
+export GIT_CONF_URL_SRC=${GIT_URL_BASE_SRC}/${BASE_REPO_NAME}
 ```
 
 We need some sensitive data, your PAT for the source repo:
@@ -63,7 +69,7 @@ curl -X 'POST' \
   "auth_password": "'${GIT_PASSWORD_SRC}'",
   "auth_username": "'${GIT_USERNAME_SRC}'",
   "clone_addr": "'${GIT_CONF_URL_SRC}'.git",
-  "description": "arco saer conf",
+  "description": "gramola conf",
   "issues": false,
   "labels": false,
   "lfs": false,
@@ -71,7 +77,7 @@ curl -X 'POST' \
   "private": true,
   "pull_requests": false,
   "releases": false,
-  "repo_name": "gramola-conf",
+  "repo_name": "'${BASE_REPO_NAME}'",
   "repo_owner": "'${GIT_USERNAME}'",
   "service": "git",
   "wiki": false
@@ -93,7 +99,7 @@ curl -X 'POST' \
   "private": true,
   "pull_requests": false,
   "releases": false,
-  "repo_name": "gramola-events",
+  "repo_name": "'${EVENTS_REPO_NAME}'",
   "repo_owner": "'${GIT_USERNAME}'",
   "service": "git",
   "wiki": false
@@ -115,7 +121,7 @@ curl -X 'POST' \
   "private": true,
   "pull_requests": false,
   "releases": false,
-  "repo_name": "gramola-gateway",
+  "repo_name": "'${GATEWAY_REPO_NAME}'",
   "repo_owner": "'${GIT_USERNAME}'",
   "service": "git",
   "wiki": false
@@ -206,8 +212,6 @@ argocd proj list
 
 
 ```sh
-export GIT_REVISION=main
-
 cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -382,15 +386,17 @@ Once the namespace is created you can create the secrets. This commands will ask
 ```
 
 ```sh
-export CONTAINER_REGISTRY_SERVER=$(yq eval '.containerRegistryServer' ./apps/cicd/values.yaml)
-export CONTAINER_REGISTRY_ORG=$(yq eval '.containerRegistryOrg' ./apps/cicd/values.yaml)
-export CONTAINER_REGISTRY_USERNAME="varadero+cicd"
+export CONTAINER_REGISTRY_SERVER=$(oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
+export CONTAINER_REGISTRY_ORG=opentlc-mgr
+export CONTAINER_REGISTRY_USERNAME="opentlc-mgr+cicd"
 ```
 
 ```sh
 echo "Enter password for ${CONTAINER_REGISTRY_USERNAME}: " && read -s CONTAINER_REGISTRY_PASSWORD
 echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
 ```
+
+Create repositories for gramola-event and gramola-gateway and add them to the robot account!
 
 ```sh
 ./apps/cicd/create-registry-secret.sh ${CICD_NAMESPACE} ${CONTAINER_REGISTRY_SERVER} ${CONTAINER_REGISTRY_ORG} ${CONTAINER_REGISTRY_USERNAME} ${CONTAINER_REGISTRY_PASSWORD}
@@ -399,9 +405,9 @@ echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
 ## Creating Web Hooks
 
 ```sh
-ARCO_SAER_CI_EL_LISTENER_HOST=$(oc get route/el-arco-saer-ci-pl-push-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}')
+EVENTS_CI_EL_LISTENER_HOST=$(oc get route/el-events-ci-pl-push-gitea-listener -n ${CICD_NAMESPACE} -o jsonpath='{.spec.host}')
 
-curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cde-mig/hooks" \
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${EVENTS_REPO_NAME}/hooks" \
   -H "accept: application/json" \
   -H "Authorization: token ${GIT_PAT}" \
   -H "Content-Type: application/json" \
@@ -410,7 +416,26 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cd
   "branch_filter": "*",
   "config": {
      "content_type": "json",
-     "url": "http://'"${ARCO_SAER_CI_EL_LISTENER_HOST}"'"
+     "url": "http://'"${EVENTS_CI_EL_LISTENER_HOST}"'"
+  },
+  "events": [
+    "push" 
+  ],
+  "type": "gitea"
+}'
+
+GATEWAY_CI_EL_LISTENER_HOST=$(oc get route/el-gateway-ci-pl-push-gitea-listener -n ${CICD_NAMESPACE} -o jsonpath='{.spec.host}')
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${GATEWAY_REPO_NAME}/hooks" \
+  -H "accept: application/json" \
+  -H "Authorization: token ${GIT_PAT}" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "active": true,
+  "branch_filter": "*",
+  "config": {
+     "content_type": "json",
+     "url": "http://'"${GATEWAY_CI_EL_LISTENER_HOST}"'"
   },
   "events": [
     "push" 
@@ -420,9 +445,9 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cd
 ```
 
 ```sh
-ARCO_SAER_CD_EL_LISTENER_HOST=$(oc get route/el-arco-saer-cd-pl-pr-listener  -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}')
+EVENTS_CD_EL_LISTENER_HOST=$(oc get route/el-events-cd-pl-pr-gitea-listener  -n ${CICD_NAMESPACE} -o jsonpath='{.spec.host}')
 
-curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-conf/hooks" \
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${BASE_REPO_NAME}/hooks" \
   -H "accept: application/json" \
   -H "Authorization: token ${GIT_PAT}" \
   -H "Content-Type: application/json" \
@@ -431,7 +456,26 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-co
   "branch_filter": "*",
   "config": {
      "content_type": "json",
-     "url": "http://'"${ARCO_SAER_CD_EL_LISTENER_HOST}"'"
+     "url": "http://'"${EVENTS_CD_EL_LISTENER_HOST}"'"
+  },
+  "events": [
+    "push" 
+  ],
+  "type": "gitea"
+}'
+
+GATEWAY_CD_EL_LISTENER_HOST=$(oc get route/el-gateway-cd-pl-pr-gitea-listener  -n ${CICD_NAMESPACE} -o jsonpath='{.spec.host}')
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${BASE_REPO_NAME}/hooks" \
+  -H "accept: application/json" \
+  -H "Authorization: token ${GIT_PAT}" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "active": true,
+  "branch_filter": "*",
+  "config": {
+     "content_type": "json",
+     "url": "http://'"${GATEWAY_CD_EL_LISTENER_HOST}"'"
   },
   "events": [
     "push" 
@@ -449,7 +493,7 @@ cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: arco-saer-cicd-jenkins
+  name: gramola-cicd-jenkins
   namespace: openshift-gitops
   labels:
     argocd-root-app: "true"
@@ -461,7 +505,7 @@ spec:
         ns: openshift-gitops
   template:
     metadata:
-      name: arco-saer-cicd-jenkins
+      name: gramola-cicd-jenkins
       namespace: openshift-gitops
       labels:
         argocd-root-app-cloud: "true"
@@ -506,7 +550,7 @@ We are going to create secrets instead of storing then in the git repo, but befo
 export JENKINS_NAMESPACE=$(yq eval '.jenkinsNamespace' ./apps/cicd-jenkins/values.yaml)
 ```
 
-NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync arco-saer-cicd-jenkins`
+NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync gramola-cicd-jenkins`
 
 ```sh
 oc get project ${JENKINS_NAMESPACE}

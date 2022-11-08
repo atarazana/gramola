@@ -1,11 +1,9 @@
-appName: arco
-
-arcoSaerServiceName: saer
+appName: gramola
 
 gitUrl: https://github.com
 gitRevision: main
-gitUsername: cvicens
-baseRepoName: arco-saer-conf
+gitUsername: atarazana
+baseRepoName: gramola
 gitContextDir: .
 
 containerRegistryServer: quay.io
@@ -15,7 +13,7 @@ jnlpServiceName: jenkins-jnlp
 
 jenkinsServiceName: jenkins
 jenkinsNamespace: jenkins-cicd
-cicdNamespace: arco-saer-cicd
+cicdNamespace: gramola-cicd
 
 jenkinsMemory: 5Gi
 jenkinsStorageSize: 3Gi
@@ -29,7 +27,7 @@ jenkinsImageStreamTag: 'jenkins:2'
 jenkinsImageStreamTagNamespace: 'openshift'
 
 buildahBuilderImage: registry.redhat.io/rhel8/buildah@sha256:6a68ece207bc5fd8db2dd5cc2d0b53136236fb5178eb5b71eebe5d07a3c33d13
-jbossEapBuilderImage: image-registry.openshift-image-registry.svc:5000/arco-saer-cicd/jboss-eap-openshift:1.2
+jbossEapBuilderImage: image-registry.openshift-image-registry.svc:5000/gramola-cicd/jboss-eap-openshift:1.2
 
 jenkinsServiceAccountName: jenkins-sa
 
@@ -45,9 +43,13 @@ gitPatSecretKey: password
 # Pipelines have these stages => overlays
 overlays: "dev,test"
 
+# Service names Gramola is made of services, these are their names
+gramolaEventsServiceName: events
+gramolaGatewayServiceName: gateway
 
 # Overlays relative path in the config repository
-arcoSaerOverlayPath: ./arco-saer-deployment/overlays
+gramolaEventsOverlayPath: ./events-deployment/overlays
+gramolaGatewayOverlayPath: ./gateway-deployment/overlays
 
 # Sub Overlays names separated by comma
 arcoSaerSubOverlays: 'L01,L02'
