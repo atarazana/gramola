@@ -333,6 +333,12 @@ spec:
           else
             echo "ACCESS_TOKEN=${ACCESS_TOKEN}"
           fi
+          echo "========== Create opentlc-mgr user ==================="
+          echo "Creating user$i"
+          curl -sS $QUAY_HOST/api/v1/user/ \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+            -H 'Content-Type: application/json' \
+            --data-raw '{"password":"r3dh4t1!","username":"opentlc-mgr'","email":"opentlc-mgr@ocp.com","repeatPassword":"r3dh4t1!"}'
           echo "========== Users before creating lab users ==========="
           curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
           for i in $(seq 1 $COUNT); 
