@@ -1,0 +1,25 @@
+ARG FROM_IMAGE
+FROM ${FROM_IMAGE} AS BASE
+
+USER root
+
+RUN yum install --nodocs -y git openssh-clients tar gzip skopeo && yum clean all
+
+ENV GH_VERSION=1.13.1
+ENV YQ_VERSION=4.11.2
+ENV ARGOCD_VERSION=v2.1.2
+
+RUN rpm -i https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.rpm
+
+RUN curl -o /tmp/yq -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 && cd /usr/bin && cp /tmp/yq . && chmod a+x /usr/bin/yq && rm -f /tmp/yq
+
+RUN curl -o /tmp/argocd -L https://github.com/argoproj/argo-cd/releases/download/${ARGOCD_VERSION}/argocd-linux-amd64 && cd /usr/bin && cp /tmp/argocd . && chmod a+x /usr/bin/argocd && rm -f /tmp/argocd
+
+# Copying scripts
+COPY ./scripts /usr/local/bin/
+
+# Change permissions
+RUN chmod -R 776 /usr/local/bin/
+# RUN chown -R 1001:0 /tmp/src
+
+USER 1001

@@ -9,18 +9,118 @@ If you have already deployed an instance of ACM or you want to [install](https:/
 Install ArgoCD Operator with OCP OAuth and Openshift Pipelines:
 
 ```sh
-until kubectl apply -k util/bootstrap/; do sleep 2; done
+until oc apply -k util/bootstrap/; do sleep 2; done
 ```
 
-# READ THIS BEFORE YOU GO BEYOND
+# Install Gitea
 
-If you want to execute the pipelines section you have to fork this repositories. 
+Install Gitea Operator and use it to install Gitea in `gitea-system`:
 
-NOTE: This is necessary because webhooks need to be created and obviously you need permissions on them.
+```sh
+until oc apply -k util/gitea/; do sleep 2; done
+```
 
-- CONFIGURATION REPO: https://github.com/atarazana/gramola.git
-- SOURCE CODE REPO: https://github.com/atarazana/gramola-events.git
+# Migrate from github
 
+Let's prepare some environment variables:
+
+```sh
+# Gitea
+export GIT_USERNAME=opentlc-mgr
+export GIT_PASSWORD=r3dh4t1!
+export BASE_REPO_NAME=gramola
+
+# Source Repo to Migrate from
+export GIT_USERNAME_SRC=cvicens
+export GIT_URL_EVENTS_SRC=https://github.com/atarazana/gramola-events
+export GIT_URL_GATEWAY_SRC=https://github.com/atarazana/gramola-gateway
+export GIT_CONF_URL_SRC=https://github.com/${GIT_USERNAME_SRC}/${BASE_REPO_NAME}
+```
+
+We need some sensitive data, your PAT for the source repo:
+
+```sh
+echo "Enter PAT for 'https://github.com': " && read -s GIT_PASSWORD_SRC
+echo "PAT entered: ${GIT_PASSWORD_SRC}"
+```
+
+Get the Gitea host and generate a PAT:
+
+```sh
+export GIT_HOST=$(oc get route/repository -n gitea-system -o jsonpath='{.spec.host}')
+
+export GIT_PAT=$(curl -k -s -X 'POST' -H "Content-Type: application/json"  -k -d '{"name":"cicd'"${RANDOM}"'"}' -u ${GIT_USERNAME}:${GIT_PASSWORD} https://${GIT_HOST}/api/v1/users/${GIT_USERNAME}/tokens | jq -r .sha1)
+
+echo "GIT_PAT=${GIT_PAT}"
+```
+
+```sh
+curl -X 'POST' \
+  "https://${GIT_HOST}/api/v1/repos/migrate?token=${GIT_PAT}" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "auth_password": "'${GIT_PASSWORD_SRC}'",
+  "auth_username": "'${GIT_USERNAME_SRC}'",
+  "clone_addr": "'${GIT_CONF_URL_SRC}'.git",
+  "description": "arco saer conf",
+  "issues": false,
+  "labels": false,
+  "lfs": false,
+  "milestones": false,
+  "private": true,
+  "pull_requests": false,
+  "releases": false,
+  "repo_name": "gramola-conf",
+  "repo_owner": "'${GIT_USERNAME}'",
+  "service": "git",
+  "wiki": false
+}'
+
+curl -X 'POST' \
+  "https://${GIT_HOST}/api/v1/repos/migrate?token=${GIT_PAT}" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "auth_password": "'${GIT_PASSWORD_SRC}'",
+  "auth_username": "'${GIT_USERNAME_SRC}'",
+  "clone_addr": "'${GIT_URL_EVENTS_SRC}'.git",
+  "description": "gramola events",
+  "issues": false,
+  "labels": false,
+  "lfs": false,
+  "milestones": false,
+  "private": true,
+  "pull_requests": false,
+  "releases": false,
+  "repo_name": "gramola-events",
+  "repo_owner": "'${GIT_USERNAME}'",
+  "service": "git",
+  "wiki": false
+}'
+
+curl -X 'POST' \
+  "https://${GIT_HOST}/api/v1/repos/migrate?token=${GIT_PAT}" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "auth_password": "'${GIT_PASSWORD_SRC}'",
+  "auth_username": "'${GIT_USERNAME_SRC}'",
+  "clone_addr": "'${GIT_URL_GATEWAY_SRC}'.git",
+  "description": "gramola events",
+  "issues": false,
+  "labels": false,
+  "lfs": false,
+  "milestones": false,
+  "private": true,
+  "pull_requests": false,
+  "releases": false,
+  "repo_name": "gramola-gateway",
+  "repo_owner": "'${GIT_USERNAME}'",
+  "service": "git",
+  "wiki": false
+}'
+```
 
 # Add plugin section to ArgoCD Custom Resource
 
@@ -28,8 +128,21 @@ We're using a custom plugin called `kustomized-helm` if you're interested have a
 
 # Log in ArgoCD with CLI
 
+Log in using the OpenShift SSO using this command:
+
 ```sh
 ./util/argocd-login.sh
+```
+
+Alternatively you can log in using this other set of commands:
+
+```sh
+export ARGOCD_HOST=$(oc get route/openshift-gitops-server -o jsonpath='{.status.ingress[0].host}' -n openshift-gitops)
+
+export ARGOCD_USERNAME=admin
+export ARGOCD_PASSWORD=$(oc get secret openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' -n openshift-gitops | base64 -d)
+
+argocd login $ARGOCD_HOST --insecure --grpc-web --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 ```
 
 # Register repos
@@ -44,7 +157,7 @@ In order to refer to a repository in ArgoCD you have to register it before, the 
 
 
 ```sh
-./util/argocd-register-repos.sh
+argocd repo add https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}.git --username ${GIT_USERNAME} --password ${GIT_PAT} --upsert --grpc-web
 ```
 
 Run this command to list the registered repositories.
@@ -57,16 +170,22 @@ argocd repo list
 
 First make sure there is a context with proper credentials, in order to achieve this please log in the additional cluster.
 
+
 ```sh
-export API_SERVER=localhost:8443
-oc login ${API_SERVER} --username=myuser --password=mypass
+export API_USER=opentlc-mgr
+export API_SERVER_MANAGED=api.example.com:6443
+oc login --server=https://${API_SERVER_MANAGED} -u ${API_USER} --insecure-skip-tls-verify
 ```
+
+Give a name to the additional cluster and add it with the next command.
 
 **CAUTION:** **CLUSTER_NAME** is a name you choose for your cluster, **API_SERVER** is the host and port **without `http(s)`**.
 
 ```sh
 export CLUSTER_NAME=aws-managed1
-./util/argocd-register-cluster.sh ${CLUSTER_NAME} ${API_SERVER}
+CONTEXT_NAME=$(oc config get-contexts -o name | grep ${API_SERVER_MANAGED})
+
+argocd cluster add ${CONTEXT_NAME} --name ${CLUSTER_NAME}
 ```
 
 Check if your cluster has been added correctly.
@@ -80,120 +199,174 @@ argocd cluster list
 **IMPORTANT:** Now you can log back in the cluster where ArgoCD is running.
 
 ```sh
-kubectl apply -f argocd/projects/project-dev.yml
-kubectl apply -f argocd/projects/project-test.yml
-
 argocd proj list
 ```
 
 # Create Root Apps
 
-Change BASE_REPO_URL value to point to your forked configuration repo.
-
-NOTE: https://argoproj.github.io/argo-cd/user-guide/helm/
 
 ```sh
-export BASE_REPO_URL=https://github.com/atarazana/gramola
+export GIT_REVISION=main
 
 cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: gramola-root-app
+  name: gramola
   namespace: openshift-gitops
   labels:
     argocd-root-app: "true"
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
 spec:
-  destination:
-    namespace: openshift-gitops
-    name: in-cluster
-  project: default
-  syncPolicy:
-    automated: {}
-  source:
-    helm:
-      parameters:
-        - name: baseRepoUrl
-          value: ${BASE_REPO_URL}
-    path: argocd/root-apps
-    repoURL: ${BASE_REPO_URL}
-    targetRevision: HEAD
+  generators:
+  - list:
+      elements:
+      - env: dev
+        desc: "Gramola Dev"
+      - env: test
+        desc: "Gramola Test"
+  template:
+    metadata:
+      name: gramola-root-app-{{ env }}
+      namespace: openshift-gitops
+      labels:
+        argocd-root-app: "true"
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      destination:
+        namespace: openshift-gitops
+        name: in-cluster
+      project: default
+      syncPolicy:
+        automated:
+          selfHeal: true
+      source:
+        helm:
+          parameters:
+            - name: gitUrl
+              value: "https://${GIT_HOST}"
+            - name: gitUsername
+              value: "${GIT_USERNAME}"
+            - name: baseRepoName
+              value: "${BASE_REPO_NAME}"
+            - name: gitRevision
+              value: "${GIT_REVISION}"
+        path: apps/{{ env }}
+        repoURL: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
+        targetRevision: ${GIT_REVISION}
 EOF
-
 ```
 
-If an additional cluster has been set up
+If an additional cluster has been set up:
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: gramola-root-app-cloud
+  name: gramola-cloud
   namespace: openshift-gitops
   labels:
     argocd-root-app: "true"
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
 spec:
-  destination:
-    namespace: openshift-gitops
-    name: in-cluster
-  project: default
-  syncPolicy:
-    automated: {}
-  source:
-    helm:
-      parameters:
-        - name: baseRepoUrl
-          value: ${BASE_REPO_URL}
-        - name: destinationName
-          value: ${CLUSTER_NAME}
-    path: argocd/root-apps-cloud
-    repoURL: ${BASE_REPO_URL}
-    targetRevision: HEAD
+  generators:
+  - list:
+      elements:
+      - env: test-cloud
+        desc: "Gramola Test"
+  template:
+    metadata:
+      name: gramola-root-app-{{ env }}
+      namespace: openshift-gitops
+      labels:
+        argocd-root-app-cloud: "true"
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      destination:
+        namespace: openshift-gitops
+        name: in-cluster
+      project: default
+      syncPolicy:
+        automated:
+          selfHeal: true
+      source:
+        helm:
+          parameters:
+            - name: gitUrl
+              value: "https://${GIT_HOST}"
+            - name: gitUsername
+              value: "${GIT_USERNAME}"
+            - name: baseRepoName
+              value: "${BASE_REPO_NAME}"
+            - name: gitRevision
+              value: "${GIT_REVISION}"
+            - name: destinationName
+              value: ${CLUSTER_NAME}
+        path: apps/{{ env }}
+        repoURL: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
+        targetRevision: ${GIT_REVISION}
 EOF
 ```
 
-# Pipelines
+# Tekton Pipelines
 
 Deploy another ArgoCD app to deploy pipelines.
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: gramola-root-app-cicd
+  name: gramola-cicd
   namespace: openshift-gitops
   labels:
-    argocd-cicd-app: "true"
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    argocd-root-app: "true"
 spec:
-  destination:
-    namespace: openshift-gitops
-    name: in-cluster
-  project: default
-  syncPolicy:
-    automated: {}
-  source:
-    helm:
-      parameters:
-        - name: baseRepoUrl
-          value: ${BASE_REPO_URL}
-    path: argocd/cicd
-    repoURL: ${BASE_REPO_URL}.git
-    targetRevision: HEAD
+  generators:
+  - list:
+      elements:
+      - cluster: in-cluster
+        ns: openshift-gitops
+  template:
+    metadata:
+      name: gramola-cicd
+      namespace: openshift-gitops
+      labels:
+        argocd-root-app-cloud: "true"
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      destination:
+        namespace: '{{ ns }}'
+        name: '{{ cluster }}'
+      project: default
+      syncPolicy:
+        automated:
+          selfHeal: true
+      source:
+        helm:
+          parameters:
+            - name: gitUrl
+              value: "https://${GIT_HOST}"
+            - name: gitUsername
+              value: "${GIT_USERNAME}"
+            - name: baseRepoName
+              value: "${BASE_REPO_NAME}"
+            - name: gitRevision
+              value: "${GIT_REVISION}"
+            - name: destinationName
+              value: ${CLUSTER_NAME}
+        path: apps/cicd
+        repoURL: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
+        targetRevision: ${GIT_REVISION}
 EOF
 ```
 
 We are going to create secrets instead of storing then in the git repo, but before we do let's check that ArgoCD has created the namespace for us.
 
 ```sh
-export CICD_NAMESPACE=$(yq r ./apps/cicd/values.yaml cicdNamespace)
+export CICD_NAMESPACE=$(yq eval '.cicdNamespace' ./apps/cicd/values.yaml)
 ```
 
 NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync gramola-cicd-app`
@@ -205,174 +378,203 @@ oc get project ${CICD_NAMESPACE}
 Once the namespace is created you can create the secrets. This commands will ask you for the PAT again, this time to create a secret with it.
 
 ```sh
-cd apps/cicd
-./create-secrets.sh
+./apps/cicd/create-git-secret.sh ${CICD_NAMESPACE} ${GIT_HOST} ${GIT_USERNAME} ${GIT_PAT}
 ```
-
-# Check pipelines, etc.
-
-... triggers are in place but we need web hooks
-
-Check routes are fine
-
-# Creating Web Hooks for the CI Pipelines
-
-First we want to create a webhook to trigger the CI pipeline for each of the services in this application:
-
-Go to github to the gramola-events repo:
-
-Go to Settings
-
-Go to Web Hooks
-
-Annotate route to the CI pipeline the one triggered with Push to the source code
 
 ```sh
-oc get route/el-events-ci-pl-push-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+export CONTAINER_REGISTRY_SERVER=$(yq eval '.containerRegistryServer' ./apps/cicd/values.yaml)
+export CONTAINER_REGISTRY_ORG=$(yq eval '.containerRegistryOrg' ./apps/cicd/values.yaml)
+export CONTAINER_REGISTRY_USERNAME="varadero+cicd"
 ```
-
-Expect something like: 
 
 ```sh
-el-events-ci-pl-push-listener-gramola-cicd.apps.acme.com
+echo "Enter password for ${CONTAINER_REGISTRY_USERNAME}: " && read -s CONTAINER_REGISTRY_PASSWORD
+echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
 ```
-
-Create Web Hook (click on Add Webhook)
-- Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
-- Type a secret... any thing should work
-- Just the push event 
-
-Click on `Add webhook`
-
-Let's check the webhook is working:
 
 ```sh
-oc logs -f deployment/el-events-ci-pl-push-listener -n ${CICD_NAMESPACE}
+./apps/cicd/create-registry-secret.sh ${CICD_NAMESPACE} ${CONTAINER_REGISTRY_SERVER} ${CONTAINER_REGISTRY_ORG} ${CONTAINER_REGISTRY_USERNAME} ${CONTAINER_REGISTRY_PASSWORD}
 ```
 
-You should get something like this, pay attention to one of the last lines saying **"event type ping is not allowed"**.
+## Creating Web Hooks
 
 ```sh
-...
-{"level":"info","ts":"2021-08-26T15:31:19.005Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"c5b06856-471d-43e5-9892-2d812b23e1ac","/trigger":"github-listener"}
+ARCO_SAER_CI_EL_LISTENER_HOST=$(oc get route/el-arco-saer-ci-pl-push-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}')
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cde-mig/hooks" \
+  -H "accept: application/json" \
+  -H "Authorization: token ${GIT_PAT}" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "active": true,
+  "branch_filter": "*",
+  "config": {
+     "content_type": "json",
+     "url": "http://'"${ARCO_SAER_CI_EL_LISTENER_HOST}"'"
+  },
+  "events": [
+    "push" 
+  ],
+  "type": "gitea"
+}'
 ```
-
-Now if you push a change in the code the CI pipeline for `events` should we kicked off.
-
-If you haven't stopped the log output you should see something like:
 
 ```sh
-...
-{"level":"info","ts":"2021-08-26T15:37:54.796Z","logger":"eventlistener","caller":"resources/create.go:95","msg":"Generating resource: kind: &APIResource{Name:pipelineruns,Namespaced:true,Kind:PipelineRun,Verbs:[delete deletecollection get list patch create update watch],ShortNames:[pr prs],SingularName:pipelinerun,Categories:[tekton tekton-pipelines],Group:tekton.dev,Version:v1beta1,StorageVersionHash:RcAKAgPYYoo=,}, name: events-ci-pl-push-plr-","knative.dev/controller":"eventlistener"}
-{"level":"info","ts":"2021-08-26T15:37:54.796Z","logger":"eventlistener","caller":"resources/create.go:103","msg":"For event ID \"57d7515c-f954-43ee-b99b-bf53a1578058\" creating resource tekton.dev/v1beta1, Resource=pipelineruns","knative.dev/controller":"eventlistener"}
+ARCO_SAER_CD_EL_LISTENER_HOST=$(oc get route/el-arco-saer-cd-pl-pr-listener  -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}')
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-conf/hooks" \
+  -H "accept: application/json" \
+  -H "Authorization: token ${GIT_PAT}" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "active": true,
+  "branch_filter": "*",
+  "config": {
+     "content_type": "json",
+     "url": "http://'"${ARCO_SAER_CD_EL_LISTENER_HOST}"'"
+  },
+  "events": [
+    "push" 
+  ],
+  "type": "gitea"
+}'
 ```
 
-Stop the log output with `Ctrl+C`.
+# Jenkins Pipelines
 
-We have to do the same for the `gateway` service, you now the drill, let's get the route host got the listener.
+Deploy another ArgoCD app to deploy jenkins pipelines.
 
 ```sh
-oc get route/el-gateway-ci-pl-push-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+cat <<EOF | kubectl apply -n openshift-gitops -f -
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: arco-saer-cicd-jenkins
+  namespace: openshift-gitops
+  labels:
+    argocd-root-app: "true"
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: in-cluster
+        ns: openshift-gitops
+  template:
+    metadata:
+      name: arco-saer-cicd-jenkins
+      namespace: openshift-gitops
+      labels:
+        argocd-root-app-cloud: "true"
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      destination:
+        namespace: '{{ ns }}'
+        name: '{{ cluster }}'
+      project: default
+      syncPolicy:
+        automated:
+          selfHeal: true
+      source:
+        helm:
+          parameters:
+            - name: gitUrl
+              value: "https://${GIT_HOST}"
+            - name: gitUsername
+              value: "${GIT_USERNAME}"
+            - name: baseRepoName
+              value: "${BASE_REPO_NAME}"
+            - name: gitRevision
+              value: "${GIT_REVISION}"
+            - name: destinationName
+              value: ${CLUSTER_NAME}
+            - name: proxyEnabled
+              value: 'false'
+            - name: arcoSaerPipelineClusterName
+              value: ''
+            - name: arcoSaerPipelineCredentials
+              value: ''
+        path: apps/cicd-jenkins
+        repoURL: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
+        targetRevision: ${GIT_REVISION}
+EOF
 ```
 
-This time go to the `gramola-gateway` repo and create a webhook like we did before but using the host you just got.
-
-Again as we did for `gramola-events` let's have a look to the logs of the listener:
+We are going to create secrets instead of storing then in the git repo, but before we do let's check that ArgoCD has created the namespace for us.
 
 ```sh
-oc logs -f deployment/el-gateway-ci-pl-push-listener -n ${CICD_NAMESPACE}
+export JENKINS_NAMESPACE=$(yq eval '.jenkinsNamespace' ./apps/cicd-jenkins/values.yaml)
 ```
 
-If it all went well you should see this:
+NOTE: If the namespace is not there yet, you can check the sync status of the ArgoCD application with: `argocd app sync arco-saer-cicd-jenkins`
 
 ```sh
-...
-{"level":"info","ts":"2021-08-26T15:58:30.986Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"bf2144ab-d3ca-471c-a340-9d9ae9e150e4","/trigger":"github-listener"}
+oc get project ${JENKINS_NAMESPACE}
 ```
 
-Now make a change to the code of `gramola-gateway` and let's see if the pipeline is triggered or not.
+Once the namespace is created you can create the secrets. This commands will ask you for the PAT again, this time to create a secret with it.
 
 ```sh
-...
-{"level":"info","ts":"2021-08-26T16:03:26.383Z","logger":"eventlistener","caller":"resources/create.go:95","msg":"Generating resource: kind: &APIResource{Name:pipelineruns,Namespaced:true,Kind:PipelineRun,Verbs:[delete deletecollection get list patch create update watch],ShortNames:[pr prs],SingularName:pipelinerun,Categories:[tekton tekton-pipelines],Group:tekton.dev,Version:v1beta1,StorageVersionHash:RcAKAgPYYoo=,}, name: gateway-ci-pl-push-plr-","knative.dev/controller":"eventlistener"}
-{"level":"info","ts":"2021-08-26T16:03:26.383Z","logger":"eventlistener","caller":"resources/create.go:103","msg":"For event ID \"de0712e7-9d0e-4896-87a2-1058047fe7ce\" creating resource tekton.dev/v1beta1, Resource=pipelineruns","knative.dev/controller":"eventlistener"}
+./apps/cicd-jenkins/create-git-secret.sh ${JENKINS_NAMESPACE} ${GIT_HOST} ${GIT_USERNAME} ${GIT_PAT}
 ```
-
-# Creating Web Hooks for the Cd Pipelines
-
-Continuos Delivery pipelines are triggered once a PR to the configuration repository `gramola` changing the image of a deployment has been merged. This means we have to create webhooks for this type of event for all the services that comprises `gramola`, our application:
-
-Go to github to the gramola repo:
-
-Go to Settings
-
-Go to Web Hooks
-
-Annotate route to the CD pipeline, the one triggered with PR that changes the image of `events`.
+<!-- 
+```sh
+export CONTAINER_REGISTRY_SERVER=$(yq eval '.containerRegistryServer' ./apps/cicd-jenkins/values.yaml)
+export CONTAINER_REGISTRY_ORG=$(yq eval '.containerRegistryOrg' ./apps/cicd-jenkins/values.yaml)
+export CONTAINER_REGISTRY_USERNAME="varadero+cicd"
+```
 
 ```sh
-oc get route/el-events-cd-pl-pr-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
-```
-
-Expect something like: 
-
-```sh
-el-events-cd-pl-pr-listener-gramola-cicd.apps.acme.com
-```
-
-Create Web Hook (click on Add Webhook)
-- Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
-- Type a secret... any thing should work
-- Cliek on Let me.... and select Pull Requests and deselect Push Events...
-
-Click on `Add webhook`
-
-Let's check the webhook is working:
+echo "Enter password for ${CONTAINER_REGISTRY_USERNAME}: " && read -s CONTAINER_REGISTRY_PASSWORD
+echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
+``` -->
 
 ```sh
-oc logs -f deployment/el-events-cd-pl-pr-listener -n ${CICD_NAMESPACE}
+./apps/cicd-jenkins/create-registry-secret.sh ${JENKINS_NAMESPACE} ${CONTAINER_REGISTRY_SERVER} ${CONTAINER_REGISTRY_ORG} ${CONTAINER_REGISTRY_USERNAME} ${CONTAINER_REGISTRY_PASSWORD}
 ```
 
-You should get something like this, pay attention to one of the last lines saying **"event type ping is not allowed"**.
+## Creating Web Hooks
+
+OJO PATCH CONFIGMAP gitea-system/repository antes eliminar owner ref:
+
+    [webhook]
+
+    ALLOWED_HOST_LIST = *
+
+    SKIP_TLS_VERIFY = true
+
 
 ```sh
-...
-{"level":"info","ts":"2021-08-26T16:12:08.205Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"8e99abfc-f288-470b-b0dc-21e4167186fe","/trigger":"github-listener"}
+oc set triggers bc/arco-saer-pipeline --from-github -n ${JENKINS_NAMESPACE}
+export GIT_WEBHOOK_SECRET=$(oc get bc/arco-saer-pipeline -o jsonpath={.spec.triggers[0].github.secret} -n ${JENKINS_NAMESPACE} )
 ```
-
-We have to do the same for the `gateway` service... so annotate route to the CD pipeline, the one triggered with PR that changes the image of `gateway`.
 
 ```sh
-oc get route/el-gateway-cd-pl-pr-listener -n ${CICD_NAMESPACE} -o jsonpath='{.status.ingress[0].host}' && echo ""
+export PATTERN='.+/(.*)/.+'
+export CURRENT_CONTEXT=$(oc config current-context)
+[[ ${CURRENT_CONTEXT} =~ ${PATTERN} ]] 
+echo "${BASH_REMATCH[0]}"
+echo "${BASH_REMATCH[1]}"
+export API_SERVER=${BASH_REMATCH[1]}
+ARCO_SAER_CI_BC_WEBHOOK_URL="https://${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/arco-saer-pipeline/webhooks/${GIT_WEBHOOK_SECRET}/github"
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cde-mig/hooks" \
+  -H "accept: application/json" \
+  -H "Authorization: token ${GIT_PAT}" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "active": true,
+  "branch_filter": "*",
+  "config": {
+     "content_type": "json",
+     "url": "'"${ARCO_SAER_CI_BC_WEBHOOK_URL}"'"
+  },
+  "events": [
+    "push" 
+  ],
+  "type": "gitea"
+}'
 ```
-
-Expect something like: 
-
-```sh
-el-gateway-cd-pl-pr-listener-gramola-cicd.apps.acme.com
-```
-
-Create Web Hook (click on Add Webhook)
-- Payload URL, the URL of the route of the trigger listener you just got (don't forget the `http://` part, it's NOT `https://`) 
-- Type a secret... any thing should work
-- Cliek on Let me.... and select Pull Requests and deselect Push Events...
-
-Click on `Add webhook`
-
-Let's check the webhook is working:
-
-```sh
-oc logs -f deployment/el-gateway-cd-pl-pr-listener -n ${CICD_NAMESPACE}
-```
-
-You should get something like this, pay attention to one of the last lines saying **"event type ping is not allowed"**.
-
-```sh
-...
-{"level":"info","ts":"2021-08-26T16:16:56.921Z","logger":"eventlistener","caller":"sink/sink.go:213","msg":"interceptor stopped trigger processing: rpc error: code = FailedPrecondition desc = event type ping is not allowed","knative.dev/controller":"eventlistener","/triggers-eventid":"52fb39c6-40dc-431f-a155-224268ef95de","/trigger":"github-listener"}
-```
-
-
 
 # Useful commands
 

@@ -1,0 +1,92 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: 'true'
+  name: '{{ .Values.jenkinsServiceName }}'
+  namespace: '{{ .Values.jenkinsNamespace }}'
+spec:
+  replicas: 1
+  selector:
+    name: '{{ .Values.jenkinsServiceName }}'
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: '{{ .Values.jenkinsServiceName }}'
+    spec:
+      containers:
+        - resources:
+            limits:
+              memory: '{{ .Values.jenkinsMemory }}'
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 240
+          terminationMessagePath: /dev/termination-log
+          name: jenkins
+          livenessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 420
+            periodSeconds: 360
+            timeoutSeconds: 240
+          env:
+            - name: OPENSHIFT_ENABLE_OAUTH
+              value: '{{ .Values.jenkinsEnableOauth }}'
+            - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+              value: 'true'
+            - name: DISABLE_ADMINISTRATIVE_MONITORS
+              value: '{{ .Values.jenkinsDisableAdministrativeMonitors }}'
+            - name: KUBERNETES_MASTER
+              value: 'https://kubernetes.default:443'
+            - name: KUBERNETES_TRUST_CERTIFICATES
+              value: 'true'
+            - name: JENKINS_SERVICE_NAME
+              value: '{{ .Values.jenkinsServiceName }}'
+            - name: JNLP_SERVICE_NAME
+              value: '{{ .Values.jnlpServiceName }}'
+            - name: ENABLE_FATAL_ERROR_LOG_FILE
+              value: '{{ .Values.jenkinsEnableFatalErrorLogFile }}'
+            - name: JENKINS_UC_INSECURE
+              value: '{{ .Values.jenkinsUpdateCenterInsecure }}'
+            - name: CASC_JENKINS_CONFIG
+              value: /var/lib/jenkins/proxy.yaml
+          securityContext:
+            privileged: false
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /var/lib/jenkins
+              name: '{{ .Values.jenkinsServiceName }}-data'
+            - mountPath: /etc/pki/ca-trust/source/anchors
+              name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
+          image: ' '
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: '{{ .Values.jenkinsServiceName }}'
+      volumes:
+        - name: '{{ .Values.jenkinsServiceName }}-data'
+          persistentVolumeClaim:
+            claimName: '{{ .Values.jenkinsServiceName }}'
+        - configMap:
+            name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
+            optional: true
+          name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - jenkins
+        from:
+          kind: ImageStreamTag
+          name: '{{ .Values.jenkinsImageStreamTag }}'
+          namespace: '{{ .Values.jenkinsImageStreamTagNamespace }}'
+        lastTriggeredImage: ''
+      type: ImageChange
+    - type: ConfigChange
+    

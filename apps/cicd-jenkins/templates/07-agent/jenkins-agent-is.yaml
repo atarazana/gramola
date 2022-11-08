@@ -1,0 +1,18 @@
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: '{{ .Values.jenkinsAgentName }}'
+  namespace: '{{ .Values.jenkinsNamespace }}'
+  labels:
+    app: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-{{ .Values.jenkinsServiceName }}-app'
+    role: jenkins-agent
+    agent-label: maven-gitops 
+  annotations:
+    description: 'Provides a Jenkins Agent with Maven tooling'
+    iconClass: icon-jenkins
+    openshift.io/display-name: 'Jenkins Maven Agent GitOps'
+    tags: 'Jenkins Maven Agent GitOps'
+    agent-label: maven-gitops 
+spec:
+  lookupPolicy:
+    local: false

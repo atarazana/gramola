@@ -1,0 +1,28 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: '{{ .Values.jenkinsAgentName }}-bc'
+  namespace: '{{ .Values.jenkinsNamespace }}'
+  labels:
+    app: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-{{ .Values.jenkinsServiceName }}-app'
+spec:
+  source:
+    type: Git
+    git:
+      uri: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}.git'
+      ref: '{{ .Values.gitRevision }}'
+    contextDir: '{{ .Values.jenkinsAgentContextDir }}'
+    sourceSecret:
+      name: '{{ .Values.gitPatSecretName }}'
+  strategy:
+    type: Docker                      
+    dockerStrategy:
+      dockerfilePath: '{{ .Values.jenkinsAgentFilePath }}'
+      buildArgs:
+        - name: FROM_IMAGE
+          value: '{{ .Values.jenkinsAgentBaseImage }}'
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "{{ .Values.jenkinsAgentName }}:latest"
+  

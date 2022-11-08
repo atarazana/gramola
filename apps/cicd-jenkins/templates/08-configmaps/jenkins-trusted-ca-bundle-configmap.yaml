@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    config.openshift.io/inject-trusted-cabundle: 'true'
+  name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
+  namespace: '{{ .Values.jenkinsNamespace }}'
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
+#   namespace: '{{ .Values.jenkinsNamespace }}'
+#   labels:
+#     app: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-{{ .Values.jenkinsServiceName }}-app'
+#     config.openshift.io/inject-trusted-cabundle: 'true'
+#     template: jenkins-persistent-template

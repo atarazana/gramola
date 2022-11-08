@@ -1,0 +1,851 @@
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/00-namespaces/namespace.yml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: 'jenkins-cicd'
+  labels:
+    argocd.argoproj.io/managed-by: openshift-gitops #argocd instance ns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/04-service-accounts/jenkins-sa.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.jenkins: >-
+      {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}
+  name: 'jenkins'
+  namespace: 'jenkins-cicd'
+secrets:
+- name: 'git-pat-secret'
+- name: 'container-registry-secret'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.jenkins: >-
+      {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}
+  name: 'jenkins'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/08-configmaps/jenkins-trusted-ca-bundle-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    config.openshift.io/inject-trusted-cabundle: 'true'
+  name: 'jenkins-trusted-ca-bundle'
+  namespace: 'jenkins-cicd'
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: 'jenkins-trusted-ca-bundle'
+#   namespace: 'jenkins-cicd'
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+#     config.openshift.io/inject-trusted-cabundle: 'true'
+#     template: jenkins-persistent-template
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    config.openshift.io/inject-trusted-cabundle: 'true'
+  name: 'jenkins-trusted-ca-bundle'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/01-deployment/jenkins-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: 'jenkins'
+  namespace: 'jenkins-cicd'
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: '3Gi'
+# kind: PersistentVolumeClaim
+# apiVersion: v1
+# metadata:
+#   name: 'jenkins'
+#   namespace: 'jenkins-cicd'
+#   finalizers:
+#     - kubernetes.io/pvc-protection
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+#     template: jenkins-persistent-template
+#     app.kubernetes.io/name: 'jenkins'
+#     app.kubernetes.io/part-of: 'arco'
+#     app.kubernetes.io/version: '1.0'
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: '3Gi'
+#   volumeMode: Filesystem
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: 'jenkins'
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: '3Gi'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/04-service-accounts/jenkins-sa.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: 'jenkins-sync-clusterrole'
+  namespace: 'jenkins-cicd'
+  labels:
+    app: 'arco-saer-jenkins-app'
+rules:
+  ##
+  ## Base operator rules
+  ##
+  - apiGroups:
+      - ""
+    resources:
+      - "*"
+    verbs:
+      - '*'
+  - apiGroups:
+      - apps
+    resources:
+      - "*"
+    verbs:
+      - "*"
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - "*"
+  - apiGroups:
+      - image.openshift.io
+    resources:
+      - "*"
+    verbs:
+      - "*"
+  - apiGroups:
+      - build.openshift.io
+    resources:
+      - "*"
+    verbs:
+      - "*"
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/04-service-accounts/jenkins-sa.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: 'jenkins-sync-clusterrolebinding'
+  labels:
+    app: 'arco-saer-jenkins-app'
+subjects:
+  - kind: ServiceAccount
+    name: 'jenkins'
+    namespace: 'jenkins-cicd'
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'jenkins-sync-clusterrole'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/04-service-accounts/jenkins-sa.yaml
+apiVersion: authorization.openshift.io/v1
+groupNames: null
+kind: RoleBinding
+metadata:
+  name: 'jenkins_edit'
+  namespace: 'jenkins-cicd'
+roleRef:
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: 'jenkins'
+# ---
+# apiVersion: v1
+# kind: ServiceAccount
+# metadata:
+#   name: 'jenkins-sa'
+#   namespace: 'jenkins-cicd'
+#   annotations:
+#     serviceaccounts.openshift.io/oauth-redirectreference.jenkins: >-
+#       {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+# ---
+# apiVersion: authorization.openshift.io/v1
+# groupNames: null
+# kind: RoleBinding
+# metadata:
+#   name: 'jenkins-sa_edit'
+#   namespace: 'jenkins-cicd'
+# roleRef:
+#   name: edit
+# subjects:
+#   - kind: ServiceAccount
+#     name: 'jenkins-sa'
+#     namespace: 'jenkins-cicd'
+# ---
+# kind: RoleBinding
+# apiVersion: rbac.authorization.k8s.io/v1
+# metadata:
+#   name: 'jenkins-sa-edit-rolebinding'
+#   namespace: 'jenkins-cicd'
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+# subjects:
+#   - kind: ServiceAccount
+#     name: 'jenkins-sa'
+#     namespace: 'jenkins-cicd'
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: edit
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: authorization.openshift.io/v1
+groupNames: null
+kind: RoleBinding
+metadata:
+  name: 'jenkins_edit'
+roleRef:
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: 'jenkins'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/02-service/jenkins-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.openshift.io/dependencies: '[{"name": "jenkins-jnlp", "namespace": "", "kind": "Service"}]'
+    service.openshift.io/infrastructure: 'true'
+  name: 'jenkins'
+  namespace: 'jenkins-cicd'
+spec:
+  ports:
+    - name: web
+      nodePort: 0
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    name: 'jenkins'
+  sessionAffinity: None
+  type: ClusterIP
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: 'jenkins'
+#   namespace: 'jenkins-cicd'
+#   annotations:
+#     service.alpha.openshift.io/dependencies: '[{"name": "jenkins-jnlp", "namespace": "", "kind": "Service"}]'
+#     service.openshift.io/infrastructure: 'true'
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+#     template: jenkins-persistent-template
+# spec:
+#   ports:
+#     - name: web
+#       nodePort: 0
+#       port: 80
+#       protocol: TCP
+#       targetPort: 8080
+#   selector:
+#     name: 'jenkins'
+#   sessionAffinity: None
+#   type: ClusterIP
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/02-service/jnlp-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: 'jenkins-jnlp'
+  namespace: 'jenkins-cicd'
+spec:
+  ports:
+    - name: agent
+      nodePort: 0
+      port: 50000
+      protocol: TCP
+      targetPort: 50000
+  selector:
+    name: 'jenkins'
+  sessionAffinity: None
+  type: ClusterIP
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: 'jenkins-jnlp'
+#   namespace: 'jenkins-cicd'
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+#     template: jenkins-persistent-template
+# spec:
+#   ports:
+#     - name: agent
+#       nodePort: 0
+#       port: 50000
+#       protocol: TCP
+#       targetPort: 50000
+#   selector:
+#     name: 'jenkins-jnlp'
+#   sessionAffinity: None
+#   type: ClusterIP
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: v1
+kind: Service
+metadata:
+  name: 'jenkins-jnlp'
+spec:
+  ports:
+    - name: agent
+      nodePort: 0
+      port: 50000
+      protocol: TCP
+      targetPort: 50000
+  selector:
+    name: 'jenkins'
+  sessionAffinity: None
+  type: ClusterIP
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.openshift.io/dependencies: '[{"name": "jenkins-jnlp", "namespace": "", "kind": "Service"}]'
+    service.openshift.io/infrastructure: 'true'
+  name: 'jenkins'
+spec:
+  ports:
+    - name: web
+      nodePort: 0
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    name: 'jenkins'
+  sessionAffinity: None
+  type: ClusterIP
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/03-pipelines/arco-saer-jenkins-bc.yaml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    name: 'arco-saer-pipeline'
+    app: 'arco-saer-jenkins-app'
+  name: 'arco-saer-pipeline'
+  namespace: 'jenkins-cicd'
+spec:
+  source:
+    type: Git
+    git:
+      uri: 'https://github.com'
+      ref: 'main'
+    sourceSecret:
+      name: 'git-pat-secret'
+    secrets:
+    - secret:
+        name: 'git-pat-secret'
+      destinationDir: "git-pat-secret"
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      # jenkinsfilePath: 'arco-saer-pipeline.groovy'
+      jenkinsfile: |-
+        node('jenkins-agent-maven-gitops') {
+        try {
+            timeout(time: 20, unit: 'MINUTES') {
+                
+                def mvnCmd = "mvn"
+                def POM_VERSION = "0.0.0"
+                def IMAGE_DIGEST_CLEAN = "DUMMY"
+                def BRANCH_NAME = "fb-DUMMY"
+                def SOURCE_REGISTRY_HOST = ""
+                def DEST_REGISTRY_SECRET_NAME = "container-registry-secret-raw"
+                def DEST_REGISTRY_HOST = "quay.io/varadero"
+                def DEST_REGISTRY_USER = ""
+                def DEST_REGISTRY_PASS = ""
+                def DEST_REGISTRY_CREDS = ""
+                
+                pipeline {
+                  
+                    stage('Build Image') {
+                        openshift.withCluster("${CLUSTER_NAME}") {
+                            openshift.withCredentials("${CLUSTER_CREDENTIALS}") {
+                                openshift.withProject("${BUILD_PROJECT_NAME}") {
+                                    openshift.selector("bc", "${BUILD_CONFIG_NAME}").startBuild("", "--wait")
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Copy Image') {
+                        openshift.withCluster("${CLUSTER_NAME}") {
+                            openshift.withCredentials("${CLUSTER_CREDENTIALS}") {
+                                openshift.withProject("${BUILD_PROJECT_NAME}") {
+                                    def DEST_REGISTRY_SECRET = openshift.selector("secrets", "${DEST_REGISTRY_SECRET_NAME}").object()
+                                    print "DEST_REGISTRY_SECRET: ${DEST_REGISTRY_SECRET}"
+                                    DEST_REGISTRY_USER = new String(DEST_REGISTRY_SECRET.data.username.decodeBase64())
+                                    DEST_REGISTRY_PASS = new String(DEST_REGISTRY_SECRET.data.password.decodeBase64())
+                                    DEST_REGISTRY_CREDS = "${DEST_REGISTRY_USER}:${DEST_REGISTRY_PASS}"
+                                    print "DEST_REGISTRY_CREDS: ${DEST_REGISTRY_CREDS}"
+                                }
+                                openshift.withProject("openshift-image-registry") {
+                                    SOURCE_REGISTRY_HOST = openshift.selector("routes", "default-route").object().spec.host
+                                    print "SOURCE_REGISTRY_HOST: ${SOURCE_REGISTRY_HOST}"
+                                    def TOKEN_SA = openshift.raw( 'whoami', '-t' ).out.replace("\n", "")
+                                    print "TOKEN_SA: ${TOKEN_SA}"
+                                    def SRC_CREDS = "jenkins-bot:${TOKEN_SA}"
+                                    def SRC_REGISTRY_URL = "docker://${SOURCE_REGISTRY_HOST}/arco-saer-cicd/arco-saer-app:latest"
+                                    def DEST_REGISTRY_URL = "docker://${DEST_REGISTRY_HOST}/arco-saer:latest"
+                                    sh "skopeo copy ${SRC_REGISTRY_URL} ${DEST_REGISTRY_URL} --src-tls-verify false --src-creds ${SRC_CREDS} --dest-tls-verify false --dest-creds ${DEST_REGISTRY_CREDS}"
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Fetch Image Digest') {
+                        openshift.withCluster("${CLUSTER_NAME}") {
+                            openshift.withCredentials("${CLUSTER_CREDENTIALS}") {
+                                openshift.withProject("${BUILD_PROJECT_NAME}") {
+                                    def IMAGE_DIGEST = openshift.selector("imagetags", "${IMAGE_TAG_NAME}").object().image.metadata.name
+                                    print "IMAGE_DIGEST: ${IMAGE_DIGEST}"
+                                    IMAGE_DIGEST_CLEAN = ("${IMAGE_DIGEST}" =~ /.*\:(.*)/)[0][1]
+                                    print "IMAGE_DIGEST_CLEAN: ${IMAGE_DIGEST_CLEAN}"
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Checkout Configuration Repo') {
+                        // Create a custom credential helper that will return the username/password
+                        // to the repository, so we don't have to fiddle with the repo URL
+                        sh 'git config --global credential.helper "!p() { echo username=\\$GIT_CONF_USERNAME; echo password=\\$GIT_CONF_PASSWORD; }; p"'
+                        sh 'git config --global user.email $GIT_CONF_USERNAME@example.com'
+                        sh 'git config --global user.name $GIT_CONF_USERNAME'
+
+                        withCredentials([usernamePassword(credentialsId: ${GIT_CREDENTIAL_ID}, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        # withCredentials(
+                        #     [usernamePassword(credentialsId: GIT_CREDENTIAL_ID,
+                        #     usernameVariable: 'GIT_CONF_USERNAME',
+                        #     passwordVariable: 'GIT_CONF_PASSWORD')]) {
+                            git credentialsId: "${GIT_CREDENTIAL_ID}", url: "${GIT_CONF_URL}", branch: "${GIT_CONF_REF}"
+                            
+                        }
+                        
+                    }
+                    
+                    stage('Update Digest DEV') {
+                        dir("${GIT_CONF_CONTEXT_DIR}") {
+                            def pool = ('a'..'z') + ('A'..'Z') + (0..9)
+                            Collections.shuffle pool
+                            BRANCH_NAME = "fb-" + pool.take(5).join('')
+                            sh "git checkout -b ${BRANCH_NAME}"
+                            // Update overlays for dev env
+                            sh "update-overlays.sh ${OVERLAYS_PATH} ${SUB_OVERLAYS_TO_UPDATE} dev ${IMAGE_DIGEST_CLEAN}"
+                            // Commit changes
+                            def commitMessage = "Update digest in overlay dev in branch ${BRANCH_NAME}"
+                            sh "git commit -a -m \'${commitMessage}\'"
+                        }
+                    }
+
+                    stage('Approve Deploy DEV') {
+                        timeout(time:15, unit:'MINUTES') {
+                            input message:'Approve Deploy to DEV?'
+                        }
+                    }
+
+                    stage("Merge ${BRANCH_NAME}") {
+                        dir("${GIT_CONF_CONTEXT_DIR}") {
+                            sh "git checkout ${GIT_CONF_REF}"
+                            sh "git merge ${BRANCH_NAME}"
+                            sh "git push origin ${GIT_CONF_REF}"
+                        }
+                    }
+
+                    stage('Update Digest TEST') {
+                        dir("${GIT_CONF_CONTEXT_DIR}") {
+                            def pool = ('a'..'z') + ('A'..'Z') + (0..9)
+                            Collections.shuffle pool
+                            BRANCH_NAME = "fb-" + pool.take(5).join('')
+                            sh "git checkout -b ${BRANCH_NAME}"
+                            // Update overlays for test env
+                            sh "update-overlays.sh ${OVERLAYS_PATH} ${SUB_OVERLAYS_TO_UPDATE} test ${IMAGE_DIGEST_CLEAN}"
+                            // Commit changes
+                            def commitMessage = "Update digest in overlay test in branch ${BRANCH_NAME}"
+                            sh "git commit -a -m \'${commitMessage}\'"
+                        }
+                    }
+
+                    stage('Approve Deploy TEST') {
+                        timeout(time:15, unit:'MINUTES') {
+                            input message:'Approve Deploy to TEST?'
+                        }
+                    }
+
+                    stage("Merge ${BRANCH_NAME}") {
+                        dir("${GIT_CONF_CONTEXT_DIR}") {
+                            sh "git checkout ${GIT_CONF_REF}"
+                            sh "git merge ${BRANCH_NAME}"
+                            sh "git push origin ${GIT_CONF_REF}"
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            echo "in catch block"
+            echo "Caught: ${err}"
+        }
+        }
+      env:
+        - name: CLUSTER_NAME
+          value: 'metro-1'
+        - name: CLUSTER_CREDENTIALS
+          value: 'jenkins-bot'
+        - name: BUILD_CONFIG_NAME
+          value: 'arco-saer-bc'
+        - name: BUILD_PROJECT_NAME
+          value: 'arco-saer-cicd'
+        - name: IMAGE_TAG_NAME
+          value: 'arco-saer-app:latest'
+        - name: GIT_CONF_USERNAME
+          value: cvicens
+        - name: GIT_CONF_PASSWORD
+          value: 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
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: git-pat-secret
+              key: password
+        - name: GIT_CONF_URL
+          value: 'https://github.com/cvicens/arco-saer-conf'
+        - name: GIT_CONF_REF
+          value: 'main'
+        - name: GIT_CONF_CONTEXT_DIR
+          value: '.'
+        - name: "GIT_CREDENTIAL_ID"
+          value: 'jenkins-cicd-git-pat-secret'
+        - name: OVERLAYS_PATH
+          value: './arco-saer-deployment/overlays'
+        - name: SUB_OVERLAYS_TO_UPDATE
+          value: 'L01 L02'
+        - name: MAVEN_OPTS
+          value: >-
+            -Dsun.zip.disableMemoryMapping=true -Xms20m
+            -Djava.security.egd=file:/dev/./urandom
+            -XX:+UnlockExperimentalVMOptions
+            -Dsun.zip.disableMemoryMapping=true'
+        
+        - name: HTTP_PROXY
+          value: 'http://proxyweb.metromadrid.net:80/'
+        - name: HTTPS_PROXY
+          value: 'http://proxyweb.metromadrid.net:80/'
+        - name: NO_PROXY
+          value: '".cluster.local,.corp,.local,.novalocal,.svc,10.0.0.0/8,10.8.68.0/24,127.0.0.1,172.16.0.0/14,172.20.0.0/16,api-int.cody.metromadrid.net,localhost,metromadrid.net"
+
+          '
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/07-agent/jenkins-agent-bc.yaml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: 'jenkins-agent-maven-gitops-bc'
+  namespace: 'jenkins-cicd'
+  labels:
+    app: 'arco-saer-jenkins-app'
+spec:
+  source:
+    type: Git
+    git:
+      uri: 'https://github.com/cvicens/arco-saer-conf.git'
+      ref: 'main'
+    contextDir: '/apps/cicd-jenkins/ose-jenkins-agent-maven-custom'
+    sourceSecret:
+      name: 'git-pat-secret'
+  strategy:
+    type: Docker                      
+    dockerStrategy:
+      dockerfilePath: 'Containerfile'
+      buildArgs:
+        - name: FROM_IMAGE
+          value: 'registry.redhat.io/openshift4/ose-jenkins-agent-maven:v4.10'
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "jenkins-agent-maven-gitops:latest"
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/01-deployment/jenkins-deployment.yaml
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: 'true'
+  name: 'jenkins'
+  namespace: 'jenkins-cicd'
+spec:
+  replicas: 1
+  selector:
+    name: 'jenkins'
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: 'jenkins'
+    spec:
+      containers:
+        - resources:
+            limits:
+              memory: '5Gi'
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 240
+          terminationMessagePath: /dev/termination-log
+          name: jenkins
+          livenessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 420
+            periodSeconds: 360
+            timeoutSeconds: 240
+          env:
+            - name: OPENSHIFT_ENABLE_OAUTH
+              value: 'true'
+            - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+              value: 'true'
+            - name: DISABLE_ADMINISTRATIVE_MONITORS
+              value: 'false'
+            - name: KUBERNETES_MASTER
+              value: 'https://kubernetes.default:443'
+            - name: KUBERNETES_TRUST_CERTIFICATES
+              value: 'true'
+            - name: JENKINS_SERVICE_NAME
+              value: 'jenkins'
+            - name: JNLP_SERVICE_NAME
+              value: 'jenkins-jnlp'
+            - name: ENABLE_FATAL_ERROR_LOG_FILE
+              value: 'false'
+            - name: JENKINS_UC_INSECURE
+              value: 'true'
+            - name: CASC_JENKINS_CONFIG
+              value: /var/lib/jenkins/proxy.yaml
+          securityContext:
+            privileged: false
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /var/lib/jenkins
+              name: 'jenkins-data'
+            - mountPath: /etc/pki/ca-trust/source/anchors
+              name: 'jenkins-trusted-ca-bundle'
+          image: ' '
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: 'jenkins'
+      volumes:
+        - name: 'jenkins-data'
+          persistentVolumeClaim:
+            claimName: 'jenkins'
+        - configMap:
+            name: 'jenkins-trusted-ca-bundle'
+            optional: true
+          name: 'jenkins-trusted-ca-bundle'
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - jenkins
+        from:
+          kind: ImageStreamTag
+          name: 'jenkins:2'
+          namespace: 'openshift'
+        lastTriggeredImage: ''
+      type: ImageChange
+    - type: ConfigChange
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: 'true'
+  name: 'jenkins'
+spec:
+  replicas: 1
+  selector:
+    name: 'jenkins'
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: 'jenkins'
+    spec:
+      containers:
+        - resources:
+            limits:
+              memory: '5Gi'
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 240
+          terminationMessagePath: /dev/termination-log
+          name: jenkins
+          livenessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 420
+            periodSeconds: 360
+            timeoutSeconds: 240
+          env:
+            - name: OPENSHIFT_ENABLE_OAUTH
+              value: 'true'
+            - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+              value: 'true'
+            - name: DISABLE_ADMINISTRATIVE_MONITORS
+              value: 'false'
+            - name: KUBERNETES_MASTER
+              value: 'https://kubernetes.default:443'
+            - name: KUBERNETES_TRUST_CERTIFICATES
+              value: 'true'
+            - name: JENKINS_SERVICE_NAME
+              value: 'jenkins'
+            - name: JNLP_SERVICE_NAME
+              value: 'jenkins-jnlp'
+            - name: ENABLE_FATAL_ERROR_LOG_FILE
+              value: 'false'
+            - name: JENKINS_UC_INSECURE
+              value: 'true'
+            - name: CASC_JENKINS_CONFIG
+              value: /var/lib/jenkins/proxy.yaml
+          securityContext:
+            capabilities: {}
+            privileged: false
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /var/lib/jenkins
+              name: 'jenkins-data'
+            - mountPath: /etc/pki/ca-trust/source/anchors
+              name: 'jenkins-trusted-ca-bundle'
+          capabilities: {}
+          image: ' '
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: 'jenkins'
+      volumes:
+        - name: 'jenkins-data'
+          persistentVolumeClaim:
+            claimName: 'jenkins'
+        - configMap:
+            name: 'jenkins-trusted-ca-bundle'
+            optional: true
+          name: 'jenkins-trusted-ca-bundle'
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - jenkins
+        from:
+          kind: ImageStreamTag
+          name: 'jenkins:2'
+          namespace: 'openshift'
+        lastTriggeredImage: ''
+      type: ImageChange
+    - type: ConfigChange
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/07-agent/jenkins-agent-is.yaml
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: 'jenkins-agent-maven-gitops'
+  namespace: 'jenkins-cicd'
+  labels:
+    app: 'arco-saer-jenkins-app'
+    role: jenkins-agent
+    agent-label: maven-gitops 
+  annotations:
+    description: 'Provides a Jenkins Agent with Maven tooling'
+    iconClass: icon-jenkins
+    openshift.io/display-name: 'Jenkins Maven Agent GitOps'
+    tags: 'Jenkins Maven Agent GitOps'
+    agent-label: maven-gitops 
+spec:
+  lookupPolicy:
+    local: false
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/06-route/jenkins-route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 4m
+    template.openshift.io/expose-uri: 'http://{.spec.host}{.spec.path}'
+  name: 'jenkins'
+  namespace: 'jenkins-cicd'
+spec:
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: 'jenkins'
+# apiVersion: route.openshift.io/v1
+# kind: Route
+# metadata:
+#   name: 'jenkins'
+#   namespace: 'jenkins-cicd'
+#   labels:
+#     app: 'arco-saer-jenkins-app'
+#   annotations:
+#     haproxy.router.openshift.io/timeout: 4m
+#     template.openshift.io/expose-uri: 'http://{.spec.host}{.spec.path}'
+# spec:
+#   tls:
+#     insecureEdgeTerminationPolicy: Redirect
+#     termination: edge
+#   to:
+#     kind: Service
+#     name: 'jenkins'
+---
+# Source: arco-saer-cicd-jenkins-pipelines/templates/jekins-template.yaml.old
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 4m
+    template.openshift.io/expose-uri: 'http://{.spec.host}{.spec.path}'
+  name: 'jenkins'
+spec:
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: 'jenkins'
