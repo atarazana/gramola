@@ -489,7 +489,7 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${BASE_REPO_
 Deploy another ArgoCD app to deploy jenkins pipelines.
 
 ```sh
-cat <<EOF | kubectl apply -n openshift-gitops -f -
+cat <<EOF | oc apply -n openshift-gitops -f -
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -530,13 +530,13 @@ spec:
               value: "${BASE_REPO_NAME}"
             - name: gitRevision
               value: "${GIT_REVISION}"
-            - name: destinationName
-              value: ${CLUSTER_NAME}
+            #- name: destinationName
+            #  value: ${CLUSTER_NAME}
             - name: proxyEnabled
               value: 'false'
-            - name: arcoSaerPipelineClusterName
+            - name: pipelineClusterName
               value: ''
-            - name: arcoSaerPipelineCredentials
+            - name: pipelineCredentials
               value: ''
         path: apps/cicd-jenkins
         repoURL: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
@@ -589,20 +589,26 @@ OJO PATCH CONFIGMAP gitea-system/repository antes eliminar owner ref:
 
 
 ```sh
-oc set triggers bc/arco-saer-pipeline --from-github -n ${JENKINS_NAMESPACE}
-export GIT_WEBHOOK_SECRET=$(oc get bc/arco-saer-pipeline -o jsonpath={.spec.triggers[0].github.secret} -n ${JENKINS_NAMESPACE} )
+oc set triggers bc/gramola-events-pipeline --from-webhook -n ${JENKINS_NAMESPACE}
+export GIT_WEBHOOK_SECRET_EVENTS=$(oc get bc/gramola-events-pipeline -o jsonpath={.spec.triggers[0].generic.secret} -n ${JENKINS_NAMESPACE})
+
+oc set triggers bc/gramola-gateway-pipeline --from-webhook -n ${JENKINS_NAMESPACE}
+export GIT_WEBHOOK_SECRET_GATEWAY=$(oc get bc/gramola-gateway-pipeline -o jsonpath={.spec.triggers[0].generic.secret} -n ${JENKINS_NAMESPACE})
 ```
 
 ```sh
-export PATTERN='.+/(.*)/.+'
-export CURRENT_CONTEXT=$(oc config current-context)
+export PATTERN='at (.*)$'
+export CURRENT_CONTEXT=$(oc cluster-info | sed -e 's/\x1b\[[0-9;]*m//g' | head -n 1)
 [[ ${CURRENT_CONTEXT} =~ ${PATTERN} ]] 
 echo "${BASH_REMATCH[0]}"
 echo "${BASH_REMATCH[1]}"
 export API_SERVER=${BASH_REMATCH[1]}
-ARCO_SAER_CI_BC_WEBHOOK_URL="https://${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/arco-saer-pipeline/webhooks/${GIT_WEBHOOK_SECRET}/github"
 
-curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cde-mig/hooks" \
+export EVENTS_CI_BC_WEBHOOK_URL="${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/gramola-events-pipeline/webhooks/${GIT_WEBHOOK_SECRET_EVENTS}/generic"
+
+export GATEWAY_CI_BC_WEBHOOK_URL="${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/gramola-gateway-pipeline/webhooks/${GIT_WEBHOOK_SECRET_GRAMOLA}/generic"
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/gramola-events/hooks" \
   -H "accept: application/json" \
   -H "Authorization: token ${GIT_PAT}" \
   -H "Content-Type: application/json" \
@@ -611,7 +617,24 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/arco-saer-cd
   "branch_filter": "*",
   "config": {
      "content_type": "json",
-     "url": "'"${ARCO_SAER_CI_BC_WEBHOOK_URL}"'"
+     "url": "'"${EVENTS_CI_BC_WEBHOOK_URL}"'"
+  },
+  "events": [
+    "push" 
+  ],
+  "type": "gitea"
+}'
+
+curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/gramola-gateway/hooks" \
+  -H "accept: application/json" \
+  -H "Authorization: token ${GIT_PAT}" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "active": true,
+  "branch_filter": "*",
+  "config": {
+     "content_type": "json",
+     "url": "'"${GATEWAY_CI_BC_WEBHOOK_URL}"'"
   },
   "events": [
     "push" 
