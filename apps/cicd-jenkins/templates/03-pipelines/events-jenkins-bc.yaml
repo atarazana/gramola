@@ -54,7 +54,7 @@ spec:
                         }
                     }
 
-                    state('Compile') {
+                    stage('Compile') {
                         dir("${GIT_CONTEXT_DIR}") {
                           def pom = readMavenPom file: 'pom.xml'
                           POM_VERSION = pom.version
