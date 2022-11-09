@@ -27,7 +27,8 @@ spec:
         try {
             timeout(time: 20, unit: 'MINUTES') {
                 
-                def IMAGE_DIGEST_CLEAN = ""
+                def NEW_IMAGE_TAG = ""
+                def NEW_IMAGE_NAME = "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}@sha256"
                 def BRANCH_NAME = ""
                 def SRC_REGISTRY_HOST = ""
                 def DEST_REGISTRY_SECRET_NAME = "{{.Values.containerRegistrySecretName }}-raw"
@@ -79,8 +80,8 @@ spec:
                                 openshift.withProject("${BUILD_PROJECT_NAME}") {
                                     def IMAGE_DIGEST = openshift.selector("imagetags", "${IMAGE_TAG_NAME}").object().image.metadata.name
                                     print "IMAGE_DIGEST: ${IMAGE_DIGEST}"
-                                    IMAGE_DIGEST_CLEAN = ("${IMAGE_DIGEST}" =~ /.*\:(.*)/)[0][1]
-                                    print "IMAGE_DIGEST_CLEAN: ${IMAGE_DIGEST_CLEAN}"
+                                    NEW_IMAGE_TAG = ("${IMAGE_DIGEST}" =~ /.*\:(.*)/)[0][1]
+                                    print "NEW_IMAGE_TAG: ${NEW_IMAGE_TAG}"
                                 }
                             }
                         }
@@ -110,7 +111,7 @@ spec:
                                 BRANCH_NAME = "fb-" + pool.take(5).join('')
                                 sh "git checkout -b ${BRANCH_NAME}"
                                 // Update overlays for dev env
-                                sh "update-overlays.sh ${OVERLAYS_PATH} ${SUB_OVERLAYS_TO_UPDATE} dev ${IMAGE_DIGEST_CLEAN}"
+                                sh "update-overlays.sh ${OVERLAYS_PATH} dev ${NEW_IMAGE_NAME} ${NEW_IMAGE_TAG}"
                                 // Commit changes
                                 def commitMessage = "Update digest in overlay dev in branch ${BRANCH_NAME}"
                                 sh "git commit -a -m \'${commitMessage}\'"
@@ -150,7 +151,7 @@ spec:
                                 BRANCH_NAME = "fb-" + pool.take(5).join('')
                                 sh "git checkout -b ${BRANCH_NAME}"
                                 // Update overlays for test env
-                                sh "update-overlays.sh ${OVERLAYS_PATH} ${SUB_OVERLAYS_TO_UPDATE} test ${IMAGE_DIGEST_CLEAN}"
+                                sh "update-overlays.sh ${OVERLAYS_PATH} test ${NEW_IMAGE_NAME} ${NEW_IMAGE_TAG}"
                                 // Commit changes
                                 def commitMessage = "Update digest in overlay test in branch ${BRANCH_NAME}"
                                 sh "git commit -a -m \'${commitMessage}\'"
@@ -205,8 +206,6 @@ spec:
           value: '{{ .Values.gitContextDir }}'
         - name: OVERLAYS_PATH
           value: '{{ .Values.arcoSaerOverlayPath }}'
-        - name: SUB_OVERLAYS_TO_UPDATE
-          value: '{{ .Values.arcoSaerSubOverlays }}'
         - name: MAVEN_OPTS
           value: >-
             -Dsun.zip.disableMemoryMapping=true -Xms20m
