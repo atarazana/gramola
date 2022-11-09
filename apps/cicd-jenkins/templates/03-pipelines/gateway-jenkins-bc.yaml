@@ -193,9 +193,9 @@ spec:
         - name: CLUSTER_CREDENTIALS
           value: '{{ .Values.pipelineCredentials }}'
         - name: BUILD_CONFIG_NAME
-          value: '{{ .Values.gramolaGatewayPipelineBuildConfigName }}'
+          value: '{{ .Values.gramolaGatewayBuildConfigName }}'
         - name: BUILD_PROJECT_NAME
-          value: '{{ .Values.gramolaGatewayPipelineBuildProjectName }}'
+          value: '{{ .Values.cicdNamespace }}'
         - name: IMAGE_TAG_NAME
           value: '{{ .Values.gramolaGatewayPipelineImageTagName }}'
         - name: GIT_CONF_URL
