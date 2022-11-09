@@ -1,0 +1,33 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-bc"
+  namespace: {{ .Values.cicdNamespace }}
+  labels:
+    app: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
+spec:
+  source:
+    type: Git
+    git:
+      uri: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}'
+      ref: '{{ .Values.gitRevision }}'
+    contextDir: '.'
+    sourceSecret:
+      name: {{ .Values.gitPatSecretName }}
+  strategy:
+    type: Docker                      
+    dockerStrategy:
+      dockerfilePath: ./src/main/docker/Dockerfile.jvm
+      buildArgs:
+        - name: FROM_IMAGE
+          value: "dummy"
+      env:
+        - name: MAVEN_MIRROR_URL
+        - name: MAVEN_ARGS_APPEND
+        - name: ARTIFACT_DIR
+        - name: MAVEN_ARGS
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app:latest"
+  

@@ -2,9 +2,9 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   labels:
-    name: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-pipeline'
-    app: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-{{ .Values.jenkinsServiceName }}-app'
-  name: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-pipeline'
+    name: '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-pipeline'
+    app: '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-{{ .Values.jenkinsServiceName }}-app'
+  name: '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-pipeline'
   namespace: '{{ .Values.jenkinsNamespace }}'
 spec:
   source:
@@ -21,14 +21,14 @@ spec:
   strategy:
     type: JenkinsPipeline
     jenkinsPipelineStrategy:
-      # jenkinsfilePath: '{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-pipeline.groovy'
+      # jenkinsfilePath: '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-pipeline.groovy'
       jenkinsfile: |-
         node('{{ .Values.jenkinsAgentName }}') {
         try {
             timeout(time: 20, unit: 'MINUTES') {
                 
                 def NEW_IMAGE_TAG = ""
-                def NEW_IMAGE_NAME = "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}@sha256"
+                def NEW_IMAGE_NAME = "{{ .Values.containerRegistryServer }}/{{ .Values.containerRegistryOrg }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}@sha256"
                 def BRANCH_NAME = ""
                 def SRC_REGISTRY_HOST = ""
                 def DEST_REGISTRY_SECRET_NAME = "{{.Values.containerRegistrySecretName }}-raw"
@@ -64,8 +64,8 @@ spec:
                                     def TOKEN_SA = openshift.raw( 'whoami', '-t' ).out.replace("\n", "")
                                     print "TOKEN_SA: ${TOKEN_SA}"
 
-                                    def SRC_REGISTRY_URL = "docker://${SRC_REGISTRY_HOST}/{{ .Values.cicdNamespace }}/{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}-app:latest"
-                                    def DEST_REGISTRY_URL = "docker://${DEST_REGISTRY_HOST}/{{ .Values.appName }}-{{ .Values.arcoSaerServiceName }}:latest"
+                                    def SRC_REGISTRY_URL = "docker://${SRC_REGISTRY_HOST}/{{ .Values.cicdNamespace }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app:latest"
+                                    def DEST_REGISTRY_URL = "docker://${DEST_REGISTRY_HOST}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}:latest"
                                     sh "skopeo login -u serviceaccount -p ${TOKEN_SA} ${SRC_REGISTRY_HOST}"
                                     sh "skopeo login -u ${DEST_REGISTRY_USER} -p ${DEST_REGISTRY_PASS} ${DEST_REGISTRY_HOST}"
                                     sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false ${SRC_REGISTRY_URL} ${DEST_REGISTRY_URL}"
@@ -189,15 +189,15 @@ spec:
         - name: XDG_RUNTIME_DIR
           value: "/tmp/"
         - name: CLUSTER_NAME
-          value: '{{ .Values.arcoSaerPipelineClusterName }}'
+          value: '{{ .Values.pipelineClusterName }}'
         - name: CLUSTER_CREDENTIALS
-          value: '{{ .Values.arcoSaerPipelineCredentials }}'
+          value: '{{ .Values.pipelineCredentials }}'
         - name: BUILD_CONFIG_NAME
-          value: '{{ .Values.arcoSaerPipelineBuildConfigName }}'
+          value: '{{ .Values.gramolaGatewayPipelineBuildConfigName }}'
         - name: BUILD_PROJECT_NAME
-          value: '{{ .Values.arcoSaerPipelineBuildProjectName }}'
+          value: '{{ .Values.gramolaGatewayPipelineBuildProjectName }}'
         - name: IMAGE_TAG_NAME
-          value: '{{ .Values.arcoSaerPipelineImageTagName }}'
+          value: '{{ .Values.gramolaGatewayPipelineImageTagName }}'
         - name: GIT_CONF_URL
           value: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.baseRepoName }}'
         - name: GIT_CONF_REF
@@ -205,7 +205,7 @@ spec:
         - name: GIT_CONF_CONTEXT_DIR
           value: '{{ .Values.gitContextDir }}'
         - name: OVERLAYS_PATH
-          value: '{{ .Values.arcoSaerOverlayPath }}'
+          value: '{{ .Values.gramolaGatewayOverlayPath }}'
         - name: MAVEN_OPTS
           value: >-
             -Dsun.zip.disableMemoryMapping=true -Xms20m
