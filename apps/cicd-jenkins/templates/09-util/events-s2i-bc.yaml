@@ -6,7 +6,6 @@ metadata:
     app.openshift.io/vcs-ref: ''
     app.openshift.io/vcs-uri: 'https://github.com/atarazana/gramola-events'
     openshift.io/generated-by: OpenShiftWebConsole
-  resourceVersion: '6989539'
   name: gramola-events
   namespace: jenkins-cicd
   labels:
@@ -48,9 +47,6 @@ spec:
       github:
         secretReference:
           name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-github-webhook-secret'
-    - type: ImageChange
-      imageChange: {}
-    - type: ConfigChange
   runPolicy: Serial
 
 # kind: BuildConfig
