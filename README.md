@@ -297,9 +297,9 @@ spec:
       source:
         helm:
           parameters:
-            - name: gitUrl
-              value: "https://${GIT_HOST}"
-            - name: gitUsername
+            - name: baseRepoUrl
+              value: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
+            - name: username
               value: "${GIT_USERNAME}"
             - name: baseRepoName
               value: "${BASE_REPO_NAME}"
@@ -396,16 +396,16 @@ spec:
       source:
         helm:
           parameters:
-            - name: gitUrl
-              value: "https://${GIT_HOST}"
-            - name: gitUsername
+            - name: baseRepoUrl
+              value: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
+            - name: username
               value: "${GIT_USERNAME}"
-            - name: baseRepoName
-              value: "${BASE_REPO_NAME}"
             - name: gitRevision
               value: "${GIT_REVISION}"
-            - name: destinationName
-              value: ${CLUSTER_NAME}
+            - name: containerRegistryServer
+              value: ${CONTAINER_REGISTRY_SERVER}
+            - name: containerRegistryOrg
+              value: ${CONTAINER_REGISTRY_ORG}
         path: apps/cicd
         repoURL: "https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}"
         targetRevision: ${GIT_REVISION}
@@ -504,7 +504,7 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${BASE_REPO_
      "url": "http://'"${EVENTS_CD_EL_LISTENER_HOST}"'"
   },
   "events": [
-    "push" 
+    "pull_request" 
   ],
   "type": "gitea"
 }'
@@ -523,7 +523,7 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${BASE_REPO_
      "url": "http://'"${GATEWAY_CD_EL_LISTENER_HOST}"'"
   },
   "events": [
-    "push" 
+    "pull_request" 
   ],
   "type": "gitea"
 }'
