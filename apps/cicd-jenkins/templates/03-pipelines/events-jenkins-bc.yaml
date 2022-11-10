@@ -36,6 +36,7 @@ spec:
                 def SRC_REGISTRY_HOST = ""
                 def DEST_REGISTRY_SECRET_NAME = "{{.Values.containerRegistrySecretName }}-raw"
                 def DEST_REGISTRY_HOST = "{{ .Values.containerRegistryServer }}"
+                def DEST_REGISTRY_ORG = "{{ .Values.containerRegistryOrg }}"
                 def DEST_REGISTRY_USER = ""
                 def DEST_REGISTRY_PASS = ""
                 def DEST_REGISTRY_CREDS = ""
