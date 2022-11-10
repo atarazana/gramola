@@ -6,7 +6,7 @@ metadata:
     app.openshift.io/vcs-ref: ''
     app.openshift.io/vcs-uri: 'https://github.com/atarazana/gramola-events'
     openshift.io/generated-by: OpenShiftWebConsole
-  name: gramola-events
+  name: gramola-xyz
   namespace: jenkins-cicd
   labels:
     app: gramola-events
@@ -21,7 +21,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: 'gramola-events:latest'
+      name: 'gramola-xyz:latest'
   resources: {}
   successfulBuildsHistoryLimit: 5
   failedBuildsHistoryLimit: 5
