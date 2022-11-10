@@ -1,7 +1,7 @@
 kind: ImageStream
 apiVersion: image.openshift.io/v1
 metadata:
-  name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
+  name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
   namespace: {{ .Values.cicdNamespace }}
   labels:
     app: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
