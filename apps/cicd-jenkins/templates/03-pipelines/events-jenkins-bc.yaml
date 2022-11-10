@@ -63,11 +63,11 @@ spec:
                         }
                     }
 
-                    //stage('Test') {
-                    //    dir("${GIT_CONTEXT_DIR}") {
-                    //      sh "${mvnCmd} test"
-                    //    }
-                    //} 
+                    stage('Test') {
+                        dir("${GIT_CONTEXT_DIR}") {
+                          sh "${mvnCmd} test"
+                        }
+                    } 
 
                     stage('Build Image') {
                         openshift.withCluster("${CLUSTER_NAME}") {
