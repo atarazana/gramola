@@ -56,10 +56,10 @@ pipelineClusterName: awsmanaged-1
 pipelineCredentials: jenkins-bot
 
 gramolaEventsBuildConfigName: gramola-events-s2i-bc
-gramolaEventsPipelineImageTagName: gramola-events-app:latest
+gramolaEventsPipelineImageTagName: gramola-events:latest
 
 gramolaGatewayBuildConfigName: gramola-gateway-s2i-bc
-gramolaGatewayPipelineImageTagName: gramola-gateway-app:latest
+gramolaGatewayPipelineImageTagName: gramola-gateway:latest
 
 # Proxy
 proxyEnabled: true
