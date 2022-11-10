@@ -43,11 +43,11 @@ spec:
     - type: Generic
       generic:
         secretReference:
-          name: gramola-events-generic-webhook-secret
+          name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-generic-webhook-secret'
     - type: GitHub
       github:
         secretReference:
-          name: gramola-events-github-webhook-secret
+          name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-github-webhook-secret'
     - type: ImageChange
       imageChange: {}
     - type: ConfigChange
