@@ -2,7 +2,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-bc"
-  namespace: {{ .Values.cicdNamespace }}
+  namespace: {{ .Values.jenkinsNamespace }}
   labels:
     app: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
 spec:
