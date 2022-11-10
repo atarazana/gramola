@@ -6,7 +6,7 @@ metadata:
     app.openshift.io/vcs-ref: '{{ .Values.gitRevision }}'
     app.openshift.io/vcs-uri: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}'
   name: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-s2i-bc"
-  namespace: '{{ .Values.cicdNamespace }}'
+  namespace: '{{ .Values.jenkinsNamespace }}'
   labels:
     app: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app"
     app.kubernetes.io/component: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
@@ -58,7 +58,7 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-s2i-generic-webhook-secret'
-  namespace: '{{ .Values.cicdNamespace }}'
+  namespace: '{{ .Values.jenkinsNamespace }}'
   labels:
     app: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app"
     app.kubernetes.io/component: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
@@ -75,7 +75,7 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: '{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-s2i-github-webhook-secret'
-  namespace: '{{ .Values.cicdNamespace }}'
+  namespace: '{{ .Values.jenkinsNamespace }}'
   labels:
     app: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app"
     app.kubernetes.io/component: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
