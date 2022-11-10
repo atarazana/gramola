@@ -29,5 +29,5 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app:latest"
+      name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}:latest"
   
