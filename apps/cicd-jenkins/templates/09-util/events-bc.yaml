@@ -11,13 +11,13 @@ spec:
     git:
       uri: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}'
       ref: '{{ .Values.gitRevision }}'
-    contextDir: '.'
+    contextDir: '/'
     sourceSecret:
       name: {{ .Values.gitPatSecretName }}
   strategy:
     type: Docker                      
     dockerStrategy:
-      dockerfilePath: ./src/main/docker/Dockerfile.jvm
+      dockerfilePath: src/main/docker/Dockerfile.jvm
       buildArgs:
         - name: FROM_IMAGE
           value: "dummy"

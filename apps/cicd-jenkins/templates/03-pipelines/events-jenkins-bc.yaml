@@ -219,9 +219,13 @@ spec:
         - name: XDG_RUNTIME_DIR
           value: "/tmp/"
         - name: CLUSTER_NAME
+          {{ if .Values.pipelineClusterName }}
           value: '{{ .Values.pipelineClusterName }}'
+          {{ end }}
         - name: CLUSTER_CREDENTIALS
+          {{ if .Values.pipelineCredentials }}
           value: '{{ .Values.pipelineCredentials }}'
+          {{ end }}
         - name: BUILD_CONFIG_NAME
           value: '{{ .Values.gramolaEventsBuildConfigName }}'
         - name: BUILD_PROJECT_NAME

@@ -86,7 +86,6 @@ spec:
           kind: ImageStreamTag
           name: '{{ .Values.jenkinsImageStreamTag }}'
           namespace: '{{ .Values.jenkinsImageStreamTagNamespace }}'
-        lastTriggeredImage: ''
       type: ImageChange
     - type: ConfigChange
     
