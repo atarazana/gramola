@@ -95,8 +95,8 @@ spec:
                                     def TOKEN_SA = openshift.raw( 'whoami', '-t' ).out.replace("\n", "")
                                     print "TOKEN_SA: ${TOKEN_SA}"
 
-                                    def SRC_REGISTRY_URL = "docker://${SRC_REGISTRY_HOST}/{{ .Values.cicdNamespace }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}:latest"
-                                    def DEST_REGISTRY_URL = "docker://${DEST_REGISTRY_HOST}/${DEST_REGISTRY_USER}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}:latest"
+                                    def SRC_REGISTRY_URL = "docker://${SRC_REGISTRY_HOST}/${BUILD_PROJECT_NAME}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}:latest"
+                                    def DEST_REGISTRY_URL = "docker://${DEST_REGISTRY_HOST}/${DEST_REGISTRY_ORG}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}:latest"
                                     sh "skopeo login -u serviceaccount -p ${TOKEN_SA} ${SRC_REGISTRY_HOST}"
                                     sh "skopeo login -u ${DEST_REGISTRY_USER} -p ${DEST_REGISTRY_PASS} ${DEST_REGISTRY_HOST}"
                                     sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false ${SRC_REGISTRY_URL} ${DEST_REGISTRY_URL}"
