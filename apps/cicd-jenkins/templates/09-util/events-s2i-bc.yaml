@@ -1,0 +1,89 @@
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  annotations:
+    app.openshift.io/vcs-ref: '{{ .Values.gitRevision }}'
+    app.openshift.io/vcs-uri: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}'
+  name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-bc"
+  namespace: '{{ .Values.cicdNamespace }}'
+  labels:
+    app: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
+    app.kubernetes.io/component: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/instance: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/part-of: "{{ .Values.appName }}"
+    app.openshift.io/runtime: quarkus
+    app.openshift.io/runtime-version: openjdk-11-ubi8
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app:latest"
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: 'java:openjdk-11-ubi8'
+  postCommit: {}
+  source:
+    type: Git
+    git:
+      uri: '{{ .Values.gitUrl }}/{{ .Values.gitUsername }}/{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}'
+      ref: '{{ .Values.gitRevision }}'
+    contextDir: /
+    sourceSecret:
+      name: {{ .Values.gitPatSecretName }}
+  triggers:
+    - type: Generic
+      generic:
+        secretReference:
+          name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-generic-webhook-secret'
+    - type: GitHub
+      github:
+        secretReference:
+          name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-github-webhook-secret'
+    - type: ImageChange
+      imageChange: {}
+    - type: ConfigChange
+  runPolicy: Serial
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-generic-webhook-secret'
+  namespace: '{{ .Values.cicdNamespace }}'
+  labels:
+    app: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
+    app.kubernetes.io/component: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/instance: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/part-of: "{{ .Values.appName }}"
+    app.openshift.io/runtime: quarkus
+    app.openshift.io/runtime-version: openjdk-11-ubi8
+data:
+  WebHookSecretKey: YThhYzlhMjZhYjQ1NjY1OQ==
+type: Opaque
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: '{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-s2i-github-webhook-secret'
+  namespace: '{{ .Values.cicdNamespace }}'
+  labels:
+    app: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}-app"
+    app.kubernetes.io/component: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/instance: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/name: "{{ .Values.appName }}-{{ .Values.gramolaEventsServiceName }}"
+    app.kubernetes.io/part-of: "{{ .Values.appName }}"
+    app.openshift.io/runtime: quarkus
+    app.openshift.io/runtime-version: openjdk-11-ubi8
+data:
+  WebHookSecretKey: YThhYzlhMjZhYjQ1NjY1OQ==
+type: Opaque

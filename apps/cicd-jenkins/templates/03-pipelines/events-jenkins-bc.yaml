@@ -63,11 +63,11 @@ spec:
                         }
                     }
 
-                    stage('Test') {
-                        dir("${GIT_CONTEXT_DIR}") {
-                          sh "${mvnCmd} test"
-                        }
-                    } 
+                    //stage('Test') {
+                    //    dir("${GIT_CONTEXT_DIR}") {
+                    //      sh "${mvnCmd} test"
+                    //    }
+                    //} 
 
                     stage('Build Image') {
                         openshift.withCluster("${CLUSTER_NAME}") {
@@ -225,7 +225,7 @@ spec:
         - name: BUILD_CONFIG_NAME
           value: '{{ .Values.gramolaEventsBuildConfigName }}'
         - name: BUILD_PROJECT_NAME
-          value: '{{ .Values.cicdNamespace }}'
+          value: '{{ .Values.jenkinsNamespace }}'
         - name: IMAGE_TAG_NAME
           value: '{{ .Values.gramolaEventsPipelineImageTagName }}'
         - name: GIT_URL
