@@ -532,6 +532,10 @@ spec:
               value: "${GIT_REVISION}"
             #- name: destinationName
             #  value: ${CLUSTER_NAME}
+            - name: containerRegistryServer
+              value: ${CONTAINER_REGISTRY_SERVER}
+            - name: containerRegistryOrg
+              value: ${CONTAINER_REGISTRY_ORG}
             - name: proxyEnabled
               value: 'false'
             - name: pipelineClusterName
