@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
     echo "Provide OVERLAYS_PATH OVERLAY IMAGE_NAME NEW_NAME NEW_TAG"
-    echo "$0 ./events-deployment/overlays dev XYZ"
+    echo "$0 ./events-deployment/overlays dev gramola-events:0.0.0 quay.io/atarazana/gramola-events 1231231231212313"
     exit 1;
 fi
 
