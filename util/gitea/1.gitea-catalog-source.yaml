@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: quay.io/gpte-devops-automation/gitea-catalog:latest
+  image: quay.io/atarazana/gitea-catalog:v1.3.2
   displayName: Red Hat GPTE (Gitea)
   publisher: Red Hat GPTE

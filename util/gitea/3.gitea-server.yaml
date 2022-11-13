@@ -14,7 +14,9 @@ spec:
   giteaImageTag: latest
   postgresqlVolumeSize: 4Gi
   giteaSsl: true
-  giteaAdminUser: opentlc-mgr
-  giteaAdminPassword: "r3dh4t1!"
-  giteaAdminPasswordLength: "32"
-  giteaAdminEmail: admin@example.com
+  giteaAdminUser: gramola
+  giteaAdminPassword: "openshift"
+  giteaAdminPasswordLength: 32
+  giteaAdminEmail: gramola@ocp.com
+  giteaWebhookAllowedHostList: '*'
+  giteaWebhookSkipTlsVerify: true
