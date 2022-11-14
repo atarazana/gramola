@@ -4,9 +4,9 @@ Red Hat Advanced Cluster Management for Kubernetes provides end-to-end managemen
 
 If you have already deployed an instance of ACM or you want to [install](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.3/html/install/index) it and leverage the Governance, Risk, and Compliance (GRC) super powers for this demo, use this [policies](rhacm) to get the operators installed automatically in your behalf.
 
-# Install ArgoCD and Pipelines using the operators
+# Install ArgoCD, Pipelines and Quay using the operators
 
-Install ArgoCD Operator with OCP OAuth and Openshift Pipelines:
+Install ArgoCD Operator, Openshift Pipelines and Quay (simplified non-supported configuration):
 
 ```sh
 until oc apply -k util/bootstrap/; do sleep 2; done
@@ -28,8 +28,8 @@ Let's prepare some environment variables:
 export GIT_REVISION=main
 
 # Gitea
-export GIT_USERNAME=opentlc-mgr
-export GIT_PASSWORD=r3dh4t1!
+export GIT_USERNAME=gramola
+export GIT_PASSWORD=openshift
 
 export BASE_REPO_NAME=gramola
 export EVENTS_REPO_NAME=gramola-events
@@ -46,19 +46,20 @@ export GIT_CONF_URL_SRC=${GIT_URL_BASE_SRC}/${BASE_REPO_NAME}
 We need some sensitive data, your PAT for the source repo:
 
 ```sh
-echo "Enter PAT for 'https://github.com': " && read -s GIT_PASSWORD_SRC
-echo "PAT entered: ${GIT_PASSWORD_SRC}"
-```
-
-Get the Gitea host and generate a PAT:
-
-```sh
 export GIT_HOST=$(oc get route/repository -n gitea-system -o jsonpath='{.spec.host}')
 
 export GIT_PAT=$(curl -k -s -X 'POST' -H "Content-Type: application/json"  -k -d '{"name":"cicd'"${RANDOM}"'"}' -u ${GIT_USERNAME}:${GIT_PASSWORD} https://${GIT_HOST}/api/v1/users/${GIT_USERNAME}/tokens | jq -r .sha1)
 
 echo "GIT_PAT=${GIT_PAT}"
 ```
+
+Now that we have a PAT we can use it to log in as and import the repositories containing both code and configuration, namely:\
+
+- **Configuration:** https://github.com/atarazana/gramola
+- **Events Service:** https://github.com/atarazana/gramola-events
+- **Gateway Service**: https://github.com/atarazana/gramola-gateway
+
+Run the following command to import these git repositories into Gitea.
 
 ```sh
 curl -X 'POST' \
@@ -128,19 +129,9 @@ curl -X 'POST' \
 }'
 ```
 
-# Add plugin section to ArgoCD Custom Resource
-
-We're using a custom plugin called `kustomized-helm` if you're interested have a look at section `configManagementPlugins` in `./util/bootstrap/2.openshift-gitops-patch`.
-
 # Log in ArgoCD with CLI
 
-Log in using the OpenShift SSO using this command:
-
-```sh
-./util/argocd-login.sh
-```
-
-Alternatively you can log in using this other set of commands:
+Use `argocd` cli to log in the OpenShift cluster:
 
 ```sh
 export ARGOCD_HOST=$(oc get route/openshift-gitops-server -o jsonpath='{.status.ingress[0].host}' -n openshift-gitops)
@@ -150,6 +141,8 @@ export ARGOCD_PASSWORD=$(oc get secret openshift-gitops-cluster -o jsonpath='{.d
 
 argocd login $ARGOCD_HOST --insecure --grpc-web --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD
 ```
+
+**NOTE:** You will use the OpenShift SSO to log in the web console.
 
 # Register repos
 
@@ -176,7 +169,6 @@ argocd repo list
 
 First make sure there is a context with proper credentials, in order to achieve this please log in the additional cluster.
 
-
 ```sh
 export API_USER=opentlc-mgr
 export API_SERVER_MANAGED=api.example.com:6443
@@ -200,9 +192,9 @@ Check if your cluster has been added correctly.
 argocd cluster list
 ```
 
-# Add ArgoCD Project definitions
+# List ArgoCD Project definitions
 
-**IMPORTANT:** Now you can log back in the cluster where ArgoCD is running.
+**IMPORTANT:** Now you have to log back in the cluster where ArgoCD is running.
 
 ```sh
 argocd proj list
@@ -210,6 +202,7 @@ argocd proj list
 
 # Create Root Apps
 
+Let's deploy all the components of Gramola using an `ApplicationSet`.
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
@@ -313,50 +306,31 @@ spec:
 EOF
 ```
 
-# Pull permissions
+# Create a robot account in Quay
 
-For the main cluster...
+Execute the next command to open Quay web console:
 
-```sh
-export CONTAINER_REGISTRY_SECRET_NAME=$(yq eval '.containerRegistrySecretName' ./apps/cicd/values.yaml)
-
-if [ -z "${CONTAINER_REGISTRY_USERNAME}" ] && [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
-    echo "You should provide a value for CONTAINER_REGISTRY_USERNAME and CONTAINER_REGISTRY_PASSWORD"
-else
-oc create -n gramola-dev secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
-  --docker-server=https://${CONTAINER_REGISTRY_SERVER} \
-  --docker-username=${CONTAINER_REGISTRY_USERNAME} \
-  --docker-password=${CONTAINER_REGISTRY_PASSWORD}
-oc secrets link default ${CONTAINER_REGISTRY_SECRET_NAME} --for=pull -n gramola-dev
-oc create -n gramola-test secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
-  --docker-server=https://${CONTAINER_REGISTRY_SERVER} \
-  --docker-username=${CONTAINER_REGISTRY_USERNAME} \
-  --docker-password=${CONTAINER_REGISTRY_PASSWORD}
-oc secrets link default ${CONTAINER_REGISTRY_SECRET_NAME} --for=pull -n gramola-test
-fi
-```
-
-If there's an additional cluster...
+Linux
 
 ```sh
-export ADDITIONAL_API_SERVER_TOKEN=sha256~Ka7SHU9_Yd4_2OFSIWu1GqM5unovT3PMT8W4h0u7v7Y
-export ADDITIONAL_API_SERVER_MANAGED=api.cluster-zmjd7.zmjd7.sandbox1118.opentlc.com:6443
-oc login --token=${ADDITIONAL_API_SERVER_TOKEN} --server=https://${ADDITIONAL_API_SERVER_MANAGED}
-
-export CONTAINER_REGISTRY_SECRET_NAME=$(yq eval '.containerRegistrySecretName' ./apps/cicd/values.yaml)
-
-if [ -z "${CONTAINER_REGISTRY_USERNAME}" ] && [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
-    echo "You should provide a value for CONTAINER_REGISTRY_USERNAME and CONTAINER_REGISTRY_PASSWORD"
-else
-oc create -n gramola-test secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
-  --docker-server=https://$CONTAINER_REGISTRY_SERVER \
-  --docker-username=$CONTAINER_REGISTRY_USERNAME \
-  --docker-password=$CONTAINER_REGISTRY_PASSWORD
-oc secrets link default ${CONTAINER_REGISTRY_SECRET_NAME} --for=pull -n gramola-test
-fi
-
-oc login -u opentlc-mgr -p r3dh4t1! --server=https://api.cluster-rhpr5.rhpr5.sandbox2409.opentlc.com:6443
+xdg-open "https://$(oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}')"
 ```
+
+MacOS
+
+```sh
+open "https://$(oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}')"
+```
+
+Others, use the following command to get the server and point a browser to it using `https`.
+
+```sh
+oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}'
+```
+
+Log in with user `gramola` and password `openshift`
+
+The create a robot account named `cicd` and create two repositories `gramola-events` and `gramola-gateway`.
 
 # Tekton Pipelines
 
@@ -430,24 +404,75 @@ Once the namespace is created you can create the secrets. This commands will ask
 ./apps/cicd/create-git-secret.sh ${CICD_NAMESPACE} ${GIT_HOST} ${GIT_USERNAME} ${GIT_PAT}
 ```
 
+Next command sets the environment variables to set the secret so that Tekton pipelines can push images to the image registry.
+
 ```sh
 export CONTAINER_REGISTRY_SERVER=$(oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
-export CONTAINER_REGISTRY_ORG=opentlc-mgr
-export CONTAINER_REGISTRY_USERNAME="opentlc-mgr+cicd"
+export CONTAINER_REGISTRY_ORG=gramola
+export CONTAINER_REGISTRY_USERNAME="gramola+cicd"
 ```
+
+Now please run this command, it will ask for the password of the robot account you created before, so go to the quay console and copy it in the clipboard and paste it in your terminal.
 
 ```sh
 echo "Enter password for ${CONTAINER_REGISTRY_USERNAME}: " && read -s CONTAINER_REGISTRY_PASSWORD
 echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
 ```
 
-Create repositories for gramola-event and gramola-gateway and add them to the robot account!
+Create the secret with the user and password.
 
 ```sh
 ./apps/cicd/create-registry-secret.sh ${CICD_NAMESPACE} ${CONTAINER_REGISTRY_SERVER} ${CONTAINER_REGISTRY_ORG} ${CONTAINER_REGISTRY_USERNAME} ${CONTAINER_REGISTRY_PASSWORD}
 ```
 
+# Add a Secret to pull images from the Quay installation
+
+In order to pull images from the deployment of Quay in project `quay-system` run this command that creates secrets with credentials to be used in `gramola-dev` and `gramola-test`. Then the secrets are linked to the default service account for `pulling` images.
+
+```sh
+export CONTAINER_REGISTRY_SECRET_NAME=$(yq eval '.containerRegistrySecretName' ./apps/cicd/values.yaml)
+
+if [ -z "${CONTAINER_REGISTRY_USERNAME}" ] && [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
+    echo "You should provide a value for CONTAINER_REGISTRY_USERNAME and CONTAINER_REGISTRY_PASSWORD"
+else
+oc create -n gramola-dev secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
+  --docker-server=https://${CONTAINER_REGISTRY_SERVER} \
+  --docker-username=${CONTAINER_REGISTRY_USERNAME} \
+  --docker-password=${CONTAINER_REGISTRY_PASSWORD}
+oc secrets link default ${CONTAINER_REGISTRY_SECRET_NAME} --for=pull -n gramola-dev
+oc create -n gramola-test secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
+  --docker-server=https://${CONTAINER_REGISTRY_SERVER} \
+  --docker-username=${CONTAINER_REGISTRY_USERNAME} \
+  --docker-password=${CONTAINER_REGISTRY_PASSWORD}
+oc secrets link default ${CONTAINER_REGISTRY_SECRET_NAME} --for=pull -n gramola-test
+fi
+```
+
+If there's an additional cluster... there you have to do the same... don't forget to log back in the main cluster.
+
+```sh
+export ADDITIONAL_API_SERVER_TOKEN=sha256~Ka7SHU9_Yd4_2OFSIWu1GqM5unovT3PMT8W4h0u7v7Y
+export ADDITIONAL_API_SERVER_MANAGED=api.cluster-zmjd7.zmjd7.sandbox1118.opentlc.com:6443
+oc login --token=${ADDITIONAL_API_SERVER_TOKEN} --server=https://${ADDITIONAL_API_SERVER_MANAGED}
+
+export CONTAINER_REGISTRY_SECRET_NAME=$(yq eval '.containerRegistrySecretName' ./apps/cicd/values.yaml)
+
+if [ -z "${CONTAINER_REGISTRY_USERNAME}" ] && [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
+    echo "You should provide a value for CONTAINER_REGISTRY_USERNAME and CONTAINER_REGISTRY_PASSWORD"
+else
+oc create -n gramola-test secret docker-registry ${CONTAINER_REGISTRY_SECRET_NAME} \
+  --docker-server=https://$CONTAINER_REGISTRY_SERVER \
+  --docker-username=$CONTAINER_REGISTRY_USERNAME \
+  --docker-password=$CONTAINER_REGISTRY_PASSWORD
+oc secrets link default ${CONTAINER_REGISTRY_SECRET_NAME} --for=pull -n gramola-test
+fi
+
+oc login -u opentlc-mgr -p r3dh4t1! --server=https://api.cluster-rhpr5.rhpr5.sandbox2409.opentlc.com:6443
+```
+
 ## Creating Web Hooks
+
+Run the next command to create the webhooks for CI part of the Tekton pipelines.
 
 ```sh
 EVENTS_CI_EL_LISTENER_HOST=$(oc get route/el-events-ci-pl-push-gitea-listener -n ${CICD_NAMESPACE} -o jsonpath='{.spec.host}')
@@ -488,6 +513,8 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/${GATEWAY_RE
   "type": "gitea"
 }'
 ```
+
+And, run the next command to create the webhooks for CD part of the Tekton pipelines.
 
 ```sh
 EVENTS_CD_EL_LISTENER_HOST=$(oc get route/el-events-cd-pl-pr-gitea-listener  -n ${CICD_NAMESPACE} -o jsonpath='{.spec.host}')
@@ -605,22 +632,13 @@ NOTE: If the namespace is not there yet, you can check the sync status of the Ar
 oc get project ${JENKINS_NAMESPACE}
 ```
 
-Once the namespace is created you can create the secrets. This commands will ask you for the PAT again, this time to create a secret with it.
+Once the namespace is created you can create the secret for the git repository.
 
 ```sh
 ./apps/cicd-jenkins/create-git-secret.sh ${JENKINS_NAMESPACE} ${GIT_HOST} ${GIT_USERNAME} ${GIT_PAT}
 ```
-<!-- 
-```sh
-export CONTAINER_REGISTRY_SERVER=$(yq eval '.containerRegistryServer' ./apps/cicd-jenkins/values.yaml)
-export CONTAINER_REGISTRY_ORG=$(yq eval '.containerRegistryOrg' ./apps/cicd-jenkins/values.yaml)
-export CONTAINER_REGISTRY_USERNAME="varadero+cicd"
-```
 
-```sh
-echo "Enter password for ${CONTAINER_REGISTRY_USERNAME}: " && read -s CONTAINER_REGISTRY_PASSWORD
-echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
-``` -->
+In the same fashion, with this command you will create the secret to interact with the quay registry.
 
 ```sh
 ./apps/cicd-jenkins/create-registry-secret.sh ${JENKINS_NAMESPACE} ${CONTAINER_REGISTRY_SERVER} ${CONTAINER_REGISTRY_ORG} ${CONTAINER_REGISTRY_USERNAME} ${CONTAINER_REGISTRY_PASSWORD}
@@ -628,14 +646,7 @@ echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
 
 ## Creating Web Hooks
 
-OJO PATCH CONFIGMAP gitea-system/repository antes eliminar owner ref:
-
-    [webhook]
-
-    ALLOWED_HOST_LIST = *
-
-    SKIP_TLS_VERIFY = true
-
+Before you can create the webhooks for the Jenkins pipeline let's add a trigger to the pipelines with the next command.
 
 ```sh
 oc set triggers bc/gramola-events-pipeline --from-webhook -n ${JENKINS_NAMESPACE}
@@ -645,18 +656,19 @@ oc set triggers bc/gramola-gateway-pipeline --from-webhook -n ${JENKINS_NAMESPAC
 export GIT_WEBHOOK_SECRET_GATEWAY=$(oc get bc/gramola-gateway-pipeline -o jsonpath={.spec.triggers[0].generic.secret} -n ${JENKINS_NAMESPACE})
 ```
 
+Execute this command to get the URL of the Webhook listener.
+
 ```sh
-export PATTERN='at (.*)$'
-export CURRENT_CONTEXT=$(oc cluster-info | sed -e 's/\x1b\[[0-9;]*m//g' | head -n 1)
-[[ ${CURRENT_CONTEXT} =~ ${PATTERN} ]] 
-echo "${BASH_REMATCH[0]}"
-echo "${BASH_REMATCH[1]}"
-export API_SERVER=${BASH_REMATCH[1]}
+export API_SERVER=https://kubernetes.default.svc
 
 export EVENTS_CI_BC_WEBHOOK_URL="${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/gramola-events-pipeline/webhooks/${GIT_WEBHOOK_SECRET_EVENTS}/generic"
 
-export GATEWAY_CI_BC_WEBHOOK_URL="${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/gramola-gateway-pipeline/webhooks/${GIT_WEBHOOK_SECRET_GRAMOLA}/generic"
+export GATEWAY_CI_BC_WEBHOOK_URL="${API_SERVER}/apis/build.openshift.io/v1/namespaces/${JENKINS_NAMESPACE}/buildconfigs/gramola-gateway-pipeline/webhooks/${GIT_WEBHOOK_SECRET_GATEWAY}/generic"
+```
 
+Finally let's create the webhook to trigger the Jenkins pipeline you have already deployed with ArgoCD.
+
+```sh
 curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/gramola-events/hooks" \
   -H "accept: application/json" \
   -H "Authorization: token ${GIT_PAT}" \
@@ -690,6 +702,12 @@ curl -k -X 'POST' "https://${GIT_HOST}/api/v1/repos/${GIT_USERNAME}/gramola-gate
   ],
   "type": "gitea"
 }'
+```
+
+# Trigger Jenkins Slave build
+
+```sh
+oc start-build bc/jenkins-agent-maven-gitops-bc -n ${JENKINS_NAMESPACE} 
 ```
 
 # Useful commands
