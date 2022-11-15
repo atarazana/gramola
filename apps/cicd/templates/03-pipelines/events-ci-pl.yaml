@@ -61,8 +61,6 @@ spec:
       workspaces:
         - name: output
           workspace: workspace-source
-        - name: trusted-ca-bundle
-          workspace: trusted-ca-bundle
     - name: package
       params:
         - name: PATH_CONTEXT
