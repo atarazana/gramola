@@ -41,6 +41,9 @@ spec:
       default: postgresql-db
     - name: REVISION_NAME
       type: string
+    - name: SSL_CERT_DIR
+      type: string
+      default: /etc/ssl/certs
   tasks:
     - name: fetch-repository
       params:
@@ -56,6 +59,9 @@ spec:
       workspaces:
         - name: output
           workspace: workspace-source
+        - name: trusted-ca-bundle
+          mountPath: $(params.SSL_CERT_DIR)
+          workspace: trusted-ca-bundle
     - name: package
       params:
         - name: PATH_CONTEXT
@@ -191,3 +197,4 @@ spec:
   workspaces:
     - name: workspace-source
     - name: workspace-cache
+    - name: trusted-ca-bundle
