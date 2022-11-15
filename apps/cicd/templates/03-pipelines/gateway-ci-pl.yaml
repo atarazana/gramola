@@ -41,6 +41,9 @@ spec:
       default: postgresql-db
     - name: REVISION_NAME
       type: string
+    - name: GIT_SSL_VERIFY
+      type: string
+      default: '{{ .Values.gitSslVerify }}'
   tasks:
     - name: fetch-repository
       params:
@@ -50,6 +53,8 @@ spec:
           value: $(params.GIT_REVISION)
         - name: deleteExisting
           value: 'true'
+        - name: sslVerify
+          value: $(params.GIT_SSL_VERIFY)
       taskRef:
         kind: ClusterTask
         name: git-clone
@@ -96,6 +101,8 @@ spec:
           value: $(params.GIT_REVISION_CONFIG)
         - name: deleteExisting
           value: 'true'
+        - name: sslVerify
+          value: $(params.GIT_SSL_VERIFY)
       runAfter:
         - build
       taskRef:

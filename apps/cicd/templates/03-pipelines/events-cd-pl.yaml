@@ -30,6 +30,9 @@ spec:
     - name: TWIN_OVERLAY_SUFFIX
       type: string
       default: "cloud"
+    - name: GIT_SSL_VERIFY
+      type: string
+      default: '{{ .Values.gitSslVerify }}'
   tasks:
     - name: argocd-sync
       params:
@@ -48,6 +51,8 @@ spec:
           value: $(params.GIT_REVISION_CONFIG)
         - name: deleteExisting
           value: 'true'
+        - name: sslVerify
+          value: $(params.GIT_SSL_VERIFY)
       taskRef:
         kind: ClusterTask
         name: git-clone

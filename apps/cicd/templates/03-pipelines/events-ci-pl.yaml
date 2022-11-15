@@ -101,6 +101,8 @@ spec:
           value: $(params.GIT_REVISION_CONFIG)
         - name: deleteExisting
           value: 'true'
+        - name: sslVerify
+          value: $(params.GIT_SSL_VERIFY)
       runAfter:
         - build
       taskRef:
