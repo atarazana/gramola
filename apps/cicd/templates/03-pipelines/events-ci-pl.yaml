@@ -41,9 +41,9 @@ spec:
       default: postgresql-db
     - name: REVISION_NAME
       type: string
-    - name: SSL_CERT_DIR
+    - name: GIT_SSL_VERIFY
       type: string
-      default: /etc/ssl/certs
+      default: '{{ .Values.gitSslVerify }}'
   tasks:
     - name: fetch-repository
       params:
@@ -53,6 +53,8 @@ spec:
           value: $(params.GIT_REVISION)
         - name: deleteExisting
           value: 'true'
+        - name: sslVerify
+          value: $(params.GIT_SSL_VERIFY)
       taskRef:
         kind: ClusterTask
         name: git-clone
@@ -60,7 +62,6 @@ spec:
         - name: output
           workspace: workspace-source
         - name: trusted-ca-bundle
-          mountPath: $(params.SSL_CERT_DIR)
           workspace: trusted-ca-bundle
     - name: package
       params:
