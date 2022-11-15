@@ -198,4 +198,3 @@ spec:
   workspaces:
     - name: workspace-source
     - name: workspace-cache
-    - name: trusted-ca-bundle

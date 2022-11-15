@@ -230,6 +230,4 @@ spec:
         - name: workspace-cache
           persistentVolumeClaim:
             claimName: "{{ .Values.gramolaEventsServiceName }}-cache-pvc"
-        - name: trusted-ca-bundle
-          configmap:
-            name: tekton-trusted-ca-bundle
+
