@@ -175,7 +175,7 @@ spec:
 
         cat /tmp/pr.json
 
-        PR_CREATE_OUT=$(curl -vvv -X 'POST' \
+        PR_CREATE_OUT=$(curl -k -vvv -X 'POST' \
           'https://'"${GIT_API_HOST}"'/api/v1/repos/'"${GIT_REPO_NAME}"'/pulls' \
           -H 'accept: application/json' \
           -H 'Authorization: token '"${GIT_TOKEN}"'' \

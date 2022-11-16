@@ -334,6 +334,14 @@ The create a robot account named `cicd` and create two repositories `gramola-eve
 
 # Tekton Pipelines
 
+Next command sets the environment variables to set the secret so that Tekton pipelines can push images to the image registry.
+
+```sh
+export CONTAINER_REGISTRY_SERVER=$(oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
+export CONTAINER_REGISTRY_ORG=gramola
+export CONTAINER_REGISTRY_USERNAME="gramola+cicd"
+```
+
 Deploy another ArgoCD app to deploy pipelines.
 
 ```sh
@@ -402,14 +410,6 @@ Once the namespace is created you can create the secrets. This commands will ask
 
 ```sh
 ./apps/cicd/create-git-secret.sh ${CICD_NAMESPACE} ${GIT_HOST} ${GIT_USERNAME} ${GIT_PAT}
-```
-
-Next command sets the environment variables to set the secret so that Tekton pipelines can push images to the image registry.
-
-```sh
-export CONTAINER_REGISTRY_SERVER=$(oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
-export CONTAINER_REGISTRY_ORG=gramola
-export CONTAINER_REGISTRY_USERNAME="gramola+cicd"
 ```
 
 Now please run this command, it will ask for the password of the robot account you created before, so go to the quay console and copy it in the clipboard and paste it in your terminal.
