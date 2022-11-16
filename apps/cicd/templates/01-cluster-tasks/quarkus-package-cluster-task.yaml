@@ -93,12 +93,12 @@ spec:
           mkdir -p $(workspaces.cache.path)/.m2
           cp ./oci/settings.xml $(workspaces.cache.path)/.m2/
           ls -ltrh $(workspaces.cache.path)/.m2
-          alias mvn="mvn --global-settings $(workspaces.cache.path)/.m2/settings.xml -Dmaven.repo.local=$(workspaces.cache.path) ${PROXY_CONF}"
-          mvn dependency:go-offline
+          alias mvn="mvn --global-settings $(workspaces.cache.path)/.m2/settings.xml -Dmaven.repo.local=$(workspaces.cache.path)"
+          mvn dependency:go-offline ${PROXY_CONF}
           if [ "$(params.NATIVE_BUILD)" = true ] ; then
-            mvn clean package -Pnative -DskipTests
+            mvn clean package -Pnative -DskipTests ${PROXY_CONF}
           else
-            mvn clean package -DskipTests 
+            mvn clean package -DskipTests ${PROXY_CONF}
           fi
           
           echo "------------------------------"
