@@ -31,6 +31,9 @@ spec:
         kind: ImageStreamTag
         namespace: openshift
         name: 'java:openjdk-11-ubi8'
+      env:
+        - name: GIT_SSL_NO_VERIFY
+          value: '{{ not .Values.gitSslVerify }}'
   postCommit: {}
   source:
     type: Git

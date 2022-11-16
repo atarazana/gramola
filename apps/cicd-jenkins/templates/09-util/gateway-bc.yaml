@@ -26,6 +26,8 @@ spec:
         - name: MAVEN_ARGS_APPEND
         - name: ARTIFACT_DIR
         - name: MAVEN_ARGS
+        - name: GIT_SSL_NO_VERIFY
+          value: '{{ not .Values.gitSslVerify }}'
   output:
     to:
       kind: ImageStreamTag

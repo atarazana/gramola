@@ -72,7 +72,8 @@ spec:
               name: '{{ .Values.jenkinsServiceName }}-data'
             - mountPath: /etc/pki/ca-trust/source/anchors
               name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
-          image: ' '
+          image: >-	
+            image-registry.openshift-image-registry.svc:5000/openshift/jenkins@sha256:052efecbd86d2f22d9e690b8b647014e8a42b23ef8d66ea27e63eee4f67d9288
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       serviceAccountName: '{{ .Values.jenkinsServiceName }}'

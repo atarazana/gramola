@@ -21,6 +21,9 @@ spec:
       buildArgs:
         - name: FROM_IMAGE
           value: '{{ .Values.jenkinsAgentBaseImage }}'
+      env:
+        - name: GIT_SSL_NO_VERIFY
+          value: '{{ not .Values.gitSslVerify }}'
   output:
     to:
       kind: ImageStreamTag

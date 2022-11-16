@@ -6,6 +6,8 @@ gitUsername: atarazana
 baseRepoName: gramola
 gitContextDir: .
 
+gitSslVerify: true
+
 containerRegistryServer: quay.io
 containerRegistryOrg: varadero
 
