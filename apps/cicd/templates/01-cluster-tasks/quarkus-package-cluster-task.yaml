@@ -49,7 +49,7 @@ spec:
 
           if [ -z "${HTTP_PROXY}" ]
           then
-            echo "\$HTTP_PROXY is empty"\
+            echo "\$HTTP_PROXY is empty"
           else
             [[ ${HTTP_PROXY} =~ ${PATTERN} ]]
             PROXY_HOST_HTTP=${BASH_REMATCH[1]}
@@ -62,7 +62,7 @@ spec:
 
           if [ -z "${HTTPS_PROXY}" ]
           then
-            echo "\$HTTPS_PROXY is empty"\
+            echo "\$HTTPS_PROXY is empty"
           else
             [[ ${HTTPS_PROXY} =~ ${PATTERN} ]]
             PROXY_HOST_HTTPS=${BASH_REMATCH[1]}
@@ -75,7 +75,7 @@ spec:
 
           if [ -z "${NO_PROXY}" ]
           then
-            echo "\$NO_PROXY is empty"\
+            echo "\$NO_PROXY is empty"
           else
             
             PROXY_NO=${NO_PROXY//,/|}
