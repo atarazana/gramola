@@ -11,6 +11,8 @@ gitSslVerify: true
 containerRegistryServer: quay.io
 containerRegistryOrg: varadero
 
+containerRegistryTlsVerify: true
+
 jnlpServiceName: jenkins-jnlp
 
 jenkinsServiceName: jenkins
