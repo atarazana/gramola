@@ -156,13 +156,13 @@ In order to refer to a repository in ArgoCD you have to register it before, the 
 
 
 ```sh
-argocd repo add https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}.git --username ${GIT_USERNAME} --password ${GIT_PAT} --upsert --grpc-web
+argocd repo add https://${GIT_HOST}/${GIT_USERNAME}/${BASE_REPO_NAME}.git --username ${GIT_USERNAME} --password ${GIT_PAT} --upsert --grpc-web --insecure --insecure-skip-server-verification
 ```
 
 Run this command to list the registered repositories.
 
 ```sh
-argocd repo list
+argocd repo list --grpc-web --insecure
 ```
 
 # Register additional clusters
@@ -189,7 +189,7 @@ argocd cluster add ${CONTEXT_NAME} --name ${CLUSTER_NAME}
 Check if your cluster has been added correctly.
 
 ```sh
-argocd cluster list
+argocd cluster list --grpc-web --insecure
 ```
 
 # List ArgoCD Project definitions
@@ -197,7 +197,7 @@ argocd cluster list
 **IMPORTANT:** Now you have to log back in the cluster where ArgoCD is running.
 
 ```sh
-argocd proj list
+argocd proj list --grpc-web --insecure
 ```
 
 # Create Root Apps
