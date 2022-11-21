@@ -21,6 +21,10 @@ spec:
           value: openshift
         - name: KUBECONFIG
           value: "/tmp/config"
+        - name: ADMIN_USER
+          value: "gramola"
+        - name: ADMIN_PASS
+          value: "openshift"
         command:
         - /bin/sh
         - '-c'
@@ -37,13 +41,15 @@ spec:
             exit ${RET}
           fi
           TOKEN_NAME="install-$RANDOM"
-          GITEA_INSTALL_TOKEN=$(curl -sS -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' -u opentlc-mgr:r3dh4t1\! http://${GITEA_HOST}/api/v1/users/opentlc-mgr/tokens | jq -r .sha1)
+          GITEA_INSTALL_TOKEN=$(curl -sS -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' \
+            -u ${ADMIN_USER}:${ADMIN_PASS} http://${GITEA_HOST}/api/v1/users/${ADMIN_USER}/tokens | jq -r .sha1)
           echo "GITEA_INSTALL_TOKEN=${GITEA_INSTALL_TOKEN}"
+          RET=$?
           if [ -z "${GITEA_INSTALL_TOKEN}" ] || [ "${GITEA_INSTALL_TOKEN}" == "null" ]; then
-            echo "ERROR no GITEA_INSTALL_TOKEN was returned, exiting"
+            echo "ERROR no GITEA_INSTALL_TOKEN was returned, exiting with ${RET}"
             sleep ${SLEEP_TIME}
             echo "------------------------------"
-            exit ${RET}
+            exit 1
           fi
           for i in $(seq 1 $COUNT); 
           do
