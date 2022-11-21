@@ -1,20 +1,24 @@
-apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   annotations:
     template.alpha.openshift.io/wait-for-ready: 'true'
   name: '{{ .Values.jenkinsServiceName }}'
   namespace: '{{ .Values.jenkinsNamespace }}'
+  labels:
+    app.openshift.io/runtime: jenkins
 spec:
   replicas: 1
   selector:
-    name: '{{ .Values.jenkinsServiceName }}'
+    matchLabels:
+      name: '{{ .Values.jenkinsServiceName }}'
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         name: '{{ .Values.jenkinsServiceName }}'
+        app.openshift.io/runtime: jenkins
     spec:
       containers:
         - resources:
@@ -72,8 +76,7 @@ spec:
               name: '{{ .Values.jenkinsServiceName }}-data'
             - mountPath: /etc/pki/ca-trust/source/anchors
               name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
-          image: >-	
-            image-registry.openshift-image-registry.svc:5000/openshift/jenkins@sha256:052efecbd86d2f22d9e690b8b647014e8a42b23ef8d66ea27e63eee4f67d9288
+          image: '{{ .Values.jenkinsImage }}'
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       serviceAccountName: '{{ .Values.jenkinsServiceName }}'
@@ -85,15 +88,5 @@ spec:
             name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
             optional: true
           name: '{{ .Values.jenkinsServiceName }}-trusted-ca-bundle'
-  triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-          - jenkins
-        from:
-          kind: ImageStreamTag
-          name: '{{ .Values.jenkinsImageStreamTag }}'
-          namespace: '{{ .Values.jenkinsImageStreamTagNamespace }}'
-      type: ImageChange
-    - type: ConfigChange
+  
     

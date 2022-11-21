@@ -27,6 +27,7 @@ jenkinsEnableFatalErrorLogFile: false
 jenkinsUpdateCenterInsecure: true
 jenkinsDisableAdministrativeMonitors: false
 
+jenkinsImage: quay.io/atarazana/jenkins:v4.10
 jenkinsImageStreamTag: 'jenkins:2'
 jenkinsImageStreamTagNamespace: 'openshift'
 
