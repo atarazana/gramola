@@ -229,6 +229,10 @@ spec:
           value: "30"
         - name: PASSWORD
           value: openshift
+        - name: ADMIN_USER
+          value: "gramola"
+        - name: ADMIN_PASS
+          value: "openshift"
         command:
         - /bin/bash
         - -x
@@ -337,7 +341,7 @@ spec:
           curl -sS $QUAY_HOST/api/v1/user/ \
             -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
             -H 'Content-Type: application/json' \
-            --data-raw '{"password":"openshift","username":"gramola'","email":"gramola@ocp.com","repeatPassword":"openshift"}'
+            --data-raw '{"password":"'${ADMIN_PASS}'","username":"'${ADMIN_USER}'","email":"'${ADMIN_USER}'@ocp.com","repeatPassword":"'${ADMIN_PASS}'"}'
           echo "========== Users before creating lab users ==========="
           curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
           for i in $(seq 1 $COUNT); 
@@ -346,7 +350,7 @@ spec:
             curl -sS $QUAY_HOST/api/v1/user/ \
               -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
               -H 'Content-Type: application/json' \
-              --data-raw '{"password":"openshift","username":"user'$i'","email":"user'$i'@ocp.com","repeatPassword":"openshift"}'
+              --data-raw '{"password":"'${PASSWORD}'","username":"user'$i'","email":"user'$i'@ocp.com","repeatPassword":"'${PASSWORD}'"}'
           done
           echo "========== Users after creating lab users ==========="
           curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
