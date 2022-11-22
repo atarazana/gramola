@@ -92,10 +92,12 @@ spec:
         - mountPath: /var/lib/containers
           name: varlibcontainers
       workingDir: $(workspaces.source.path)
+      {{ if or (gt .Values.ocpVersion "4.11") (eq .Values.ocpVersion "4.11") }}
       securityContext:
         capabilities:
           add:
             - SETFCAP
+      {{ end }}
     - command:
         - buildah
         - bud
@@ -114,10 +116,12 @@ spec:
         - mountPath: /var/lib/containers
           name: varlibcontainers
       workingDir: $(workspaces.source.path)
+       {{ if or (gt .Values.ocpVersion "4.11") (eq .Values.ocpVersion "4.11") }}
       securityContext:
         capabilities:
           add:
             - SETFCAP
+      {{ end }}
     - command:
         - buildah
         - push
@@ -133,10 +137,12 @@ spec:
         - mountPath: /var/lib/containers
           name: varlibcontainers
       workingDir: $(workspaces.source.path)
+       {{ if or (gt .Values.ocpVersion "4.11") (eq .Values.ocpVersion "4.11") }}
       securityContext:
         capabilities:
           add:
             - SETFCAP
+      {{ end }}
     - image: $(params.BUILDER_IMAGE)
       name: digest-to-results
       resources: {}
