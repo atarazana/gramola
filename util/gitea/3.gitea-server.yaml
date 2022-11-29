@@ -20,3 +20,5 @@ spec:
   giteaAdminEmail: gramola@ocp.com
   giteaWebhookAllowedHostList: '*'
   giteaWebhookSkipTlsVerify: true
+  # giteaMigrationsAllowedDomains: 'github.com,gitlab.com'
+  # giteaMigrationsSkipTlsVerify: true
