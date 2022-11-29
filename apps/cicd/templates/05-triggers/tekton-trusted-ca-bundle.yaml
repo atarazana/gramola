@@ -4,4 +4,4 @@ metadata:
   labels:
     config.openshift.io/inject-trusted-cabundle: 'true'
   name: 'tekton-trusted-ca-bundle'
-  namespace: '{{ .Values.cicdNamespace }}'
+  namespace: {{ printf "%s%s" .Values.cicdNamespace .Values.namespaceSuffix }}
