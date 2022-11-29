@@ -33,6 +33,9 @@ spec:
     - name: GIT_SSL_VERIFY
       type: string
       default: '{{ .Values.gitSslVerify }}'
+    - name: WAIT_FOR_HEALTH
+      type: string
+      default: '{{ .Values.gramolaWaitForHealth }}'
   tasks:
     - name: argocd-sync
       params:
@@ -40,6 +43,8 @@ spec:
           value: "$(params.APP_NAME)-app-$(params.OVERLAY){{.Values.namespaceSuffix }}"
         - name: TWIN_APP_NAME
           value: "$(params.APP_NAME)-app-$(params.OVERLAY)-$(params.TWIN_OVERLAY_SUFFIX){{.Values.namespaceSuffix }}"
+        - name: WAIT_FOR_HEALTH
+          value: "$(params.WAIT_FOR_HEALTH)"
       taskRef:
         kind: ClusterTask
         name: {{ printf "argocd-sync%s" .Values.namespaceSuffix }}

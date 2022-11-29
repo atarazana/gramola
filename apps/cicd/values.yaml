@@ -58,3 +58,6 @@ gramolaGatewayCiPushTriggerRootName: gateway-ci-pl-push
 ## CD pipelines triggered by PR closed and merged
 gramolaEventsCdPrTriggerRootName: events-cd-pl-pr
 gramolaGatewayCdPrTriggerRootName: gateway-cd-pl-pr
+
+# Pipeline ArgoCD wait for healthy status
+gramolaWaitForHealth: 'TRUE'

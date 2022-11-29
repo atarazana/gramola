@@ -19,6 +19,10 @@ spec:
     - description: Name of the Twin Application to sync
       name: TWIN_APP_NAME
       type: string
+    - description: Wait until app is healthy defaults to FALSE
+      name: WAIT_FOR_HEALTH
+      type: string
+      default: 'FALSE'
     - default: quay.io/atarazana/argocd:0.0.1
       description: The image used where the argocd binary is
       name: TASK_IMAGE
@@ -36,6 +40,12 @@ spec:
         #!/bin/sh
 
         printf "\n>>> START\n\n"
+
+        # WAIT_FOR_HEALTH
+        WAIT_FOR_HEALTH_FLAG=""
+        if [ $(params.WAIT_FOR_HEALTH) == "TRUE" ]; then
+          WAIT_FOR_HEALTH_FLAG="--health"
+        fi
 
         printf "APP_NAME=$(params.APP_NAME)\n"
         printf "TWIN_APP_NAME=$(params.TWIN_APP_NAME)\n\n"
@@ -55,7 +65,9 @@ spec:
 
         printf "Starting sync of $(params.APP_NAME)\n"
         printf "================================================\n\n"
-        argocd app sync --grpc-web --timeout 120 $(params.APP_NAME)
+        #argocd app sync --grpc-web --timeout 120 $(params.APP_NAME)
+        argocd --grpc-web app sync --async $(params.APP_NAME)
+        argocd --grpc-web app get --refresh $(params.APP_NAME) > /dev/null && argocd --grpc-web app wait $(params.APP_NAME) --sync ${WAIT_FOR_HEALTH_FLAG}
         printf "\nSync of $(params.APP_NAME) ended\n"
         printf "================================================\n\n"
         if [ "$?" == 0 ]; then
@@ -65,7 +77,9 @@ spec:
           if [ "$?" == 0 ]; then
             printf "Starting sync of $(params.TWIN_APP_NAME)\n"
             printf "==============================================================\n\n"
-            argocd app sync --grpc-web --timeout 120 $(params.TWIN_APP_NAME)
+            #argocd app sync --grpc-web --timeout 120 $(params.TWIN_APP_NAME)
+            argocd --grpc-web app sync --async $(params.TWIN_APP_NAME)
+            argocd --grpc-web app get --refresh $(params.TWIN_APP_NAME) > /dev/null && argocd --grpc-web app wait $(params.TWIN_APP_NAME) --sync ${WAIT_FOR_HEALTH_FLAG}
             if ! [ "$?" == 0 ]; then
               printf "\n*** ERROR WHILE SYNCING TWIN APP $(params.TWIN_APP_NAME) ***\n"
               echo -n "false" > $(results.TWIN_APP_SYNC_SUCCESS.path)
