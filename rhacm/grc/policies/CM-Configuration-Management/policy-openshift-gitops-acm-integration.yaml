@@ -1,0 +1,120 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-openshift-gitops-acm-integration
+  annotations:
+    policy.open-cluster-management.io/standards: NIST 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline 
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-clusterset
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: ManagedClusterSet
+                metadata:
+                  name: all-openshift-clusters
+                  spec: {}
+
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-clusterset-binding
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: ManagedClusterSetBinding
+                metadata:
+                  name: all-openshift-clusters
+                  namespace: openshift-gitops
+                spec:
+                  clusterSet: all-openshift-clusters
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: Placement
+                metadata:
+                  name: all-openshift-clusters
+                  namespace: openshift-gitops
+                spec:
+                  predicates:
+                  - requiredClusterSelector:
+                      labelSelector:
+                        matchExpressions:
+                        - key: vendor
+                          operator: "In"
+                          values:
+                          - OpenShift
+
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: configure-gitops-clusters
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: apps.open-cluster-management.io/v1beta1
+                kind: GitOpsCluster
+                metadata:
+                  name: argo-acm-clusters
+                  namespace: openshift-gitops
+                spec:
+                  argoServer:
+                    cluster: local-cluster
+                    argoNamespace: openshift-gitops
+                  placementRef:
+                    kind: Placement
+                    apiVersion: cluster.open-cluster-management.io/v1alpha1
+                    name: all-openshift-clusters
+                    namespace: openshift-gitops                             
+
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-openshift-gitops-acm-integration
+placementRef:
+  name: placement-policy-openshift-gitops-acm-integration
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-openshift-gitops-acm-integration
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-openshift-gitops-acm-integration
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - {key: name, operator: In, values: ["local-cluster"]}

@@ -1,0 +1,98 @@
+## This policy creates two Argo projects and deploy the gramola app.
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-gitops-gramola-app-cloud
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/disable-templates: "true"
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: gramola-argo-app-cloud
+          annotations:
+            policy.open-cluster-management.io/disable-templates: "true"
+        spec:
+          remediationAction: inform # will be overridden by remediationAction in parent policy
+          severity: low
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: ApplicationSet
+                metadata:
+                  name: gramola-cloud
+                  namespace: openshift-gitops
+                  labels:
+                    argocd-root-app: "true"
+                spec:
+                  generators:
+                  - list:
+                      elements:
+                      - env: test-cloud
+                        desc: "Gramola Test"
+                  template:
+                    metadata:
+                      name: gramola-root-app-{{ env }}
+                      namespace: openshift-gitops
+                      labels:
+                        argocd-root-app-cloud: "true"
+                      finalizers:
+                      - resources-finalizer.argocd.argoproj.io
+                    spec:
+                      destination:
+                        namespace: openshift-gitops
+                        name: in-cluster
+                      project: default
+                      syncPolicy:
+                        automated:
+                          selfHeal: true
+                      source:
+                        helm:
+                          parameters:
+                            - name: gitUrl
+                              value: "https://github.com"
+                            - name: gitUsername
+                              value: "atarazana"
+                            - name: baseRepoName
+                              value: "gramola-conf"
+                            - name: gitRevision
+                              value: "main"
+                            - name: destinationName
+                              value: aws-managed1
+                        path: apps/{{ env }}
+                        repoURL: https://github.com/atarazana/gramola-conf
+                        targetRevision: main
+
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-gitops-gramola-app-cloud
+placementRef:
+  name: placement-policy-gitops-gramola-app-cloud
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+- name: policy-gitops-gramola-app-cloud
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-gitops-gramola-app-cloud
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - {key: name, operator: In, values: ["local-cluster"]}

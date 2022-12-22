@@ -10,6 +10,3 @@ spec:
   channel: rhacm-policies/gramola-demo-policies
   placement:
     local: true
-#  packageFilter:
-#    filterRef:
-#      name: gramola-demo-policies-github

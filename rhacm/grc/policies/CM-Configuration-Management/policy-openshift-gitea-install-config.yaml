@@ -1,0 +1,207 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-openshift-gitea-install-config
+  annotations:
+    policy.open-cluster-management.io/standards: NIST 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline 
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: gitea-catalog-source
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: CatalogSource
+                metadata:
+                  name: redhat-gpte-gitea
+                  namespace: openshift-marketplace
+                spec:
+                  sourceType: grpc
+                  image: quay.io/gpte-devops-automation/gitea-catalog:latest
+                  displayName: Red Hat GPTE (Gitea)
+                  publisher: Red Hat GPTE
+
+
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: gitea-sub
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+
+            ## Installing gitea Operator
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  labels:
+                    operators.coreos.com/gitea-operator.openshift-operators: ''
+                  name: gitea-operator
+                  namespace: openshift-operators
+                spec:
+                  channel: stable
+                  installPlanApproval: Automatic
+                  name: gitea-operator
+                  source: redhat-gpte-gitea
+                  sourceNamespace: openshift-marketplace
+                  #startingCSV: gitea-operator.v1.2.3 
+
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: gitea-server
+        spec:
+          remediationAction: enforce
+          severity: medium
+          object-templates:           
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: gitea-system
+
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: gpte.opentlc.com/v1
+                kind: Gitea
+                metadata:
+                  name: repository
+                  namespace: gitea-system
+                spec:
+                  giteaVolumeSize: 4Gi
+                  giteaImageTag: latest
+                  postgresqlVolumeSize: 4Gi
+                  giteaSsl: true
+                  giteaAdminUser: opentlc-mgr
+                  giteaAdminPassword: "r3dh4t1!"
+                  giteaAdminPasswordLength: 32
+                  giteaAdminEmail: admin@example.com           
+
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: openshift-gitea-config
+        spec:
+          remediationAction: enforce
+          severity: medium
+          object-templates:     
+
+            - complianceType: musthave
+              objectDefinition:            
+                apiVersion: batch/v1
+                kind: Job
+                metadata:
+                  namespace: gitea-system
+                  name: gitea-setup
+                spec:
+                  backoffLimit: 6
+                  template:
+                    spec:
+                      containers:
+                      - name: worker
+                        image: quay.io/atarazana/gh:0.0.1
+                        env:
+                        - name: GITEA_HOST
+                          value: repository:3000
+                        - name: COUNT
+                          value: "99"
+                        - name: SLEEP_TIME
+                          value: "30"
+                        - name: PASSWORD
+                          value: openshift
+                        - name: KUBECONFIG
+                          value: "/tmp/config"
+                        command:
+                        - /bin/sh
+                        - '-c'
+                        args:
+                        - |-
+                          echo "------------------------------"
+                          echo " Checking http://${GITEA_HOST}/"
+                          curl -sSf -LI http://${GITEA_HOST}/
+                          RET=$?
+                          if [ ${RET} -ne 0 ]; then
+                            echo "ERROR curl to GITEA_HOST=${GITEA_HOST} failed with ${RET}"
+                            sleep ${SLEEP_TIME}
+                            echo "------------------------------"
+                            exit ${RET}
+                          fi
+                          TOKEN_NAME="install-$RANDOM"
+                          GITEA_INSTALL_TOKEN=$(curl -sS -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' -u opentlc-mgr:r3dh4t1\! http://${GITEA_HOST}/api/v1/users/opentlc-mgr/tokens | jq -r .sha1)
+                          echo "GITEA_INSTALL_TOKEN=${GITEA_INSTALL_TOKEN}"
+                          if [ -z "${GITEA_INSTALL_TOKEN}" ] || [ "${GITEA_INSTALL_TOKEN}" == "null" ]; then
+                            echo "ERROR no GITEA_INSTALL_TOKEN was returned, exiting"
+                            sleep ${SLEEP_TIME}
+                            echo "------------------------------"
+                            exit ${RET}
+                          fi
+                          for i in $(seq 1 $COUNT); 
+                          do
+                            echo "Creating user${i}"
+                            curl -sS -X 'POST' \
+                              "http://${GITEA_HOST}/api/v1/admin/users?access_token=${GITEA_INSTALL_TOKEN}" \
+                              -H 'accept: application/json' \
+                              -H 'Content-Type: application/json' \
+                              -d '{
+                                    "email": "user'"${i}"'@example.com",
+                                    "full_name": "User user'"${i}"'",
+                                    "login_name": "user'"${i}"'",
+                                    "must_change_password": false,
+                                    "password": "'"${PASSWORD}"'",
+                                    "send_notify": true,
+                                    "source_id": 0,
+                                    "username": "user'"${i}"'",
+                                    "visibility" : "public"
+                              }'
+                          done
+
+                          echo "------------------------------"
+                        imagePullPolicy: Always
+                      restartPolicy: Never
+
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-openshift-gitea-install-config
+placementRef:
+  name: placement-policy-openshift-gitea-install-config
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-openshift-gitea-install-config
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-openshift-gitea-install-config
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - {key: name, operator: In, values: ["local-cluster"]}

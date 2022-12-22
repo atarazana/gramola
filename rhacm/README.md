@@ -1,19 +1,40 @@
 ## To use the policies on this repo just follow the steps
 
-Issue this command:
+Issue this command (*):
+
+```bash
+oc apply -k deploy/
+```
+
+or
 
 ```bash
 kubectl apply -k deploy/
 ```
 
-This will create a namespace called `rhacm-policies` and will deploy on it 2 policies. The policies can be found here:
-[policies](grc/policies).
+> ![WARNING](../images/warning-icon.png) **(*) WARNING**: You need a user with `subscription-administrator` role granted.
+>
+> Ex. How to grant it:
+>
+> ```bash
+> oc create clusterrolebinding acm-policy-editor 
+> --clusterrole=open-cluster-management:subscription-admin 
+> --user=[My_User]
+> ```
 
-The gitops policy enforces the presence of the `OpenShift GitOps` operator in order to be able to deploy gramola or other apps using ArgoCD.
+This will create a namespace called `rhacm-policies` and will deploy the policies stored here:
+[policies](grc/policies/CM-Configuration-Management).
 
-The pipelines policy enforces the presence of the `OpenShift Pipelines` operator so you will be able to deploy Tekton pipelines in your clusters.
+### Configuration Management
 
-To get this policies been applied to your managed clusters you need to label those cluster with the following:
+Policy  | Description | Prerequisites
+------- | ----------- | -------------
+[Install OpenShift-Gitops](./grc/policies/CM-Configuration-Management/policy-openshift-gitops-operator-patched.yaml) | Use this policy to install the Red Hat OpenShift GitOps (Argo CD) | Requires OpenShift 4.x. Check the [documentation](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/cicd/gitops) for more information.
+[Install OpenShift-Pipelines](./grc/policies/CM-Configuration-Management/policy-openshift-pipelines-operator.yaml) | Use this policy to install the Red Hat OpenShift Pipelines (Tekton) | Requires OpenShift 4.x. Check the [documentation](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/cicd/pipelines) for more information.
+[Install Red Hat Quay](./grc/policies/CM-Configuration-Management/policy-openshift-quay-install-config.yaml) | Use this policy to install the Red Hat Quay container registry | Requires OpenShift 4.x. Check the [documentation](https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-deploy) for more information.
+[Install Gitea](./grc/policies/CM-Configuration-Management/policy-openshift-gitea-install-config.yaml) | Use this policy to install Gitea | Requires OpenShift 4.x.
+[Configuring Managed Clusters for OpenShift GitOps operator and Argo CD](./grc/policies/CM-Configuration-Management/policy-openshift-gitops-acm-integration.yaml) | Register a set of one or more ACM managed clusters to an instance of Argo CD | Requires OpenShift (*)
+[Configuring Managed Clusters for OpenShift GitOps operator and Argo CD](./grc/policies/CM-Configuration-Management/policy-label-cluster.yaml) | Adding cluster to **all-openshift-clusters** `ManagedClusterSet` | Just for `local-cluster`
+[Install Gramola](./grc/policies/CM-Configuration-Management/policy-gitops-gramola-all.yaml) | Use this policy to Deploy Gramola stuff (CI/CD & applications) | -
 
-- For OpenShift GitOps: `deployer=argo`.
-- For OpenShift Pipelines: `ci-cd=tekton`.
+> ![NOTE](../images/note-icon.png) **(*) NOTE**: Only `OpenShift` clusters are registered to an `Argo CD`, not other Kubernetes clusters. If you want to register others, you need to change the placement rule / matching label.
