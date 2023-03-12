@@ -34,12 +34,11 @@ metadata:
   name: odf-operator
   namespace: openshift-storage
 spec:
-  channel: stable-4.10
+  channel: stable-4.11
   installPlanApproval: Automatic
   name: odf-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: odf-operator.v4.10.2
 ---
 apiVersion: v1
 kind: Namespace
@@ -279,7 +278,7 @@ spec:
               - default
           ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
           BROWSER_API_CALLS_XHR_ONLY: false
-          CREATE_PRIVATE_REPO_ON_PUSH: false
+          CREATE_PRIVATE_REPO_ON_PUSH: true
           SUPER_USERS:
               - quayadmin
           AUTHENTICATION_TYPE: Database
@@ -362,4 +361,3 @@ spec:
         terminationMessagePolicy: File
       restartPolicy: Never
       serviceAccountName: occli
-
