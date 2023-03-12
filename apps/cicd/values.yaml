@@ -5,7 +5,7 @@ gitUsername: atarazana
 baseRepoName: gramola
 baseRepoUrl: https://github.com/atarazana/gramola
 
-ocpVersion: "4.10"
+ocpVersion: "4.11"
 
 containerRegistryServer: quay.io
 containerRegistryOrg: atarazana
