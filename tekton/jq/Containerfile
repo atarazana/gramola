@@ -1,13 +1,14 @@
 ARG FROM_IMAGE
 FROM ${FROM_IMAGE} AS BASE
 
-ENV OC_VERSION=4.8.13
+ENV OC_VERSION=4.12.8
+ENV HELM_VERSION=3.11.2
 
 RUN microdnf install --nodocs -y git openssh-clients tar gzip jq  && \
     microdnf clean all
 
 RUN curl -o /tmp/oc.tar.gz -L https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OC_VERSION}/openshift-client-linux-${OC_VERSION}.tar.gz && cd /usr/bin && tar -xvzf /tmp/oc.tar.gz && chmod a+x /usr/bin/oc && chmod a+x /usr/bin/kubectl && rm -f /tmp/oc.tar.gz
-
+RUN curl -o /tmp/helm.tar.gz -L https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz && cd /usr/bin && tar -xvzf /tmp/helm.tar.gz linux-amd64/helm && mv /usr/bin/linux-amd64/helm /usr/bin/helm && rm -rf /usr/bin/linux-amd64 && chmod a+x /usr/bin/helm && rm -f /tmp/helm.tar.gz
 
 # COPY --from=builder /tmp/openshift-pipelines-git-init ${KO_APP}/${BINARY}
 # COPY openshift/ci-operator/uidwrapper ${KO_APP}/git-init
