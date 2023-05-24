@@ -31,5 +31,5 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app:latest"
+      name: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}:latest"
   

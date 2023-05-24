@@ -1,7 +1,7 @@
 kind: ImageStream
 apiVersion: image.openshift.io/v1
 metadata:
-  name: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app"
+  name: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}"
   namespace: {{ .Values.jenkinsNamespace }}
   labels:
     app: "{{ .Values.appName }}-{{ .Values.gramolaGatewayServiceName }}-app"
