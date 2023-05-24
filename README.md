@@ -48,7 +48,7 @@ We need some sensitive data, your PAT for the source repo:
 ```sh
 export GIT_HOST=$(oc get route/repository -n gitea-system -o jsonpath='{.spec.host}')
 
-export GIT_PAT=$(curl -k -s -X 'POST' -H "Content-Type: application/json"  -k -d '{"name":"cicd'"${RANDOM}"'"}' -u ${GIT_USERNAME}:${GIT_PASSWORD} https://${GIT_HOST}/api/v1/users/${GIT_USERNAME}/tokens | jq -r .sha1)
+export GIT_PAT=$(curl -k -s -X 'POST' -H "Content-Type: application/json"  -k -d '{"name":"cicd'"${RANDOM}"'","scopes": ["repo"]}' -u ${GIT_USERNAME}:${GIT_PASSWORD} https://${GIT_HOST}/api/v1/users/${GIT_USERNAME}/tokens | jq -r .sha1)
 
 echo "GIT_PAT=${GIT_PAT}"
 ```
@@ -114,7 +114,7 @@ curl -X 'POST' \
   "auth_password": "'${GIT_PASSWORD_SRC}'",
   "auth_username": "'${GIT_USERNAME_SRC}'",
   "clone_addr": "'${GIT_URL_GATEWAY_SRC}'.git",
-  "description": "gramola events",
+  "description": "gramola gateway",
   "issues": false,
   "labels": false,
   "lfs": false,
@@ -330,7 +330,7 @@ oc get route/myregistry-quay -n quay-system -o jsonpath='{.spec.host}'
 
 Log in with user `gramola` and password `openshift`
 
-The create a robot account named `cicd` and create two repositories `gramola-events` and `gramola-gateway`.
+The create a robot account named `cicd` and create two repositories `gramola-events` and `gramola-gateway` and give the robot account read permissions on them.
 
 # Tekton Pipelines
 
@@ -416,6 +416,9 @@ Now please run this command, it will ask for the password of the robot account y
 
 ```sh
 echo "Enter password for ${CONTAINER_REGISTRY_USERNAME}: " && read -s CONTAINER_REGISTRY_PASSWORD
+```
+
+```sh
 echo "Password entered: ${CONTAINER_REGISTRY_PASSWORD}"
 ```
 
@@ -723,9 +726,9 @@ argocd app sync gramola-root-app-test-cloud
 # Sync apps manually
 
 ```sh
-argocd app sync economiacircular-app-dev
-argocd app sync economiacircular-app-test
-argocd app sync economiacircular-app-test-cloud
+argocd app sync gramola-root-app-dev
+argocd app sync gramola-root-app-test
+argocd app sync gramola-root-app-test-cloud
 ```
 
 # Sync children apps (app of apps)
