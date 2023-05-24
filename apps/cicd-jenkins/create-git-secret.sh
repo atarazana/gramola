@@ -39,6 +39,20 @@ stringData:
   password: ${GIT_PAT}
 EOF
 
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${JENKINS_NAMESPACE}-${GIT_PAT_SECRET_NAME}
+  namespace: ${JENKINS_NAMESPACE}
+type: kubernetes.io/basic-auth
+stringData:
+  user.name: ${GIT_USERNAME}
+  user.email: "${GIT_USERNAME}@example.com"
+  username: ${GIT_USERNAME}
+  password: ${GIT_PAT}
+EOF
+
 oc annotate -n ${JENKINS_NAMESPACE} secret ${GIT_PAT_SECRET_NAME} \
   "tekton.dev/git-0=https://${GIT_HOST}"
 
