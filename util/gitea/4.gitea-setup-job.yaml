@@ -41,7 +41,7 @@ spec:
             exit ${RET}
           fi
           TOKEN_NAME="install-$RANDOM"
-          GITEA_INSTALL_TOKEN=$(curl -sS -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'"}' \
+          GITEA_INSTALL_TOKEN=$(curl -sS -XPOST -H "Content-Type: application/json"  -k -d '{"name":"'"${TOKEN_NAME}"'","scopes": ["sudo"]}' \
             -u ${ADMIN_USER}:${ADMIN_PASS} http://${GITEA_HOST}/api/v1/users/${ADMIN_USER}/tokens | jq -r .sha1)
           echo "GITEA_INSTALL_TOKEN=${GITEA_INSTALL_TOKEN}"
           RET=$?
