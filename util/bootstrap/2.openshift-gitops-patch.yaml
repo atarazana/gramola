@@ -40,4 +40,4 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - > 
-            helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${DEBUG},clusterName=${DESTINATION_NAME},baseRepoUrl=${BASE_REPO_URL},namespaceSuffix=${NAMESPACE_SUFFIX} --include-crds > ../../helm_base/all.yml && kustomize build | sed "s/\(namespace:[[:space:]]\{1,\}\)\(gramola-.*\)/\1\2${NAMESPACE_SUFFIX}/"
+            helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${ARGOCD_ENV_DEBUG},clusterName=${ARGOCD_ENV_DESTINATION_NAME},baseRepoUrl=${ARGOCD_ENV_BASE_REPO_URL},namespaceSuffix=${ARGOCD_ENV_NAMESPACE_SUFFIX} --include-crds > ../../helm_base/all.yml && kustomize build | sed "s/\(namespace:[[:space:]]\{1,\}\)\(gramola-.*\)/\1\2${ARGOCD_ENV_NAMESPACE_SUFFIX}/"
