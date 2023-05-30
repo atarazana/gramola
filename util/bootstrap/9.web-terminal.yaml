@@ -1,0 +1,96 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+    operators.coreos.com/web-terminal.openshift-operators: ''
+  name: web-terminal
+  namespace: openshift-operators
+spec:
+  channel: fast
+  installPlanApproval: Automatic
+  name: web-terminal
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+---
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  annotations:
+    controller.devfile.io/allow-import-from: '*'
+  name: web-terminal-tooling
+  namespace: openshift-operators
+  labels:
+    console.openshift.io/terminal: 'true'
+spec:
+  components:
+    - container:
+        cpuRequest: 100m
+        memoryRequest: 128Mi
+        sourceMapping: /projects
+        cpuLimit: 400m
+        volumeMounts:
+          - name: scratch
+            path: /home/user/scratch
+        memoryLimit: 256Mi
+        image: quay.io/atarazana/web-terminal-tooling:1.0.1
+        args:
+          - tail
+          - '-f'
+          - /dev/null
+        mountSources: false
+      name: web-terminal-tooling
+    - name: scratch
+      volume:
+        size: 1G
+---
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  annotations:
+    controller.devfile.io/allow-import-from: '*'
+  name: web-terminal-exec
+  namespace: openshift-operators
+  labels:
+    console.openshift.io/terminal: 'true'
+spec:
+  components:
+    - container:
+        cpuRequest: 100m
+        command:
+          - /go/bin/che-machine-exec
+          - '--authenticated-user-id'
+          - $(DEVWORKSPACE_CREATOR)
+          - '--idle-timeout'
+          - $(WEB_TERMINAL_IDLE_TIMEOUT)
+          - '--pod-selector'
+          - controller.devfile.io/devworkspace_id=$(DEVWORKSPACE_ID)
+          - '--use-tls'
+          - '--use-bearer-token'
+        env:
+          - name: WEB_TERMINAL_IDLE_TIMEOUT
+            value: 8h
+        memoryRequest: 128Mi
+        sourceMapping: /projects
+        cpuLimit: 400m
+        memoryLimit: 128Mi
+        image: >-
+          registry.redhat.io/web-terminal/web-terminal-exec-rhel8@sha256:0204154f836a1083a75386453cc58874f374b9af8db743eea800c3e104de8836
+        endpoints:
+          - attributes:
+              type: main
+            exposure: public
+            name: exec
+            protocol: http
+            targetPort: 4444
+        mountSources: false
+      name: web-terminal-exec
+---
+apiVersion: controller.devfile.io/v1alpha1
+kind: DevWorkspaceOperatorConfig
+metadata:
+  name: devworkspace-operator-config
+  namespace: openshift-operators
+config:
+  workspace:
+    idleTimeout: 8h

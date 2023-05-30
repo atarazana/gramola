@@ -6,3 +6,5 @@ resources:
   - 5.pipelines.yaml
   - 6.gitops-guide-users-rbac.yaml
   - 7.quay.yaml
+  - 8.devspaces-sub.yaml
+  - 9.web-terminal.yaml
