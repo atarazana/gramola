@@ -1,0 +1,51 @@
+schemaVersion: 2.2.0
+metadata:
+  generateName: gramola-events
+attributes:
+  controller.devfile.io/devworkspace-config:
+    name: devworkspace-config
+    namespace: openshift-operators
+  controller.devfile.io/scc: container-build
+  controller.devfile.io/storage-type: per-user
+projects:
+  - git:
+      remotes:
+        origin: 'https://github.com/atarazana/gramola.git'
+    name: gramola
+components:
+  - attributes:
+      controller.devfile.io/merge-contribution: true
+    container:
+      env:
+        - name: REGISTRY_AUTH_FILE
+          value: $HOME/auth.json
+      # image: registry.redhat.io/devspaces/udi-rhel8@sha256:bc9d5980a78f0c8b9eb5a20368514ced3dc6e5d99d286cb2e67266b1eb522b94
+      image: quay.io/atarazana/street-java-udi-rhel8:1.0.1
+      memoryLimit: 3G
+      mountSources: true
+      sourceMapping: /projects
+      volumeMounts:
+        - name: scratch
+          path: /home/user/scratch
+    name: tools
+  - name: scratch
+    volume:
+      size: 1G
+# commands:
+#   - exec:
+#       commandLine: mvn package
+#       component: tools
+#       group:
+#         isDefault: true
+#         kind: build
+#       workingDir: ${PROJECTS_ROOT}/gramola-events
+#     id: 1-package
+#   - exec:
+#       commandLine: mvn compile quarkus:dev
+#       component: tools
+#       group:
+#         isDefault: true
+#         kind: run
+#       label: Start Development mode (Hot reload + debug)
+#       workingDir: ${PROJECTS_ROOT}/gramola-events
+#     id: 2-startdev
