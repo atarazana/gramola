@@ -11,7 +11,7 @@ metadata:
   namespace: gitea-system
 spec:
   giteaVolumeSize: 4Gi
-  giteaImageTag: latest
+  giteaImageTag: "1.19"
   postgresqlVolumeSize: 4Gi
   giteaSsl: true
   giteaAdminUser: gramola
