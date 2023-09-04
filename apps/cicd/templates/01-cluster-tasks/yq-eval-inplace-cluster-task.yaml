@@ -47,9 +47,9 @@ spec:
       description: the image used where the yq binary is
       name: TASK_IMAGE
       type: string
-  # results:
-  #   - description: Success or failure
-  #     name: SUCCESS
+  results:
+    - description: Success or failure
+      name: SUCCESS
   steps:
     - image: $(params.TASK_IMAGE)
       name: eval
@@ -139,7 +139,7 @@ spec:
           echo "TWIN OVERLAY NOT FOUND!"
         fi;
 
-        #echo -n "true" > $(results.SUCCESS)        
+        echo -n "true" > $(results.SUCCESS.path)
   workspaces:
     - mountPath: /workspace/source
       name: source
