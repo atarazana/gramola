@@ -83,7 +83,7 @@ spec:
                     policy: 'g, system:cluster-admins, role:admin'
                     scopes: '[groups]'
                   configManagementPlugins: |
-                    - name: kustomized-helm
+                    - name: gramola-kustomized-helm
                       init:
                         command: ["/bin/sh", "-c"]
                         args: ["helm dependency build ../../helm_base || true"]

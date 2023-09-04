@@ -16,11 +16,6 @@ spec:
     automated:
       selfHeal: true
   source:
-    # This is not possible because plugin has been set to kustomized-helm and source.helm applies only to helm
-    # helm:
-    #   parameters:
-    #     - name: clusterName
-    #       value: {{ .Values.destinationName }}
     path: events-deployment/overlays/test
     repoURL: "{{ .Values.baseRepoUrl }}.git"
     targetRevision: HEAD
@@ -32,4 +27,4 @@ spec:
           value: "{{ .Values.baseRepoUrl }}"
         - name: NAMESPACE_SUFFIX
           value: "{{ .Values.namespaceSuffix }}"
-      name: kustomized-helm
+      name: gramola-kustomized-helm

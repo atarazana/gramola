@@ -1,6 +1,6 @@
 spec:
   configManagementPlugins: |
-    - name: kustomized-helm
+    - name: gramola-kustomized-helm
       init:
         command: ["/bin/sh", "-c"]
         args: ["helm dependency build ../../helm_base || true"]
