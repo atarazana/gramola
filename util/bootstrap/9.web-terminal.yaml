@@ -18,6 +18,7 @@ kind: DevWorkspaceTemplate
 metadata:
   annotations:
     controller.devfile.io/allow-import-from: '*'
+    web-terminal.redhat.com/unmanaged-state: "true"
   name: web-terminal-tooling
   namespace: openshift-operators
   labels:
@@ -49,6 +50,7 @@ kind: DevWorkspaceTemplate
 metadata:
   annotations:
     controller.devfile.io/allow-import-from: '*'
+    web-terminal.redhat.com/unmanaged-state: "true"
   name: web-terminal-exec
   namespace: openshift-operators
   labels:
@@ -91,6 +93,8 @@ kind: DevWorkspaceOperatorConfig
 metadata:
   name: devworkspace-operator-config
   namespace: openshift-operators
+  annotations:
+    web-terminal.redhat.com/unmanaged-state: "true"
 config:
   workspace:
     idleTimeout: 8h

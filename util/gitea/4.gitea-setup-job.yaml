@@ -82,9 +82,9 @@ spec:
         - name: GITEA_HOST
           value: repository:3000
         - name: COUNT
-          value: "99"
-        - name: SLEEP_TIME
           value: "30"
+        - name: SLEEP_TIME
+          value: "50"
         - name: PASSWORD
           value: openshift
         - name: KUBECONFIG
