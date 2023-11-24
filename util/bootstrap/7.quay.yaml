@@ -226,6 +226,8 @@ spec:
           value: "99"
         - name: SLEEP_TIME
           value: "30"
+        - name: MAX_RETRIES
+          value: "30"
         - name: PASSWORD
           value: openshift
         - name: ADMIN_USER
@@ -316,7 +318,7 @@ spec:
             echo "waiting for Quay..."
             RETURN=$(curl -k -sSL -o /dev/null -w "%{http_code}" $QUAY_HOST/health/instance)
             sleep 15
-            if [[ "$retry" == 10 ]]
+            if [[ "$retry" == ${MAX_RETRIES} ]]
             then
               oc delete -f  /tmp/quay.yaml
               retry=0

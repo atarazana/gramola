@@ -1,16 +1,3 @@
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: devspaces
-  namespace: openshift-operators
-spec:
-  channel: stable
-  installPlanApproval: Automatic
-  name: devspaces
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
----
 apiVersion: org.eclipse.che/v2
 kind: CheCluster
 metadata:
@@ -23,21 +10,10 @@ spec:
       logLevel: INFO
     dashboard:
       headerMessage:
-        show: false
+        show: true
         text: >-
-          Microsoft Visual Studio Code - Open Source is the default <a
-          href='https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.5/html-single/user_guide/index#selecting-a-workspace-ide'>editor</a>
-          for new workspaces. Eclipse Theia is <a
-          href='https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.5/html-single/release_notes_and_known_issues/index#deprecated-functionalities'>deprecated</a>
-          and will be removed in a future release.
-    database:
-      credentialsSecretName: postgres-credentials
-      externalDb: false
-      postgresDb: dbche
-      postgresHostName: postgres
-      postgresPort: '5432'
-      pvc:
-        claimSize: 1Gi
+          Gramola <a href="https://atarazana.github.io/gramola-gitops-guide/gramola-gitops-guide/index.html"
+          target="_blank" rel="noopener noreferrer">guide</a>
     metrics:
       enable: true
   containerRegistry: {}
@@ -47,19 +23,11 @@ spec:
     maxNumberOfWorkspacesPerUser: -1
     containerBuildConfiguration:
       openShiftSecurityContextConstraint: container-build
-    # disableContainerBuildCapabilities: true
     disableContainerBuildCapabilities: false
-    defaultEditor: che-incubator/che-code/latest
-    defaultComponents:
-      - container:
-          sourceMapping: /projects
-          image: >-
-            registry.redhat.io/devspaces/udi-rhel8@sha256:99ff1b5c541855e4cf368816c4bcdcdc86d32304023f72c4443213a4032ef05b
-        name: universal-developer-image
     defaultNamespace:
       autoProvision: true
       template: <username>-devspaces
-    secondsOfInactivityBeforeIdling: 1800
+    secondsOfInactivityBeforeIdling: 3600
     storage:
       perUserStrategyPvcConfig:
         claimSize: 3Gi

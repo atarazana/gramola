@@ -47,13 +47,49 @@ spec:
     defaultPolicy: 'role:admin'
     policy: 'g, system:cluster-admins, role:admin'
     scopes: '[groups]'
-  configManagementPlugins: |
-    - name: gramola-kustomized-helm
+  repo:
+    env:
+      - name: APP_ENV
+        value: prod
+    sidecarContainers:
+      - name: kustomized-helm
+        command: [/var/run/argocd/argocd-cmp-server]
+        image: quay.io/atarazana/argocd-tools:0.0.2
+        imagePullPolicy: Always
+        securityContext:
+          runAsNonRoot: true
+        volumeMounts:
+          - mountPath: /var/run/argocd
+            name: var-files
+          - mountPath: /home/argocd/cmp-server/plugins
+            name: plugins
+          - mountPath: /tmp
+            name: tmp
+          - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+            subPath: plugin.yaml
+            name: kustomized-helm
+    volumes:
+      - configMap:
+          name: kustomized-helm
+        name: kustomized-helm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kustomized-helm
+  namespace: openshift-gitops
+data:
+  plugin.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: kustomized-helm
+    spec:
+      version: v1.0
       init:
-        command: ["/bin/sh", "-c"]
-        args: ["helm dependency build ../../helm_base || true"]
+        command: [sh, -c, 'helm dependency build ../../helm_base || true']
       generate:
-        command: ["/bin/sh", "-c"]
-        args:
-          - > 
-            helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${ARGOCD_ENV_DEBUG},clusterName=${ARGOCD_ENV_DESTINATION_NAME},baseRepoUrl=${ARGOCD_ENV_BASE_REPO_URL},namespaceSuffix=${ARGOCD_ENV_NAMESPACE_SUFFIX} --include-crds > ../../helm_base/all.yml && kustomize build | sed "s/\(namespace:[[:space:]]\{1,\}\)\(gramola-.*\)/\1\2${ARGOCD_ENV_NAMESPACE_SUFFIX}/"
+        command: [sh, -c, 'helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${ARGOCD_ENV_DEBUG},baseNamespace=${ARGOCD_ENV_BASE_NAMESPACE},clusterName=${ARGOCD_ENV_DESTINATION_NAME},gitUrl=${ARGOCD_ENV_GIT_URL},gitUsername=${ARGOCD_ENV_GIT_USERNAME},baseRepoName=${ARGOCD_ENV_BASE_REPO_NAME},gitRevision=${ARGOCD_ENV_GIT_REVISION}  --include-crds > ../../helm_base/all.yml && kustomize build']
+      discover:
+        find:
+          command: [sh, -c, 'find . -maxdepth 1 -name run.sh']
