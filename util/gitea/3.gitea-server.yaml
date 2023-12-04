@@ -14,10 +14,10 @@ spec:
   giteaImageTag: "1.19"
   postgresqlVolumeSize: 4Gi
   giteaSsl: true
-  giteaAdminUser: gramola
+  giteaAdminUser: gitea
   giteaAdminPassword: "openshift"
   giteaAdminPasswordLength: 32
-  giteaAdminEmail: gramola@ocp.com
+  giteaAdminEmail: gitea@ocp.com
   giteaWebhookAllowedHostList: '*'
   giteaWebhookSkipTlsVerify: true
   # giteaMigrationsAllowedDomains: 'github.com,gitlab.com'

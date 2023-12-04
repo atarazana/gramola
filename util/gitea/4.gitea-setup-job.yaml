@@ -77,20 +77,20 @@ spec:
     spec:
       containers:
       - name: worker
-        image: quay.io/atarazana/gh:0.0.1
+        image: quay.io/atarazana/util:0.0.1
         env:
         - name: GITEA_HOST
           value: repository:3000
         - name: COUNT
-          value: "30"
-        - name: SLEEP_TIME
           value: "50"
+        - name: SLEEP_TIME
+          value: "30"
         - name: PASSWORD
           value: openshift
         - name: KUBECONFIG
           value: "/tmp/config"
         - name: ADMIN_USER
-          value: "gramola"
+          value: "gitea"
         - name: ADMIN_PASS
           value: "openshift"
         command:
@@ -119,6 +119,10 @@ spec:
             echo "------------------------------"
             exit 1
           fi
+
+          GITEA_HOST_ROUTE=$(oc get route/repository -n gitea-system -o jsonpath='{.spec.host}')
+          echo "GITEA_HOST_ROUTE=${GITEA_HOST_ROUTE}"
+          
           for i in $(seq 1 $COUNT); 
           do
             echo "Creating user${i}"
