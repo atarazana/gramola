@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1beta1
 kind: Application
 metadata:
   name: {{ printf "gateway-app-%s%s" "test-cloud" .Values.namespaceSuffix }}

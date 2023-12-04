@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1beta1
 kind: ArgoCD
 metadata:
   name: openshift-gitops
@@ -6,6 +6,50 @@ metadata:
   annotations:
         argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource
 spec:
+  server:
+    autoscale:
+      enabled: false
+    grpc:
+      ingress:
+        enabled: false
+    ingress:
+      enabled: false
+    insecure: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 125m
+        memory: 128Mi
+    route:
+      enabled: true
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+    service:
+      type: ''
+  grafana:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  monitoring:
+    enabled: false
+  notifications:
+    enabled: false
+  prometheus:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  initialSSHKnownHosts: {}
+  sso:
+    dex:
+      openShiftOAuth: true
+    provider: dex
   applicationSet:
     resources:
       limits:
@@ -14,35 +58,11 @@ spec:
       requests:
         cpu: 250m
         memory: 512Mi
-  controller:
-    processors: {}
-    resources:
-      limits:
-        cpu: '2'
-        memory: 8Gi
-      requests:
-        cpu: 250m
-        memory: 4Gi
-  resourceCustomizations: |
-    bitnami.com/SealedSecret:
-      health.lua: |
-        hs = {}
-        hs.status = "Healthy"
-        hs.message = "Controller doesnt report resource status"
-        return hs
-    route.openshift.io/Route:
-      ignoreDifferences: |
-        jsonPointers:
-        - /spec/host
-  server:
-    insecure: true
-    route:
-      enabled: true
-      tls:
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-  dex:
-    openShiftOAuth: true
+    webhookServer:
+      ingress:
+        enabled: false
+      route:
+        enabled: false
   rbac:
     defaultPolicy: 'role:admin'
     policy: 'g, system:cluster-admins, role:admin'
@@ -51,11 +71,20 @@ spec:
     env:
       - name: APP_ENV
         value: prod
+    resources:
+      limits:
+        cpu: '1'
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 256Mi
     sidecarContainers:
-      - name: kustomized-helm
-        command: [/var/run/argocd/argocd-cmp-server]
-        image: quay.io/atarazana/argocd-tools:0.0.2
+      - command:
+          - /var/run/argocd/argocd-cmp-server
+        image: 'quay.io/atarazana/argocd-tools:0.0.2'
         imagePullPolicy: Always
+        name: kustomized-helm
+        resources: {}
         securityContext:
           runAsNonRoot: true
         volumeMounts:
@@ -66,12 +95,41 @@ spec:
           - mountPath: /tmp
             name: tmp
           - mountPath: /home/argocd/cmp-server/config/plugin.yaml
-            subPath: plugin.yaml
             name: kustomized-helm
+            subPath: plugin.yaml
     volumes:
       - configMap:
           name: kustomized-helm
         name: kustomized-helm
+  ha:
+    enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+  tls:
+    ca: {}
+  redis:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+  controller:
+    processors: {}
+    resources:
+      limits:
+        cpu: '2'
+        memory: 8Gi
+      requests:
+        cpu: 250m
+        memory: 4Gi
+    sharding: {}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -80,7 +138,7 @@ metadata:
   namespace: openshift-gitops
 data:
   plugin.yaml: |
-    apiVersion: argoproj.io/v1alpha1
+    apiVersion: argoproj.io/v1beta1
     kind: ConfigManagementPlugin
     metadata:
       name: kustomized-helm

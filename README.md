@@ -206,7 +206,7 @@ Let's deploy all the components of Gramola using an `ApplicationSet`.
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1beta1
 kind: ApplicationSet
 metadata:
   name: gramola
@@ -258,7 +258,7 @@ If an additional cluster has been set up:
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1beta1
 kind: ApplicationSet
 metadata:
   name: gramola-cloud
@@ -346,7 +346,7 @@ Deploy another ArgoCD app to deploy pipelines.
 
 ```sh
 cat <<EOF | kubectl apply -n openshift-gitops -f -
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1beta1
 kind: ApplicationSet
 metadata:
   name: gramola-cicd
@@ -565,7 +565,7 @@ Deploy another ArgoCD app to deploy jenkins pipelines.
 
 ```sh
 cat <<EOF | oc apply -n openshift-gitops -f -
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1beta1
 kind: ApplicationSet
 metadata:
   name: gramola-cicd-jenkins

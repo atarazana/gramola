@@ -1,3 +1,16 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: devspaces
+  namespace: openshift-operators
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: devspaces
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+---
 apiVersion: org.eclipse.che/v2
 kind: CheCluster
 metadata:
@@ -20,7 +33,7 @@ spec:
   devEnvironments:
     startTimeoutSeconds: 300
     secondsOfRunBeforeIdling: -1
-    maxNumberOfWorkspacesPerUser: -1
+    maxNumberOfWorkspacesPerUser: 2
     containerBuildConfiguration:
       openShiftSecurityContextConstraint: container-build
     disableContainerBuildCapabilities: false

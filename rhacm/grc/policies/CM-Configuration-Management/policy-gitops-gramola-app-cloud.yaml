@@ -25,7 +25,7 @@ spec:
           object-templates:
             - complianceType: musthave
               objectDefinition:
-                apiVersion: argoproj.io/v1alpha1
+                apiVersion: argoproj.io/v1beta1
                 kind: ApplicationSet
                 metadata:
                   name: gramola-cloud
