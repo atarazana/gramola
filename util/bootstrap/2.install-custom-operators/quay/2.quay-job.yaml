@@ -1,0 +1,324 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: quay-system  
+---
+apiVersion: noobaa.io/v1alpha1
+kind: NooBaa
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: noobaa
+  namespace: openshift-storage
+spec:
+  coreResources:
+    requests:
+      cpu: "0.1"
+      memory: 1Gi
+  dbResources:
+    requests:
+      cpu: "0.1"
+      memory: 1Gi
+  dbType: postgres
+---
+apiVersion: noobaa.io/v1alpha1
+kind: BackingStore
+metadata:
+  finalizers:
+  - noobaa.io/finalizer
+  labels:
+    app: noobaa
+    template: quay-standalone-template
+  name: noobaa-pv-backing-store
+  namespace: openshift-storage
+spec:
+  pvPool:
+    numVolumes: 1
+    resources:
+      requests:
+        storage: 100Gi
+    storageClass: gp3-csi
+  type: pv-pool
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: occli
+  namespace: openshift-storage
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: occli-permission
+  namespace: openshift-storage
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: ServiceAccount
+  name: occli
+  namespace: openshift-storage
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: noobaa-patch
+  namespace: openshift-storage
+spec:
+  activeDeadlineSeconds: 1400
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      containers:
+      - command:
+        - /bin/bash
+        - -x
+        - -c
+        - |
+          STATUS=""
+          while [ "$STATUS" != "Ready" ]
+          do
+            STATUS=$(oc get -n openshift-storage noobaas | awk '{print $5}' | tail -n 1)
+            sleep 10
+          done
+
+          oc patch -n openshift-storage bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementPolicy":{"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}}}' --type merge -n openshift-storage
+
+          STATUS=""
+          while [ "$STATUS" != "Ready" ]
+          do
+            STATUS=$(oc get -n openshift-storage bucketclass | awk '{print $3}' | tail -n 1)
+            sleep 10
+          done
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        name: noobaa-patch-job
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Never
+      serviceAccountName: occli
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: noobaa
+    noobaa-s3-svc: "true"
+    template: quay-standalone-template
+  name: s3-insecure
+  namespace: openshift-storage
+spec:
+  port:
+    targetPort: s3
+  to:
+    kind: Service
+    name: s3
+    weight: 100
+  wildcardPolicy: None
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: occli
+  namespace: quay-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: occli-permission
+  namespace: quay-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: ServiceAccount
+  name: occli
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  labels:
+    app: noobaa
+    bucket-provisioner: openshift-storage.noobaa.io-obc
+    noobaa-domain: openshift-storage.noobaa.io
+    template: quay-standalone-template
+  name: quay-object
+  namespace: quay-system
+spec:
+  additionalConfig:
+    bucketclass: noobaa-default-bucket-class
+  generateBucketName: quay
+  storageClassName: openshift-storage.noobaa.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    template: quay-standalone-template
+  name: quay-deploy
+  namespace: quay-system
+spec:
+  activeDeadlineSeconds: 64000
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      containers:
+      - env:
+        - name: QUAY_HOST
+          value: "http://myregistry-quay-app"
+        - name: COUNT
+          value: "99"
+        - name: SLEEP_TIME
+          value: "30"
+        - name: MAX_RETRIES
+          value: "30"
+        - name: PASSWORD
+          value: openshift
+        - name: ADMIN_USER
+          value: "gramola"
+        - name: ADMIN_PASS
+          value: "openshift"
+        command:
+        - /bin/bash
+        - -x
+        - -c
+        - |
+          bucket_name=""
+          while [ "$bucket_name" == "" ]
+          do
+            sleep 15
+            bucket_name=$(oc get objectbucketclaim  quay-object -o yaml| grep bucketName | awk -F ': ' '{print $2}' | grep -v {)
+          done
+          access_key=""
+          while [ "$access_key" == "" ]
+          do
+            sleep 5
+            access_key=$(oc get secret quay-object -o yaml | grep AWS_ACCESS_KEY_ID | awk -F ': ' '{print $2}' | grep -v { | base64 -d)
+          done
+          secret_key=""
+          while [ "$secret_key" == "" ]
+          do
+            sleep 5
+            secret_key=$(oc get secret quay-object -o yaml | grep AWS_SECRET_ACCESS_KEY | awk -F ': ' '{print $2}' | grep -v { | base64 -d)
+          done
+          ## Workaround to not using a privileged service account in openshift-storage: create a service+route and check the default domain
+          oc create service clusterip test --tcp=5678:8080
+          oc create route edge test --service=test
+          DOMAIN=$(oc describe route test | grep "Requested Host:" | awk '{print $3}' | awk -F '.apps.' '{print $2}')
+          oc delete route test
+          oc delete service test
+          S3_HOSTNAME=s3-insecure-openshift-storage.apps.$DOMAIN
+          cat <<EOF > /tmp/config.yaml
+          DISTRIBUTED_STORAGE_CONFIG:
+              default:
+                  - RHOCSStorage
+                  - access_key: $access_key
+                    bucket_name: $bucket_name
+                    hostname: $S3_HOSTNAME
+                    is_secure: false
+                    port: "80"
+                    secret_key: $secret_key
+                    storage_path: /datastorage/registry
+          DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+          DISTRIBUTED_STORAGE_PREFERENCE:
+              - default
+          ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
+          BROWSER_API_CALLS_XHR_ONLY: false
+          CREATE_PRIVATE_REPO_ON_PUSH: true
+          SUPER_USERS:
+              - quayadmin
+          AUTHENTICATION_TYPE: Database
+          DEFAULT_TAG_EXPIRATION: 2w
+          ENTERPRISE_LOGO_URL: /static/img/RH_Logo_Quay_Black_UX-horizontal.svg
+          FEATURE_BUILD_SUPPORT: false
+          FEATURE_DIRECT_LOGIN: true
+          FEATURE_MAILING: false
+          FEATURE_USER_INITIALIZE: true
+          REGISTRY_TITLE: Red Hat Quay
+          REGISTRY_TITLE_SHORT: Red Hat Quay
+          TAG_EXPIRATION_OPTIONS:
+          - 2w
+          TEAM_RESYNC_STALE_TIME: 60m
+          TESTING: false
+          EOF
+          oc create secret generic quay-config --from-file config.yaml=/tmp/config.yaml
+          cat <<EOF > /tmp/quay.yaml
+          apiVersion: quay.redhat.com/v1
+          kind: QuayRegistry
+          metadata:
+            name: myregistry
+          spec:
+            configBundleSecret: quay-config
+            components:
+              - kind: objectstorage
+                managed: false
+          EOF
+          oc create -f  /tmp/quay.yaml
+          ## WAIT
+          RETURN=0
+          retry=0
+          while [ $RETURN != "200" ]
+          do
+            echo "waiting for Quay..."
+            RETURN=$(curl -k -sSL -o /dev/null -w "%{http_code}" $QUAY_HOST/health/instance)
+            sleep 15
+            if [[ "$retry" == ${MAX_RETRIES} ]]
+            then
+              oc delete -f  /tmp/quay.yaml
+              retry=0
+              sleep 30
+              oc create -f  /tmp/quay.yaml
+            fi
+            ((retry=retry+1))
+          done
+          ## Create quayadmin user
+          RETURN=$(curl -sS -X POST -k  $QUAY_HOST/api/v1/user/initialize -H 'Content-Type: application/json' \
+            --data '{ "username": "quayadmin", "password":"quaypass123", "email": "quayadmin@example.com", "access_token": true}')
+          echo "RETURN=${RETURN}"
+          ACCESS_TOKEN=$(echo ${RETURN} | jq -r .access_token)
+          if [ -z "${ACCESS_TOKEN}" ] || [ "${ACCESS_TOKEN}" == "null" ]; then
+            echo "ACCESS_TOKEN=${ACCESS_TOKEN} is null"
+            exit 1
+          else
+            echo "ACCESS_TOKEN=${ACCESS_TOKEN}"
+          fi
+          echo "========== Create gramola user ==================="
+          curl -sS $QUAY_HOST/api/v1/user/ \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+            -H 'Content-Type: application/json' \
+            --data-raw '{"password":"'${ADMIN_PASS}'","username":"'${ADMIN_USER}'","email":"'${ADMIN_USER}'@ocp.com","repeatPassword":"'${ADMIN_PASS}'"}'
+          echo "========== Users before creating lab users ==========="
+          curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
+          for i in $(seq 1 $COUNT); 
+          do
+            echo "Creating user$i"
+            curl -sS $QUAY_HOST/api/v1/user/ \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}"  \
+              -H 'Content-Type: application/json' \
+              --data-raw '{"password":"'${PASSWORD}'","username":"user'$i'","email":"user'$i'@ocp.com","repeatPassword":"'${PASSWORD}'"}'
+          done
+          echo "========== Users after creating lab users ==========="
+          curl -sS -X GET -k -H "Authorization: Bearer ${ACCESS_TOKEN}" $QUAY_HOST/api/v1/superuser/users/
+        # image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        image: quay.io/atarazana/jq:0.0.1
+        name: quay-config-preparation
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Never
+      serviceAccountName: occli

@@ -1,0 +1,36 @@
+apiVersion: org.eclipse.che/v2
+kind: CheCluster
+metadata:
+  name: devspaces
+  namespace: openshift-operators
+spec:
+  components:
+    cheServer:
+      debug: false
+      logLevel: INFO
+    dashboard:
+      headerMessage:
+        show: true
+        text: >-
+          Gramola <a href="https://atarazana.github.io/gramola-gitops-guide/gramola-gitops-guide/index.html"
+          target="_blank" rel="noopener noreferrer">guide</a>
+    metrics:
+      enable: true
+  containerRegistry: {}
+  devEnvironments:
+    startTimeoutSeconds: 300
+    secondsOfRunBeforeIdling: -1
+    maxNumberOfWorkspacesPerUser: 2
+    containerBuildConfiguration:
+      openShiftSecurityContextConstraint: container-build
+    disableContainerBuildCapabilities: false
+    defaultNamespace:
+      autoProvision: true
+      template: <username>-devspaces
+    secondsOfInactivityBeforeIdling: 3600
+    storage:
+      perUserStrategyPvcConfig:
+        claimSize: 3Gi
+      pvcStrategy: per-user
+  gitServices: {}
+  networking: {}

@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitea-system
+---
+apiVersion: gpte.opentlc.com/v1
+kind: Gitea
+metadata:
+  name: repository
+  namespace: gitea-system
+spec:
+  giteaVolumeSize: 4Gi
+  giteaImageTag: "1.19"
+  postgresqlVolumeSize: 4Gi
+  giteaSsl: true
+  giteaAdminUser: gitea
+  giteaAdminPassword: "openshift"
+  giteaAdminPasswordLength: 32
+  giteaAdminEmail: gitea@ocp.com
+  giteaWebhookAllowedHostList: '*'
+  giteaWebhookSkipTlsVerify: true
+  # giteaMigrationsAllowedDomains: 'github.com,gitlab.com'
+  # giteaMigrationsSkipTlsVerify: true

@@ -1,0 +1,153 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: openshift-gitops
+  namespace: openshift-gitops
+  annotations:
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource
+spec:
+  server:
+    autoscale:
+      enabled: false
+    grpc:
+      ingress:
+        enabled: false
+    ingress:
+      enabled: false
+    insecure: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 125m
+        memory: 128Mi
+    route:
+      enabled: true
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+    service:
+      type: ''
+  grafana:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  monitoring:
+    enabled: false
+  notifications:
+    enabled: false
+  prometheus:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  initialSSHKnownHosts: {}
+  sso:
+    dex:
+      openShiftOAuth: true
+    provider: dex
+  applicationSet:
+    resources:
+      limits:
+        cpu: '2'
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    webhookServer:
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+  rbac:
+    defaultPolicy: 'role:admin'
+    policy: 'g, system:cluster-admins, role:admin'
+    scopes: '[groups]'
+  repo:
+    env:
+      - name: APP_ENV
+        value: prod
+    resources:
+      limits:
+        cpu: '1'
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+    sidecarContainers:
+      - command:
+          - /var/run/argocd/argocd-cmp-server
+        image: 'quay.io/atarazana/argocd-tools:0.0.2'
+        imagePullPolicy: Always
+        name: kustomized-helm
+        resources: {}
+        securityContext:
+          runAsNonRoot: true
+        volumeMounts:
+          - mountPath: /var/run/argocd
+            name: var-files
+          - mountPath: /home/argocd/cmp-server/plugins
+            name: plugins
+          - mountPath: /tmp
+            name: tmp
+          - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+            name: kustomized-helm
+            subPath: plugin.yaml
+    volumes:
+      - configMap:
+          name: kustomized-helm
+        name: kustomized-helm
+  ha:
+    enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+  tls:
+    ca: {}
+  redis:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+  controller:
+    processors: {}
+    resources:
+      limits:
+        cpu: '2'
+        memory: 8Gi
+      requests:
+        cpu: 250m
+        memory: 4Gi
+    sharding: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kustomized-helm
+  namespace: openshift-gitops
+data:
+  plugin.yaml: |
+    apiVersion: argoproj.io/v1beta1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: kustomized-helm
+    spec:
+      version: v1.0
+      init:
+        command: [sh, -c, 'helm dependency build ../../helm_base || true']
+      generate:
+        command: [sh, -c, 'helm template ../../helm_base --name-template $ARGOCD_APP_NAME --set debug=${ARGOCD_ENV_DEBUG},clusterName=${ARGOCD_ENV_DESTINATION_NAME},baseRepoUrl=${ARGOCD_ENV_BASE_REPO_URL},namespaceSuffix=${ARGOCD_ENV_NAMESPACE_SUFFIX} --include-crds > ../../helm_base/all.yml && kustomize build | sed "s/\(namespace:[[:space:]]\{1,\}\)\(gramola-.*\)/\1\2${ARGOCD_ENV_NAMESPACE_SUFFIX}/"']
+      discover:
+        find:
+          command: [sh, -c, 'find . -maxdepth 1 -name run.sh']

@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: openshift
+resources:
+  # - 0.namespaces.yaml
+  - 1.image-streams.yaml
+  - 2.templates.yaml
+  

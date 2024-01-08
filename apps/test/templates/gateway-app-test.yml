@@ -27,4 +27,4 @@ spec:
           value: "{{ .Values.baseRepoUrl }}"
         - name: NAMESPACE_SUFFIX
           value: "{{ .Values.namespaceSuffix }}"
-      name: gramola-kustomized-helm
+      name: kustomized-helm-v1.0

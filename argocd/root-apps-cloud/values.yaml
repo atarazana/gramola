@@ -1,5 +1,0 @@
-baseRepoUrl: https://github.com/atarazana/gramola
-destinationName: in-cluster
-rootAppNameBase: "gramola-root-app"
-namespaceSuffix: ""
-username: ""

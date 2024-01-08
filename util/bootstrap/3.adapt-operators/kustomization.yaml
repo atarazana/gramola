@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+bases:
+  - ./argocd-projects
+resources:
+  - cluster-monitoring.yaml
+  - devspaces-cluster.yaml
+  - gitops-patch.yaml
+  - gitops-rbac.yaml
+  - gitops-users-rbac.yaml
+  - openshift-logging.yaml
+  - web-terminal.yaml
+  

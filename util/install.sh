@@ -8,6 +8,6 @@ then
     exit 1
 fi
 
-until kubectl apply -k ./bootstrap/; do sleep 2; done
+until oc apply -k ./bootstrap/; do sleep 2; done
 
 

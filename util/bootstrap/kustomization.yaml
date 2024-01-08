@@ -1,10 +1,8 @@
-resources:
-  - 1.openshift-gitops-sub.yaml
-  - 2.openshift-gitops-patch.yaml
-  - 3.openshift-gitops-rbac.yaml
-  - 4.openshift-gitops-projects.yaml
-  - 5.pipelines.yaml
-  - 6.gitops-guide-users-rbac.yaml
-  - 7.quay.yaml
-  - 8.devspaces-sub.yaml
-  - 9.web-terminal.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+bases:
+  # - ./0.install-basics
+  - ./1.install-openshift-operators
+  - ./2.install-custom-operators
+  - ./3.adapt-operators
+  - ./4-install-gitea

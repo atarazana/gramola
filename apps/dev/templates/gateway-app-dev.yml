@@ -23,7 +23,7 @@ spec:
     automated:
       selfHeal: true
   source:
-    # This is not possible because plugin has been set to gramola-kustomized-helm and source.helm applies only to helm
+    # This is not possible because plugin has been set to kustomized-helm-v1.0 and source.helm applies only to helm
     # helm:
     #   parameters:
     #     - name: clusterName
@@ -39,4 +39,4 @@ spec:
           value: "{{ .Values.baseRepoUrl }}"
         - name: NAMESPACE_SUFFIX
           value: "{{ .Values.namespaceSuffix }}"
-      name: gramola-kustomized-helm
+      name: kustomized-helm-v1.0
